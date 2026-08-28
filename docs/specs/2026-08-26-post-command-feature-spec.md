@@ -1,12 +1,12 @@
-# Feature Spec: Post Command (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (owner ruling: 4-stage split, Spend Control station, batch demo) | Status: **Approved** | Constitution: `docs/constitution.md@1`
+# Feature Spec: Martini Shot (slug: `post-command`)
+Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged) | Status: **Approved** | Constitution: `docs/constitution.md@1`
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
 
 ## 1. Summary
 
-Post Command is a real, production-quality web product: an operations cockpit where
+Martini Shot is a real, production-quality web product: an operations cockpit where
 a film/TV project travels through post-production as instrumented jobs. A
 supervisor AI agent watches every station's telemetry through the **Grafana Cloud
 MCP server**, catches failures, diagnoses root causes across metrics/logs/traces,

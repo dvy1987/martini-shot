@@ -1,4 +1,4 @@
-# AGENTS.md — Post Command
+# AGENTS.md — Martini Shot
 
 ## Skill Invocation — Non-Negotiable
 Skills in `.agents/skills/` (and global `~/.agents/skills/`) are mandatory workflows, not optional reference. When a request matches a skill — by its `description` triggers or the Orchestration Map below — open that `SKILL.md` and follow its steps BEFORE answering or acting. This holds on every host that surfaces these skills, Cursor included.
@@ -8,7 +8,7 @@ Skills in `.agents/skills/` (and global `~/.agents/skills/`) are mandatory workf
 - Skip a matching skill ONLY if the user explicitly says "don't use skills" / "skip the skill" / names a different tool.
 
 ## Project Overview
-Post Command: an observability-native post-production cockpit (Agentic Cinema hackathon, Grafana track, deadline 2026-09-09). Python 3.12/FastAPI backend on Cloud Run drives 16 instrumented "station" jobs over a Firestore lease queue; React+Vite frontend (Replit-hosted) visualizes them; an ADK supervisor agent diagnoses and fixes failures via Grafana Cloud MCP. Non-standard: zero-mock integrity law (constitution C-1.*), TDD for deterministic code vs EDD eval suites for generative features, telemetry as a product feature (C-4.*).
+Martini Shot (codename `post-command`): an observability-native post-production cockpit (Agentic Cinema hackathon, Grafana track, deadline 2026-09-09). Python 3.12/FastAPI backend on Cloud Run drives 16 instrumented "station" jobs over a Firestore lease queue; React+Vite frontend (Replit-hosted) visualizes them; an ADK supervisor agent diagnoses and fixes failures via Grafana Cloud MCP. Non-standard: zero-mock integrity law (constitution C-1.*), TDD for deterministic code vs EDD eval suites for generative features, telemetry as a product feature (C-4.*).
 
 ## Key Commands
 ```

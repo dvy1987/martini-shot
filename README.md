@@ -1,4 +1,4 @@
-# Post Command
+# Martini Shot
 
 An operations cockpit where a film/TV project travels through post-production
 as instrumented jobs, watched end-to-end by an AI supervisor agent that reads
@@ -6,6 +6,9 @@ all telemetry through the **Grafana Cloud MCP server**, catches failures,
 diagnoses root causes, and drives fixes. Built for the **Grafana Labs track**
 of the [Agentic Cinema hackathon](https://agentic-cinema.devpost.com/)
 (Google Cloud + partner ecosystem, powered by Gemini). Deadline: 2026-09-09 14:00 PT.
+
+*The martini shot is the last setup of the shooting day — the one before wrap
+is called. This is the system that calls wrap.* (Internal codename: `post-command`.)
 
 **Status:** pre-code (spec + plan approved, repo scaffolded).
 

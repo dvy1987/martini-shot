@@ -6,7 +6,7 @@
       "id": "prompt",
       "path": "AGENTS.md",
       "status": "generated",
-      "sha256": "5bc4c00f7b048bf255a1ab2dfd711dc0a0e075def98da042a64e77eb0e5c3df1",
+      "sha256": "4d17e0f0da6d903a332029598faece0b077040f1521758ff9be073e3fc92aee7",
       "allowed_write": true,
       "written_by": "harness-generation v0"
     },
@@ -38,7 +38,7 @@
       "id": "sub-agents",
       "path": "docs/plans/2026-08-26-post-command-plan.md",
       "status": "user-edited",
-      "sha256": "8cd9ef3d1d153996b651a17642fe8e54d8cf6d047e276b0698d7b8d3df0d0fa7",
+      "sha256": "452349e6ac3f7ef6276bb6981d0c712b215eec3ec4b378a84bfc2845a190637a",
       "allowed_write": false,
       "written_by": "harness-generation v0"
     },
@@ -54,7 +54,7 @@
       "id": "governance",
       "path": "docs/harness/governance.md",
       "status": "generated",
-      "sha256": "9a421f8b3dc9bf022d479e73b3e5a1468b915cee344078997ff7db84aff26ff4",
+      "sha256": "ca2d003db1968b85572cfd649309c962b83db51f0a4c1bfab1616dc75f913754",
       "allowed_write": true,
       "written_by": "harness-generation v0"
     },

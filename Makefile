@@ -1,4 +1,4 @@
-# Post Command — CI-lite (constitution C-3, plan task F-3)
+# Martini Shot (codename post-command) — CI-lite (constitution C-3, plan task F-3)
 # GNU Make 4.05+ (uses .RECIPEPREFIX so recipes survive Windows editors)
 .RECIPEPREFIX := >
 

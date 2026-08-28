@@ -1,4 +1,4 @@
-# Execution Plan: Post Command (slug: `post-command`)
+# Execution Plan: Martini Shot (slug: `post-command`)
 Date: 2026-08-26 | Amended: 2026-08-28 (4-stage staging per owner ruling; Spend Control task; batch demo seed; handoff silent/UI split)
 Spec: `docs/specs/2026-08-26-post-command-feature-spec.md` (Approved, amended 2026-08-28)
 Constitution: `docs/constitution.md@1` | Gates & rulings: `ideas/AO-STATION-MAP.md#amendments`
