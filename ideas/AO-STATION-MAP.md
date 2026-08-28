@@ -3,7 +3,7 @@
 **Read this file first.** It is the single self-contained context document for our
 hackathon project. Anyone (human or agent) who reads only this file should fully
 understand what we are building, why, how we got here, and what happens next.
-Last updated: **2026-08-26**. Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
+Last updated: **2026-08-28** (staging amendment A4). Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
 
 ---
 
@@ -146,21 +146,20 @@ use deterministic checks; MED are middleweight. Sources point back to catalog ID
 | 0 | Handoff Validator | NEW (gap) | silent-in-spine | Locked cuts ship to sound/VFX/color with manifests (EDL/AAF, count sheets); files go missing constantly. Verifies manifest vs delivered files; annotates discrepancies. Runs invisibly inside the spine. |
 | 1 | Ingest & Dailies Watchdog | B | thin-med | Overnight footage processing fails silently at 3am; discovered at 7am with half-empty bins. Watches arrival/integrity/sync; catches stalls mid-night; annotates the dailies board. |
 | 2 | Edit-Assist & Continuity | AK | med (v2 if tight) | Continuity errors (glass full→empty) slip past one exhausted script supervisor into locked cuts; fans make viral compilations. Monitors automated scene-comparison checks; triages severity/visibility. |
-| 3 | **Virtual Pickups** ★ | AI+AN merged | HERO | Reshoot days cost six figures; generative repair now possible (Netflix paid $587M proving it). Editor marks problems ("flat sky", "need vertical", "make it dusk"); jobs run isolate→transform→QC. Agent watches per-op cost/duration AND a classically-computed **flicker/drift score** between frames; flags threshold breaches; auto-retries with anchored prompts; enforces the technique-only consent line (never touches facial performance regions — AJ/X folded in); annotates before/after evidence on the delivery dashboard. Ops: background swap ✅, outpaint reframing 16:9↔9:16 ✅, relight ⚠️ stretch (demote to detect-and-flag if unstable). |
+| 3 | **Virtual Pickups** ★ | AI+AN merged | HERO | Reshoot days cost six figures; generative repair now possible (Netflix paid $587M proving it). Editor marks problems ("flat sky", "need vertical", "make it dusk"); jobs run isolate→transform→QC. Agent watches per-op cost/duration AND a classically-computed **flicker/drift score** between frames; flags threshold breaches; auto-retries with anchored prompts; annotates before/after evidence on the delivery dashboard. Ops: background swap ✅, outpaint reframing 16:9↔9:16 ✅, relight ⚠️ stretch (demote to detect-and-flag if unstable). |
 | 4 | Restoration | K | thin-med (v2 default) | Old films scanned/cleaned frame-by-frame by multi-day automated jobs that fail quietly halfway. Treats restoration as a journey; stall/anomaly detection; "minute 43 went wrong" reports. |
 | 5 | Dialogue Doctor | AP (gap) | med (v2 default) | Clipped/noisy/off-mic dialogue lines found late; ADR is expensive. Gemini LISTENS to stems, ranks worst lines, drafts the ADR cue list. |
 | 6 | Loudness Marshal | AQ (gap) | thin-must-have | Loudness compliance (EBU R128/ATSC A/85) is legally mandated per platform; violations bounce deliveries. ffmpeg math as metrics; agent diagnoses WHICH stem is hot; blocks delivery until fixed. Cheapest credibility in the whole build. |
 | 7 | Cue Sheet Auditor | AR (gap) | thin-med | Music cue sheets drift out of sync with licenses; surfaces in legal or after air. Ledger matching + anomaly flags ("cue 7 used 12s past license"). Great detective beat for the video. |
 | 8 | Conform Sentinel | AS (gap) | thin | Online conform can silently mismatch the locked cut. Hash + frame-count + reel-math verification. |
-| 9 | Localization: Dub timing | C | med | Shows ship in 30–40 languages; AI dubbing fails weirdly (sync drift, truncated segments) and nobody watches the batch pipeline. Real Google TTS produces actual dubbed tracks; duration/sync measured against reference; severity-ranked fixes; Gemini listens to flagged samples. Demo ends with playable audio. |
+| 9 | Localization: Dub timing | C | **Stage 1** (promoted 2026-08-28) | Shows ship in 30–40 languages; AI dubbing fails weirdly (sync drift, truncated segments) and nobody watches the batch pipeline. Real Google TTS produces actual dubbed tracks; duration/sync measured against reference; severity-ranked fixes; Gemini listens to flagged samples. Demo ends with playable audio. Judge can LISTEN to output. |
 | 10 | Localization: Caption specs | W | thin | Subtitle/caption files must meet broadcast specs (reading speed, line length, timing) or platforms reject them. Real parser validates output files; violations ranked; failing batches blocked before shipment. |
 | 11 | Delivery & Compliance pack | AG | thin | Final-mile versioning chaos: wrong aspect ratios, missing cards, spec violations bounce after upload. ffprobe-vs-spec-sheet validation per destination; countdown-to-air-date telemetry; escalation for versions predicted to miss slots. |
 | 12 | Trailer Bench | AT (gap) | v2 unless ahead | Trailers/promos have their own spec regime (runtime caps, rating cards, card counts). Gives catalog idea L a legitimate home. |
 | 13 | Archive Keeper | AU (gap) | v2 | Libraries rot silently (bitrot, failing media). Checksum drift + storage telemetry — natural Grafana territory. |
 | 14 | Accessibility Auditor | AV (v2) | v2 | Audio-description presence/placement, CC timing beyond format specs. |
 
-Cross-cutting feature (not a station): **Consent/technique-only guard** — lives
-inside Pickups and QC rollup; auditable ledger; InterPositive-derived rulebook.
+
 
 ---
 
@@ -198,8 +197,7 @@ Six classes organize the same stations by what KIND of work they do:
 rules, localization priority, version selection.
 **(E) Pipeline hygiene** (discovered during this exercise) — ingest, conform
 checksums, render health, archive, cost tracking.
-**(F) Governance & compliance** (also discovered) — consent guard, delivery
-specs, loudness law, platform QC packs.
+**(F) Governance & compliance** (also discovered) — delivery specs, loudness law, platform QC packs.
 
 ---
 
@@ -207,15 +205,17 @@ specs, loudness law, platform QC packs.
 
 Framing rule for the whole video: **fault-injection test bench, honestly
 labeled.** "We built a miniature post house and broke it six ways; watch the
-supervisor catch every one." One public-domain short film travels the entire
-chain; ~25 seconds per station beat; before/after reel as the finale.
+supervisor catch every one." A BATCH of files (8–10 episodes × ~30 languages of
+localization) travels the entire chain so Grafana charts show system-scale
+volume, not a 20-row list; ~25 seconds per station beat; before/after reel as
+the finale.
 
 | Beat | On screen | Grafana MCP moment |
 |---|---|---|
-| Cold open | "I'm shipping a short film. Post has 10+ handoffs. Each silently bleeds days." Title card: POST COMMAND. | — |
+| Cold open | "I'm shipping a season. Post has 10+ handoffs. Each silently bleeds days." Title card: POST COMMAND. | — |
 | Ingest | Footage arrives; one card corrupt (we corrupted it). Alert fires; agent pulls Loki logs, names the broken offload. | alert→logs→annotation |
 | Pickups pt.1 | Editor marks "flat sky"; background swap renders; flicker score spikes mid-render; agent investigates trace, retries with fixed anchors. | metrics+trace→auto-retry |
-| Pickups pt.2 | "Need vertical for socials": outpaint reframe 16:9→9:16 plays side-by-side. Consent guard visibly BLOCKS a face-touching op (planted). | annotation + policy ledger |
+| Pickups pt.2 | "Need vertical for socials": outpaint reframe 16:9→9:16 plays side-by-side. | annotation + before/after |
 | Dub | Spanish dub generated (real TTS); EP segment runs 800ms long; agent ranks severity, re-times. Play the audio. | metrics→incident→fix |
 | Captions | Caption batch violates reading speed; blocked pre-shipment with reasons. | LogQL evidence |
 | Delivery | Loudness check FAILS (-9 LUFS, legal limit -24); agent diagnoses hot dialogue stem via metric correlation. Fix lands; PASS. | cross-metric diagnosis |
@@ -243,36 +243,45 @@ not just queries); annotations-as-audit-trail framing.
 
 ---
 
-## 9. FROZEN SCOPE PROPOSAL (awaiting owner sign-off)
+## 9. FROZEN SCOPE (amended by A4 — owner staging ruling 2026-08-28)
 
-**In scope (spine + 7 stations):** Spine; Ingest & Dailies (thin); Virtual
-Pickups ★HERO (bg swap + outpaint; relight stretch); Localization Dub (med) +
-Caption specs (thin); Delivery specs + Loudness Marshal (thin×2); Consent guard
-(feature); Conform checksums (thin); Cue Sheet Auditor (thin, first cut if
-slipping).
+**Stage 1 — sellable core (files arrive → files ship):** Spine (jobs+OTel+MCP
+loop+UI); Handoff Validator (invisible, in-spine, no UI); Ingest & Dailies;
+Virtual Pickups ★HERO (bg swap + outpaint; relight stretch); Loudness Marshal;
+Dub timing QC (PROMOTED); Caption specs (part of the delivery check, not its
+own screen); Delivery & Compliance pack; **Spend Control (NEW — acts: throttle
+/ stop / approve; policies in YAML per station; runaway detection; Grafana
+annotation + incident on breach)**.
 
-**v2 board (DO NOT TOUCH before submission):** Dialogue Doctor, Trailer Bench,
-Archive Keeper, Accessibility, Restoration, Edit-Assist continuity, Handoff
-Validator as visible UI (it still runs silently in the spine).
+**Stage 2 — compliance (nothing ships unless every box ticks):** Cue Sheet
+Auditor; Conform Sentinel; Accessibility Auditor; Handoff Validator UI
+(surfaces the silent spine checks).
 
-**Hard anti-creep rules:** station list frozen at design sign-off; never present
-as a feature tour; unreliable hero ops demote rather than get cut; every station
-ships through the same Grafana loop — nothing outside the observability fabric.
+**Stage 3 — audio depth & library (long-running jobs, AI listening):**
+Restoration; Dialogue Doctor; Archive Keeper.
+
+**Stage 4 — editing side (most AI vision, upstream, least urgent):**
+Edit-Assist & Continuity; Trailer Bench.
+
+**Hard anti-creep rules (unchanged):** stages may only be re-cut by owner
+amendment; never present as a feature tour; unreliable hero ops demote rather
+than get cut; every station ships through the same Grafana loop — nothing
+outside the observability fabric.
 
 ---
 
 ## 10. Status & immediate next steps
 
 Done: idea convergence (51 ideas, 13 batches), full-catalog mapping to AO, gap
-analysis (+7 stations), three sequencings, draft scope, demo arc design.
-Pending owner decisions/actions, in recommended order:
-1. Sign off (or edit) §9 frozen scope.
-2. Run the **Day-0 spike**: one Gemini background-swap on 3 frames of
+analysis (+7 stations), three sequencings, scope frozen (§9 as amended by A4),
+formal spec + plan written (`docs/specs/`, `docs/plans/`, staged 2026-08-28).
+Remaining actions, in order:
+1. Run the **Day-0 spike (G0)**: one Gemini background-swap on 3 frames of
    public-domain footage; judge quality/flicker with our own eyes (~1 hour,
-   cents in credits).
-3. **Adversarial stress-test** of AO (theme fit, rules, tech risk, demo logic).
-4. Write the formal **design doc** → `docs/specs/YYYY-MM-DD-post-command-design.md`
-   per the brainstorming skill workflow, then implementation planning.
+   cents in credits). Mandatory FIRST build action (re-affirmed 2026-08-28).
+2. **Adversarial stress-test** of AO (theme fit, rules, tech risk, demo logic).
+3. Execute per `docs/plans/2026-08-26-post-command-plan.md` (phases map to
+   Stages 1–4).
 
 Timeline sketch (14 days): D0 spike+sign-off · D1–3 spine+Grafana wiring ·
 D3–5 Wave 1 stations · D5–8 Wave 2 · D8–12 Wave 3 hero ops · D12–14 supervisor
@@ -301,7 +310,7 @@ estimates.
 | Priority | Stations | Rationale |
 |---|---|---|
 | **P0 — product core** | Spine (job runner + OTel + Grafana MCP agent loop + timeline UI); Ingest & Dailies; Virtual Pickups ★HERO (bg swap + outpaint + relight-stretch); Loudness Marshal; Caption specs; Delivery specs | Minimum sellable product; every judging criterion covered |
-| **P1 — depth** | Dub timing QC; Consent/technique-only guard ledger; Conform Sentinel | High-value differentiators, moderate cost |
+| **P1 — depth** | Dub timing QC; Conform Sentinel | High-value differentiators, moderate cost |
 | **P2 — richness until deadline** | Cue Sheet Auditor; Dialogue Doctor; Trailer Bench; Archive Keeper; Accessibility Auditor; Restoration; Edit-Assist continuity; Handoff Validator UI | Added strictly in listed order; each must pass its own integration check before the next starts |
 
 ### Checkpoint gates (truth-checks, not calendar promises)
@@ -365,3 +374,31 @@ working session or removed from the product surface entirely.
 - Breadth-vs-polish tension is resolved by the priority stack + gates: polish
   is enforced by G4/G5 truth-checks; richness extends downward from a working
   core, never ahead of one.
+
+## A4. Owner Staging Ruling — 2026-08-28 (SUPERSEDES the A1 priority stack)
+
+The owner re-cut the scope into **4 build stages** organized by product story,
+replacing P0/P1/P2. Spec and plan are amended accordingly (2026-08-28). In
+short:
+
+- **Stage 1 — sellable core:** Spine; Handoff Validator (silent, in-spine);
+  Ingest & Dailies; Virtual Pickups ★HERO; Loudness Marshal; **Dub timing QC
+  (promoted — the judge can listen to output)**; Caption specs **folded into
+  the Delivery & Compliance pack** (a rule check, not its own screen);
+  **Spend Control (NEW station — acts: throttle/stop/approve, YAML policies
+  per station, runaway detection, Grafana annotation + incident on breach;
+  born from Diverge's documented retry-loop pain and our own credit
+  protection)**.
+- **Stage 2 — compliance:** Cue Sheet Auditor; Conform Sentinel;
+  Accessibility Auditor; Handoff Validator UI.
+- **Stage 3 — audio depth & library:** Restoration; Dialogue Doctor;
+  Archive Keeper.
+- **Stage 4 — editing side:** Edit-Assist & Continuity; Trailer Bench.
+- **Demo is batch, not one-film:** 8–10 episodes × ~30 languages so Grafana
+  charts show a working system at volume.
+- **G0 spike remains the mandatory first build action** (re-affirmed).
+- Gates G0–G5 and the Integrity Charter (A2) are unchanged and still binding.
+
+Stations now number 16 (15 original + Spend Control). Authoritative detail:
+`docs/specs/2026-08-26-post-command-feature-spec.md` (§5) and
+`docs/plans/2026-08-26-post-command-plan.md`.

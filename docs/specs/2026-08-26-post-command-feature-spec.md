@@ -1,5 +1,5 @@
 # Feature Spec: Post Command (slug: `post-command`)
-Date: 2026-08-26 | Status: **Approved** (owner rulings 2026-08-26) | Constitution: `docs/constitution.md@1`
+Date: 2026-08-26 | Amended: 2026-08-28 (owner ruling: 4-stage split, Spend Control station, batch demo) | Status: **Approved** | Constitution: `docs/constitution.md@1`
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
@@ -15,13 +15,19 @@ leaves an auditable annotation trail in Grafana. Built for the Agentic Cinema
 hackathon Grafana track (deadline 2026-09-09 14:00 PT) as if shipping to a paying
 client — zero mocks anywhere (C-1.*).
 
+**Scope model (2026-08-28 amendment):** stations are organized into **4 build
+stages** by what they contribute to the product story, replacing the P0/P1/P2
+priority stack. Stage 1 alone is a complete, sellable product: everything on the
+direct path from "files arrive" to "files ship." Later stages finish compliance,
+add audio/library depth, then the editing side.
+
 ## 2. Users
 
 | User | Needs |
 |---|---|
 | **Primary: Post Supervisor** | One screen showing project health across all stations; automatic incident detection with evidence; morning report; ability to approve/reject agent-proposed fixes |
 | **Judge/Buyer** | Reproducible proof that everything shown is real; clear value story per station |
-| **Demo operator (us)** | Scripted-but-genuine journey: one real short film traverses every station |
+| **Demo operator (us)** | Scripted-but-genuine journey: a BATCH of files (8–10 episodes × ~30 languages for localization) traverses every station — charts must look like a working system, not a 20-row list |
 
 ## 3. Platform & Deployment Topology (C-6.1)
 
@@ -53,17 +59,21 @@ post-command/
 │   ├── jobs/                # queue, lease worker pool, runner (TDD)
 │   ├── supervisor/          # ADK agent + Grafana MCP toolset (EDD on decisions)
 │   ├── stations/
-│   │   ├── ingest/          # P0 (TDD)
-│   │   ├── loudness/        # P0 (TDD)
-│   │   ├── captions/        # P0 (TDD)
-│   │   ├── delivery/        # P0 (TDD)
-│   │   ├── pickups/         # P0 HERO (EDD)
-│   │   ├── dub/             # P1 (EDD)
-│   │   ├── consent/         # P1 (TDD policy engine + EDD region check)
-│   │   ├── conform/         # P1 (TDD)
-│   │   └── <p2>/            # cue_sheets, dialogue_doctor, trailer_bench,
-│   │                        # archive, accessibility, restoration, continuity,
-│   │                        # handoff_ui — built strictly in listed order
+│   │   ├── ingest/          # Stage 1 (TDD)
+│   │   ├── pickups/         # Stage 1 HERO (EDD)
+│   │   ├── loudness/        # Stage 1 (TDD)
+│   │   ├── dub/             # Stage 1 (EDD)
+│   │   ├── delivery/        # Stage 1 (TDD; includes caption-spec validation)
+│   │   ├── spend/           # Stage 1 (TDD; Spend Control — acts, not just reports)
+│   │   ├── cue_sheets/      # Stage 2 (TDD)
+│   │   ├── conform/         # Stage 2 (TDD)
+│   │   ├── accessibility/   # Stage 2 (TDD)
+│   │   ├── handoff_ui/      # Stage 2 (TDD; surfaces spine-level handoff checks)
+│   │   ├── restoration/     # Stage 3 (EDD stats + stretch)
+│   │   ├── dialogue_doctor/ # Stage 3 (EDD)
+│   │   ├── archive/         # Stage 3 (TDD)
+│   │   ├── continuity/      # Stage 4 (EDD)
+│   │   └── trailer_bench/   # Stage 4 (TDD)
 │   └── evals/               # datasets/, metrics/, thresholds.yaml, runner
 ├── frontend/                # React+Vite (Firebase interim deploy)
 ├── fixtures/                # labeled synthetic INPUT media only (C-1.3)
@@ -73,68 +83,107 @@ post-command/
 └── tests/                   # unit + integration harness
 ```
 
-## 5. Scope & Priority Stack (locked 2026-08-26)
+## 5. Scope & Build Stages (amended 2026-08-28)
 
-**P0 — sellable core:** Spine (jobs+OTel+MCP loop+UI); Ingest & Dailies;
-Virtual Pickups ★HERO; Loudness Marshal; Caption specs; Delivery specs.
-**P1 — depth:** Dub timing QC; Consent guard ledger; Conform Sentinel.
-**P2 — richness until deadline (in order):** Cue Sheet Auditor; Dialogue Doctor;
-Trailer Bench; Archive Keeper; Accessibility Auditor; Restoration; Edit-Assist
-continuity; Handoff Validator UI.
+**Stage 1 — sellable core (files arrive → files ship):**
+Spine (jobs+OTel+MCP loop+UI); Handoff Validator (invisible, in-spine, no UI);
+Ingest & Dailies; Virtual Pickups ★HERO; Loudness Marshal; Dub timing QC;
+Caption specs (**as part of the delivery check, not its own screen**); Delivery
+& Compliance pack; **Spend Control (NEW — acts, not just reports)**.
+
+**Stage 2 — finish the compliance checks (nothing ships unless every box ticks):**
+Cue Sheet Auditor; Conform Sentinel; Accessibility Auditor; Handoff Validator
+with its own screen (spine checks surfaced).
+
+**Stage 3 — audio depth and library work (long-running jobs, AI listening):**
+Restoration; Dialogue Doctor; Archive Keeper.
+
+**Stage 4 — the editing side (most AI vision, upstream, least urgent):**
+Edit-Assist & Continuity; Trailer Bench.
+
+All 15 original stations are accounted for, plus Spend Control (16 total).
 
 ### Station capability definitions & acceptance criteria (AC)
 
-**S0 Spine**
+**S0 Spine** (Stage 1)
 - Job model: `{job_id, station, project_id, input_refs[], status, attempts, cost_micros, error?}` in Firestore; lease-based async worker pool; retries idempotent (C-6.3).
 - Every job emits C-4.2 telemetry; SSE `/api/v1/projects/{id}/events` streams state.
 - **AC-S0.1** (TDD): queue test — N jobs submitted concurrently execute once each despite worker crash mid-job (lease expiry reassignment verified).
 - **AC-S0.2** (integration): a job's trace visible in Grafana Tempo within 60 s of completion; its 3 metrics queryable in Mimir/PromQL.
 
-**S1 Ingest & Dailies (TDD)**
+**S0b Handoff Validator (invisible)** (Stage 1 silent → Stage 2 gets a screen)
+- Runs inside the spine at every station transition; verifies turnover manifests (EDL/AAF refs, count sheets) against delivered files; discrepancies annotate + fail the gate. No UI in Stage 1.
+- **AC-S0b.1** (TDD): manifest-missing-file fixture → transition blocked with reason code; complete manifest passes.
+- **AC-S0b.2** (Stage 2): same checks rendered as a Handoff screen in FE.
+
+**S1 Ingest & Dailies (TDD)** (Stage 1)
 - Registers arrival of media files; computes checksums; probes via ffprobe (container/codec/duration/fps); detects corrupt/truncated files (probe failure or zero-byte tail); waveform-sync spot check flags missing audio stream.
 - **AC-S1.1**: given fixture set incl. one corrupted MP4 (bit-flipped at 80% offset), station marks it `quarantined` with reason code; healthy files pass; results annotated in Grafana referencing job_id.
 - **AC-S1.2**: ≥90% coverage on parser/checksum modules.
 
-**S2 Virtual Pickups ★HERO (EDD)**
+**S2 Virtual Pickups ★HERO (EDD)** (Stage 1)
 - Ops: `background_swap` (prompt-driven), `outpaint_reframe` (target AR 9:16/1:1 from 16:9), `relight` (day→dusk; stretch). Pipeline per op: extract frames (configurable fps ≤12, clip ≤5 s) → per-frame Gemini image edit with anchor prompt + previous-frame conditioning → reassemble via ffmpeg → QC pass.
 - QC: classical flicker/drift score (frame-to-frame histogram + optical-flow magnitude) computed per output clip; Gemini vision rubric judge (adherence/artifacts 1–5).
-- Consent guard hook (see S7): face-region detection (OpenCV/classical) gates ops; performance regions are refused, logged to ledger.
-- Auto-retry: on flicker-score breach, strengthen anchors (reference keyframe injected) up to 2 retries before `needs_human`.
+- Auto-retry: on flicker-score breach, strengthen anchors (reference keyframe injected) up to 2 retries before `needs_human`. Retry loops are capped and Spend Control watches them (see S5b).
 - **AC-S2.1** (eval EDD): dataset = 10 curated clips (fixtures/, public-domain, locked/slow shots). Thresholds (`thresholds.yaml`): mean flicker score < 0.18 (normalized), vision judge ≥ 4.0 avg, artifact-rate (frames flagged) < 8%. Eval JSONL stored under `docs/evidence/`.
 - **AC-S2.2** (TDD): frame extraction/reassembly round-trips duration±1 frame; cost estimator matches logged actuals ±20%.
 
-**S3 Loudness Marshal (TDD)**
+**S3 Loudness Marshal (TDD)** (Stage 1)
 - ffmpeg `ebur128` measurement; targets: streaming -16 LUFS ±1, broadcast -24 LKFS ±1 (per-delivery-spec configurable); true-peak ceiling -1 dBTP. Reports per-stem diagnosis (dialogue vs music vs FX hot) via stem separation heuristic (ffmpeg filters), plus M&E presence check.
 - **AC-S3.1**: given fixtures calibrated near thresholds, measured LUFS matches ffmpeg reference within ±0.3 dB; verdict logic table-driven and unit-tested across boundary cases.
 
-**S4 Caption Specs (TDD)**
-- Parse SRT/VTT/TTML; validate: reading speed ≤ 20 cps (config), line length ≤ 42 chars, min duration 5/6 s, gap ≥ 2 frames, overlap detection, TTML profile conformance basics.
-- **AC-S4.1**: golden-file tests over valid + 7 violation classes of fixtures; exact rule IDs reported; blocking verdict wired to delivery.
-
-**S5 Delivery Specs (TDD)**
-- Spec packs per destination (streaming/social/broadcast profiles in versioned YAML): container, codec, AR, fps range, bitrate ceilings, loudness ref (delegates S3), caption presence (delegates S4). Produces pass/fail report with fix suggestions.
-- **AC-S5.1**: table-driven tests: each spec pack against compliant + violating fixtures yields expected rule outcomes; unknown destination rejected.
-
-**S6 Dub Timing QC (EDD, P1)**
+**S4 Dub Timing QC (EDD)** (Stage 1 — promoted from former P1; judge can LISTEN to output)
 - Generate real dubs: Google Cloud TTS (SSML-paced) per language; measure duration delta vs original segment timings (≤ 45 ms tolerance target, threshold in yaml); sync-offset estimation via cross-correlation of energy envelopes; Gemini listens to flagged samples (audio input) for truncation/artifact classification.
-- **AC-S6.1** (eval): dataset = 6 segments × 3 languages; duration-delta MAE recorded; truncation detection recall ≥ 90% on seeded truncated fixtures (labeled inputs).
+- **AC-S4.1** (eval): dataset = 6 segments × 3 languages; duration-delta MAE recorded; truncation detection recall ≥ 90% on seeded truncated fixtures (labeled inputs).
 
-**S7 Consent Guard (P1: TDD engine + EDD region classifier)**
-- Policy engine: operation scopes (technique-only whitelist); face-region map from detector; ledger append-only (Firestore) `{job_id, op, regions_touched, decision}`; violations block + IRM incident via MCP.
-- **AC-S7.1**: unit tests: relight touching detected face region → blocked + ledger row + incident created (incident creation asserted via recorded MCP call result, not mock).
+**S5 Delivery & Compliance pack (TDD)** (Stage 1 — absorbs caption specs as a delegated check)
+- Spec packs per destination (streaming/social/broadcast profiles in versioned YAML): container, codec, AR, fps range, bitrate ceilings, loudness ref (delegates S3), **caption spec validation (delegated sub-check: SRT/VTT/TTML parsing; reading speed ≤ 20 cps config; line length ≤ 42 chars; min duration 5/6 s; gap ≥ 2 frames; overlap detection; TTML profile basics)**. Produces pass/fail report with fix suggestions.
+- **AC-S5.1**: table-driven tests: each spec pack against compliant + violating fixtures yields expected rule outcomes; unknown destination rejected.
+- **AC-S5.2**: caption sub-check golden files over valid + 7 violation classes; exact rule IDs reported in the delivery report; failing caption check blocks shipment.
 
-**S8 Conform Sentinel (TDD, P1)**
+**S5b Spend Control (TDD — NEW)** (Stage 1)
+- Tracks money spent per job / station / project from `cost_micros` already emitted by the spine (measurement work exists; this station ACTS on it).
+- Policies (versioned YAML, per station): max spend per job; max retries before review; hourly + daily project budgets; runaway pattern detection (job re-running ≥ N times in window → suspect retry loop).
+- Actions on breach: throttle (pause queue intake for station), stop (kill job family), or require approval (route to Approvals inbox). Every action → Grafana annotation + incident via MCP (the "acts, not just reports" differentiator; protects our own credits while agents build).
+- **AC-S5b.1** (TDD): seeded runaway job (re-queues 40×) → throttled after N attempts per policy; annotation + incident created; approval required to resume.
+- **AC-S5b.2** (TDD): daily budget breach → station intake paused; morning report cites the spend line.
+
+**S6 Cue Sheet Auditor (TDD)** (Stage 2)
+- Music cue sheets vs license windows: ledger matching + anomaly flags ("cue 7 used 12s past license"). **AC-S6.1**: seeded mismatch fixtures each yield distinct flags.
+
+**S7 Conform Sentinel (TDD)** (Stage 2)
 - Verify re-encoded master matches locked-cut manifest: frame counts, per-reel durations ±1 frame, audio channel maps, hash chain of source refs.
-- **AC-S8.1**: manifest mismatch fixtures (off-by-one frames, swapped reel) each produce distinct diagnostic codes.
+- **AC-S7.1**: manifest mismatch fixtures (off-by-one frames, swapped reel) each produce distinct diagnostic codes.
 
-**S9–S15 (P2, same pattern)**: Cue Sheet Auditor (ledger-vs-license windows, TDD);
-Dialogue Doctor (Gemini listen-classify clipped/noisy/off-mic lines, EDD eval on
-seeded defects); Trailer Bench (spec pack variant, TDD); Archive Keeper
-(checksum drift sweep, TDD); Accessibility Auditor (AD presence/cue timing, TDD);
-Restoration (dirt/scratch/stability stats via classical CV + generative clean-up
-stretch, EDD); Edit-Assist continuity (diff-based visual checks, EDD).
+**S8 Accessibility Auditor (TDD)** (Stage 2)
+- AD presence/placement checks; CC cue timing beyond delivery-spec format checks.
+- **AC-S8.1**: fixtures missing AD track / with mistimed CC cues produce distinct rule failures.
 
-**Supervisor Agent (ADK + Grafana MCP)**
+**S9 Handoff Validator UI (TDD)** (Stage 2)
+- Surface the S0b spine checks as a screen: manifest completeness per turnover, gate history, who/what unblocked each gate.
+- **AC-S9.1**: FE renders live handoff gate state; a failing manifest shows blocking file names.
+
+**S10 Restoration (EDD stats; generative clean-up stretch)** (Stage 3)
+- Dirt/scratch/stability stats via classical CV on multi-day scan jobs; long-running journey framing (stall/anomaly detection, "minute 43 went wrong"). Runs as the canonical long-job monitoring example.
+- **AC-S10.1** (eval): seeded defect fixtures detected ≥ 90% recall; long-job stall detection fires within one lease cycle of stall onset.
+
+**S11 Dialogue Doctor (EDD)** (Stage 3)
+- Gemini listens to dialogue stems; ranks clipped/noisy/off-mic lines; drafts ADR cue list.
+- **AC-S11.1** (eval): seeded defect lines classified with ≥ 85% accuracy on labeled fixtures.
+
+**S12 Archive Keeper (TDD)** (Stage 3)
+- Checksum-drift sweeps + storage telemetry over the library; bitrot surfaced as Grafana series.
+- **AC-S12.1**: seeded bitrot fixture → drift detected and annotated with file lineage.
+
+**S13 Edit-Assist & Continuity (EDD)** (Stage 4)
+- Diff-based visual continuity checks between adjacent scenes; severity/visibility triage.
+- **AC-S13.1** (eval): planted continuity breaks detected above vision-judge threshold on curated pairs.
+
+**S14 Trailer Bench (TDD)** (Stage 4)
+- Trailer/promo spec regime as a spec-pack variant (runtime caps, card counts, rating cards).
+- **AC-S14.1**: table-driven spec tests on compliant/violating trailer fixtures.
+
+**Supervisor Agent (ADK + Grafana MCP)** (built with the spine, Stage 1)
 - Tools bound: Grafana Cloud MCP (dashboard search, PromQL/LogQL/Tempo queries, annotations, incidents) + internal read APIs (job/project state).
 - Behaviors: alert triage → investigation chain (metrics→logs→trace) → severity verdict → action proposal (retry/reroute/block) → human-approve toggle (env-configurable autonomy) → annotation + morning report generation (Gemini text summarization over telemetry excerpts).
 - **AC-A.1** (integration): seeded corrupt-file scenario triggers alert; without human input agent produces investigation annotation containing correct job_id + root cause within 120 s (asserted in Grafana via query, not mocks).
@@ -144,14 +193,14 @@ stretch, EDD); Edit-Assist continuity (diff-based visual checks, EDD).
 
 1. OTel SDK in every Python service → OTLP traces/metrics/logs (Tempo/Mimir/Loki).
 2. Metric contracts per job: `pc_job_duration_seconds{station}`, `pc_job_cost_micros{station}`, `pc_job_outcome_total{station,outcome}`, `pc_flicker_score`, `pc_loudness_lufs`, `pc_eval_score{suite}`.
-3. Alert rules as code: job failure rate, quarantine events, flicker breach, loudness fail, spend 80% (C-7.1), worker lease starvation.
-4. Dashboards as code: Project Overview (timeline heatmap), Station Health, Cost, Evals, AI Observability (self).
-5. Supervisor consumes MCP tools; every intervention writes annotation `{project_id, job_id, verdict}`; incidents for consent/quarantine/spend.
+3. Alert rules as code: job failure rate, quarantine events, flicker breach, loudness fail, spend threshold + runaway-job pattern (S5b), worker lease starvation.
+4. Dashboards as code: Project Overview (timeline heatmap), Station Health, Cost/Spend Control, Evals, AI Observability (self).
+5. Supervisor consumes MCP tools; every intervention writes annotation `{project_id, job_id, verdict}`; incidents for quarantine/spend-enforcement.
 6. AI Observability SDK wraps ADK agent (traces, tokens, cost per LLM call).
 
 ## 7. Frontend Plan
 
-- **Interim (build target now):** Firebase Hosting, React+Vite TS. Pages: Projects list; Project Timeline (stations × jobs grid, live via SSE); Job detail (spans link-out to Grafana, evidence thumbnails, before/after slider); Approvals inbox; Morning report view; Settings (autonomy toggle).
+- **Interim (build target now):** Firebase Hosting, React+Vite TS. Pages: Projects list; Project Timeline (stations × jobs grid, live via SSE); Job detail (spans link-out to Grafana, evidence thumbnails, before/after slider); Approvals inbox (also receives Spend Control escalations); Morning report view; Settings (autonomy toggle).
 - **Final host swap (pre-submission):** identical build deployed to Replit static hosting; only base URL/CORS change. Swap rehearsed by G4. Replit URL is the submission URL; Firebase remains as documented fallback deployment (both real).
 - Design bar: dark cinematic console (matches Diverge-grade product taste), no lorem ipsum, real data only.
 
@@ -170,17 +219,21 @@ Multi-tenant auth/RBAC beyond single-team API-key; mobile apps; non-Google model
 | Frame pipeline | OpenCV/ffmpeg classical + Gemini edits | flicker control + honest hybrid |
 | Testing split | TDD deterministic / EDD generative | owner mandate |
 | Hosting | Backend Cloud Run; FE Firebase→Replit | owner mandate |
+| Scope model | 4 build stages by product story (2026-08-28 owner ruling) | Stage 1 is self-sellable; compliance, depth, editing follow |
+| Captions | Part of delivery check, not own screen | rule check, not a workflow |
+| Spend Control | NEW station in Stage 1 (acts: throttle/stop/approve) | real action vs reporting; Diverge retry-loop pain; protects budget |
+| Demo dataset | Batch: 8–10 episodes × ~30 languages | charts must look like a working system, not a list |
 
 ## 10. Risks & Mitigations
 
 | Risk | Mitigation |
 |---|---|
-| Generative flicker fails quality bar even on curated clips | G0 spike FIRST; demote path pre-agreed: op ships as detect+report (still real) while another P2 station promotes |
+| Generative flicker fails quality bar even on curated clips | G0 spike FIRST (before any other build — 2026-08-28 ruling re-affirmed); demote path pre-agreed: op ships as detect+report (still real) while another Stage station promotes |
 | Hosted MCP OAuth unusable headless | OSS mcp-grafana + service account env-flag fallback, proven by G1 |
 | Firestore lease edge cases | property-based tests + chaos kill-test in AC-S0.1 |
-| Spend overrun | micro-unit accounting, daily budget metric+alert, eval dry-run cost print (C-7.*) |
+| Spend overrun | Spend Control station (S5b) + micro-unit accounting + daily budget metric+alert + eval dry-run cost print (C-7.*) |
 | Timeline compression | agent-workforce parallelism per plan; gates G0–G5 enforce integration truth |
 
 ## 11. Open Questions
 
-None — owner rulings resolved prior CLs. Changes require spec amendment + owner approval.
+None — owner rulings resolved prior CLs (latest: 2026-08-28 staging amendment). Changes require spec amendment + owner approval.
