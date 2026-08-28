@@ -1,0 +1,25 @@
+# Backend runtime dependencies — pinned per docs/adr/0002-model-toolchain-pinning.md (2026-08-28)
+# Python >= 3.12 required (dev machine: 3.13.7). Do not bump google-genai to 3.x
+# until google-adk declares compatibility (see ADR 0002 consequences).
+
+# Web layer
+fastapi>=0.133,<1
+uvicorn[standard]>=0.34,<1
+
+# Google AI / agent stack (latest per owner ruling)
+google-genai==2.20.0
+google-adk==2.8.0
+
+# GCP clients (ranges respect ADK 2.8.0 constraints)
+google-cloud-firestore>=2.11,<3
+google-cloud-storage>=2.18,<4
+google-cloud-secret-manager>=2.22,<3
+google-cloud-texttospeech>=2.37
+firebase-admin>=6.0
+
+# Observability (C-4.* / B-3 AI Observability)
+opentelemetry-sdk>=1.39,<=1.42.1
+opentelemetry-exporter-otlp-proto-http>=1.36
+opentelemetry-instrumentation-google-genai>=0.7b1
+opentelemetry-instrumentation-httpx>=0.54b0
+opentelemetry-resourcedetector-gcp>=1.9.0a0,<2

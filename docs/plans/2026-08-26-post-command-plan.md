@@ -171,3 +171,12 @@ Gemini API as the per-model fallback where Vertex lags (G0 probe decides and
 records model IDs). Gen-AI spend ceiling **$50–75** total; per-batch >$5 needs
 `--yes` (C-7.2). Draft-tier (360p) renders preferred for all QC loops; masters
 only after QC pass (D-11).
+
+**Model & SDK pinning (ADR 0002, 2026-08-28):** ALL text-LLM reasoning runs on
+`gemini-3.7-flash` with **thinking level HIGH** + thought summaries in the audit
+trail — supervisor chains (H-1), morning report (H-2), camera suggestions,
+script alignment, rubric judges. Video gen/edit: `gemini-omni-1.1-flash`
+(Interactions API); precision extension: `veo-3.1` (Omni-vs-Veo per-op decided
+by eval); dubs: Chirp 3 HD via Cloud TTS; video understanding: `gemini-3.7-flash`.
+SDKs: `google-genai==2.20.0` (never 3.x until ADK-compatible), `google-adk==2.8.0`,
+Python ≥ 3.12 (dev 3.13.7). Model IDs centralized in `backend/core/models.py`.

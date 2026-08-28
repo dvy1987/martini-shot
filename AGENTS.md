@@ -65,6 +65,7 @@ async def run_loudness(job: Job) -> JobResult:
 - Draft-first: cheap low-res renders for QC loops; masters only after eval bars pass (Spend Control enforces).
 - Every generated clip is an **ALTERNATE** attached to its shot — never silently overwrite a locked cut; add/remove-from-continuity is an approval-tracked action.
 - Model choices are eval decisions: compare candidates (Omni vs Veo etc.) on the same dataset; winner recorded via ADR + JSONL evidence.
+- **Text-LLM standard (owner ruling):** every text-reasoning task (supervisor chains, morning report, suggestions, script alignment, rubric judges) runs on `gemini-3.7-flash` with thinking level HIGH; thought summaries go to logs/traces. Full pinning table: `docs/adr/0002-model-toolchain-pinning.md`; model IDs live only in `backend/core/models.py`.
 
 ## Boundaries
 
