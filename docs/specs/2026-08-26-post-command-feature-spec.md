@@ -1,5 +1,5 @@
 # Feature Spec: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics) | Status: **Approved** | Constitution: `docs/constitution.md@1`
+Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics; A5: Stage 1a generative fast-follow, demo batch 3 languages, Vertex AI compute) | Status: **Approved** | Constitution: `docs/constitution.md@1`
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
@@ -90,6 +90,25 @@ Spine (jobs+OTel+MCP loop+UI); Handoff Validator (invisible, in-spine, no UI);
 Ingest & Dailies; Virtual Pickups ★HERO; Loudness Marshal; Dub timing QC;
 Caption specs (**as part of the delivery check, not its own screen**); Delivery
 & Compliance pack; **Spend Control (NEW — acts, not just reports)**.
+
+**Stage 1a — generative fast-follow (A5, owner ruling 2026-08-28; built only after Stage 1 gates pass):**
+Omni-powered ops on the Pickups/Extend machinery: **Extend** (Veo 3.1/Omni scene
+extension ≤40s, last-10s context); **Conversational Corrections** (Omni stateful
+editing incl. signage/text continuity fixes, routed via Approvals); **Draft-first
+rendering** (360p draft → QC → 1080p master — an un-QC'd draft never reaches a
+paid master render); **Relight Studio** (named lighting-setup presets: floor-lamp
+practical / ambient daylight / overhead ceiling / noir, with a lighting-attribute
+rubric judge); **Coverage** (new-angle generation anchored by subject references);
+**Revision Room** (script/caption alignment → user script edit → diff → affected
+spans regenerated via Omni + the dub pipeline for dialogue); **Camera Language**
+(preset vocabulary: dolly/tracking, dolly zoom, handheld/shaky, Steadicam, whip
+pan, crash zoom, SnorriCam, locked-off — plus Gemini genre-aware suggestions and
+reference-style transfer). In-1a stretch: **Transition Forge** (first/last-frame
+interpolation), **Versioning** (9:16 cutdowns). Every generated clip lands as an
+**alternate** attached to its shot — never silently overwriting a locked cut;
+adding/removing from continuity is an approval-tracked action. All 1a ops are
+EDD-gated and feasibility-probed at G0; **worst case the product ships complete
+with Stage 1 alone.**
 
 **Stage 2 — finish the compliance checks (nothing ships unless every box ticks):**
 Cue Sheet Auditor; Conform Sentinel; Accessibility Auditor; Handoff Validator
@@ -203,6 +222,7 @@ All 15 original stations are accounted for, plus Spend Control (16 total).
 - **Interim (build target now):** Firebase Hosting, React+Vite TS. Pages: Projects list; Project Timeline (stations × jobs grid, live via SSE); Job detail (spans link-out to Grafana, evidence thumbnails, before/after slider); Approvals inbox (also receives Spend Control escalations); Morning report view; Settings (autonomy toggle).
 - **Final host swap (pre-submission):** identical build deployed to Replit static hosting; only base URL/CORS change. Swap rehearsed by G4. Replit URL is the submission URL; Firebase remains as documented fallback deployment (both real).
 - Design bar: dark cinematic console (matches Diverge-grade product taste), no lorem ipsum, real data only.
+- **Stage 1a UI surfaces (A5, built only after Stage 1 gates pass):** alternates lane in the Season Timeline (generated clips attach to their shot as alternates; continuity changes are approval actions); Revision Room (script panel aligned to shots; script edit → diff → affected spans → regeneration proposals); Camera Language suggestion chips (genre-aware, model-generated, labeled as such); Relight Studio preset row in the drawer; draft-first state badge on every generated artifact. All reuse the charter's existing components (lanes, drawer, folded evidence, wipes) — surfaces specified in `docs/design/DESIGN.md` "Stage 1a surfaces".
 
 ### 7.1 SSE event envelope (amendment 2026-08-28)
 

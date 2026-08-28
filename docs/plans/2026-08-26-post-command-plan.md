@@ -1,5 +1,5 @@
 # Execution Plan: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (4-stage staging per owner ruling; Spend Control task; batch demo seed; handoff silent/UI split)
+Date: 2026-08-26 | Amended: 2026-08-28 (4-stage staging per owner ruling; Spend Control task; batch demo seed; handoff silent/UI split; A5: Stage 1a fast-follow, batch 3 langs, Vertex AI, calendar re-baseline)
 Spec: `docs/specs/2026-08-26-post-command-feature-spec.md` (Approved, amended 2026-08-28)
 Constitution: `docs/constitution.md@1` | Gates & rulings: `ideas/AO-STATION-MAP.md#amendments`
 
@@ -12,6 +12,13 @@ until its DoD evidence exists under `docs/evidence/<task-id>/`.
 **Stage mapping (2026-08-28):** Phases 2–4 build **Stage 1** (sellable core).
 Phase 5 builds **Stage 2 → 3 → 4** in that order, strict, each station gated.
 Stages are the spec's scope model; phases are the calendar.
+
+**Calendar re-baseline (A5, 2026-08-28):** submission target **Sep 8** (J-6 ≥24 h
+early). G0 probe Aug 28–29 · Phase 1 spine Aug 28–30 · Phase 2 Aug 31–Sep 2 ·
+Phase 3 Sep 3–4 · Phase 3a (Stage 1a) Sep 5–6 · Phase 4 Sep 6 · Phase 5
+compressed to I-1-only stretch on Sep 7 · Phase 6 Sep 7–8 · submit Sep 8.
+Slippage cuts Stage 1a stretch items first, then Stage 1a ops, then Stage 2 —
+the G3 state (complete Stage 1) is the guaranteed coherent fallback submission.
 
 ---
 
@@ -74,10 +81,32 @@ Stages are the spec's scope model; phases are the calendar.
 
 | Task | Station | Mode | DoD |
 |---|---|---|---|
-| E-1 Relight op (stretch) behind feature flag; same eval bar | S2 | EDD | eval PASS or documented demote decision |
 | E-2 Dub timing QC (PROMOTED to Stage 1): TTS dub generation (SSML pacing), duration-delta measure, envelope cross-correlation sync estimate, Gemini listen-classify on flagged samples | S4 | EDD | AC-S4.1 eval JSONL; playable dub pair in FE |
-| E-3 Batch demo dataset seed (start early — TTS across ~30 languages is slow + billable): script generates 8–10 episodes × ~30 language dubs + captions into `fixtures/batch-demo/`; cost estimate printed before run (C-7.*) | fixtures | manual + scripts | dataset manifest committed; dry-run cost print; first episode fully seeded |
+| E-3 Batch demo dataset seed (start early — TTS is slow + billable): script generates 8–10 episodes × **3 languages** (EN source + 2 picked by voice quality/cost) dubs + captions into `fixtures/batch-demo/`; cost estimate printed before run (C-7.*) | fixtures | manual + scripts | dataset manifest committed; dry-run cost print; first episode fully seeded |
 | **Gate G3:** hero op(s) hold quality bar across ≥3 fresh curated shots (not just spike set); Dub QC eval within thresholds; evidence video clips captured (raw, unedited). Stage 1 is now complete end-to-end. | | | |
+
+## PHASE 3a — Stage 1a: generative fast-follow (A5, Sep 5–6; only after G3 passes)
+
+Build order inside 1a: AL-1 → D-9 → D-10 → E-1 → D-11 → D-15 → D-16 → stretch.
+Fallback order for slippage: cut D-16 → D-15 → stretch first; shipping without
+1a is a complete, coherent product (Stage 1).
+
+| Task | Op/Feature | Mode | DoD |
+|---|---|---|---|
+| AL-1 Alternates model + API | every generated clip = alternate `{shot_id, op, artifact_ref, eval_scores, status}`; add/remove-from-continuity = approval-tracked; FE alternates lane | TDD | alternate lifecycle unit tests; FE lane renders live alternates |
+| D-9 Extend | Veo 3.1/Omni scene extension ≤40s (last-10s context, first/last-frame anchors); generated ambient beds feed S3 loudness QC | EDD | extend eval (continuity + flicker thresholds) PASS; JSONL archived |
+| D-10 Corrections | Omni stateful conversational edit (element replacement, signage/text continuity fixes) routed via Approvals | EDD | corrections eval (edit-adherence rubric ≥4/5 + identity metric) PASS |
+| E-1 Relight Studio | named lighting-setup presets (floor-lamp practical / ambient daylight / overhead ceiling / noir) via Omni edit; lighting-attribute rubric judge | EDD | relight eval PASS on 3 fresh shots or documented demote |
+| D-11 Draft-first orchestration | 360p draft → QC → 1080p master; an un-QC'd draft never master-renders; Spend Control hooks | TDD+EDD | state machine tests; draft-vs-master cost delta recorded |
+| D-12 Coverage | new-angle generation anchored by subject references; continuity metric (identity + flicker) | EDD | G0 probe gate → eval suite PASS or demote |
+| D-15 Revision Room | script/caption alignment module (Gemini video understanding; alignment-accuracy metric) → user script edit → diff → affected spans → Omni replace/extend + dub pipeline for dialogue | EDD+TDD | alignment eval ≥ threshold on fixtures; one real script-edit → regenerated-span journey |
+| D-16 Camera Language | preset vocabulary (dolly/tracking, dolly zoom, handheld/shaky, Steadicam, whip pan, crash zoom, SnorriCam, locked-off); Gemini genre-aware suggestions; reference-style transfer variant | EDD | camera-language rubric judge ≥ threshold; style transfer PASS or demote |
+| D-13 Transition Forge (stretch) | first/last-frame interpolation between locked shots; loop variant | EDD | eval PASS or cut |
+| D-14 Versioning (stretch) | 9:16 social cutdowns per delivery profile | EDD | eval PASS or cut |
+
+**Gate G3a:** Stage 1a ops hold their eval bars; alternates lane live in FE;
+Omni-vs-Veo model comparison recorded via ADR + JSONL. Fail ⇒ demote in the
+order above; the G3 state remains the submission fallback.
 
 ## PHASE 4 — Supervisor intelligence (day 8–10)
 
@@ -90,28 +119,21 @@ Stages are the spec's scope model; phases are the calendar.
 
 ## PHASE 5 — Stages 2 → 3 → 4 (day 10–13, strict stage order; within a stage, parallel where independent)
 
-**Stage 2 — compliance (nothing ships unless every box ticks):**
-I-1 Cue Sheet Auditor (S6, TDD) → I-2 Conform Sentinel (S7, TDD) →
-I-3 Accessibility Auditor (S8, TDD) → I-4 Handoff Validator UI surfacing the
-silent S0b spine checks (S9, TDD).
+**Stage 1a first (A5):** Phase 3a above, only after G3 passes.
+**Stage 2 — compressed to the story-carrying check (A5 calendar):**
+I-1 Cue Sheet Auditor (S6, TDD) ONLY IF ahead of schedule on Sep 7. I-2..I-4
+(Conform Sentinel, Accessibility, Handoff UI) move post-hackathon.
+**Stages 3–4 (I-5…I-9): cut from hackathon scope; they remain in the spec for
+post-event development.**
 
-**Stage 3 — audio depth & library:**
-I-5 Restoration stats + clean-up stretch, canonical long-job monitoring example (S10, EDD) →
-I-6 Dialogue Doctor (S11, EDD) → I-7 Archive Keeper (S12, TDD).
-
-**Stage 4 — editing side:**
-I-8 Edit-Assist continuity (S13, EDD) → I-9 Trailer Bench (S14, TDD).
-
-Rule: the next STAGE starts only when the previous stage's stations pass their
-integration truth-checks; any slip consumes Stage 2–4 budget, never Stage 1
-polish. Within Stage 2, order above is preferred (cue sheets + conform gate the
-"nothing ships" story).
+Rule unchanged: stages never borrow from Stage 1 polish; the G3 state (complete
+Stage 1) is the guaranteed coherent fallback submission.
 
 ## PHASE 6 — Full-journey rehearsal, hardening, submission (day 12–15)
 
 | Task | Mode | DoD |
 |---|---|---|
-| J-0 Batch demo readiness: full 8–10 episode × ~30 language batch traverses the pipeline; Grafana Project Overview shows system-scale volume (heatmap density, cost curve, queue depth) — charts must look like a working system, not a 20-row list | integration | batch journey screenshots archived; per-language dub coverage report |
+| J-0 Batch demo readiness: full 8–10 episode × 3-language batch traverses the pipeline; Grafana Project Overview shows system-scale volume (heatmap density, cost curve, queue depth) — charts must look like a working system, not a 20-row list | integration | batch journey screenshots archived; per-language dub coverage report |
 | J-1 Seed full journey: public-domain short traverses EVERY completed station; supervisor handles all seeded faults (announced list maintained in `fixtures/journey/README.md`) | integration | AC-A.1 style assertions per station; morning report compiles |
 | J-2 Chaos pass: kill workers mid-run, revoke+refresh OAuth, network flap to OTLP; Spend Control keeps runaway retries bounded during chaos — product recovers without data loss | integration | recovery log evidence; no orphaned leases; spend stayed inside policy |
 | J-3 Replit hosting swap rehearsal (identical build, CORS/base-URL change only) | deploy | both URLs live; rollback doc |
@@ -123,8 +145,9 @@ polish. Within Stage 2, order above is preferred (cue sheets + conform gate the
 
 G0 spike verdict · G1 spine truth-check · G2 Stage 1 deterministic truth (incl.
 Spend Control enforcing + captions-in-delivery) · G3 hero quality bar + Stage 1
-complete · G4 full journey · G5 freeze (video from product only). Failed
-gate ⇒ fix or demote lowest-priority unfinished work; NEVER substitute mocks
+complete (the guaranteed fallback submission) · G3a Stage 1a ops hold eval bars
++ alternates lane live · G4 full journey · G5 freeze (video from product only).
+Failed gate ⇒ fix or demote lowest-priority unfinished work; NEVER substitute mocks
 (C-1.*).
 
 ## Parallelization Map (agent workforce)
@@ -141,3 +164,10 @@ Estimated spend caps: spike <$2 · evals total <$25 · batch demo TTS + journey
 rehearsals <$40 · buffer $50. Spend Control (S5b) enforces these at runtime,
 not just on dashboards; `pc_job_cost_micros` dashboard reviewed at each gate;
 alert at 80% (C-7.1).
+
+**A5 compute + spend (2026-08-28):** generative models run on **Vertex AI**
+(owner GCP credits, $300 available; enabled APIs include Vertex AI), AI Studio
+Gemini API as the per-model fallback where Vertex lags (G0 probe decides and
+records model IDs). Gen-AI spend ceiling **$50–75** total; per-batch >$5 needs
+`--yes` (C-7.2). Draft-tier (360p) renders preferred for all QC loops; masters
+only after QC pass (D-11).

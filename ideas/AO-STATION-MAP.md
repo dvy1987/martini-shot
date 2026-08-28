@@ -3,7 +3,7 @@
 **Read this file first.** It is the single self-contained context document for our
 hackathon project. Anyone (human or agent) who reads only this file should fully
 understand what we are building, why, how we got here, and what happens next.
-Last updated: **2026-08-28** (staging amendment A4). Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
+Last updated: **2026-08-28** (staging amendment A4; A5 Stage 1a fast-follow). Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
 
 ---
 
@@ -246,11 +246,23 @@ not just queries); annotations-as-audit-trail framing.
 
 **Stage 1 — sellable core (files arrive → files ship):** Spine (jobs+OTel+MCP
 loop+UI); Handoff Validator (invisible, in-spine, no UI); Ingest & Dailies;
-Virtual Pickups ★HERO (bg swap + outpaint; relight stretch); Loudness Marshal;
+Virtual Pickups ★HERO (bg swap + outpaint; relight promoted to Stage 1a as Relight Studio); Loudness Marshal;
 Dub timing QC (PROMOTED); Caption specs (part of the delivery check, not its
 own screen); Delivery & Compliance pack; **Spend Control (NEW — acts: throttle
 / stop / approve; policies in YAML per station; runaway detection; Grafana
 annotation + incident on breach)**.
+
+**Stage 1a — generative fast-follow (A5 — owner ruling 2026-08-28; built only
+after Stage 1 gates pass):** Omni-powered ops on the Pickups machinery: Extend
+(Veo 3.1/Omni scene extension); Conversational Corrections (stateful editing,
+routed via Approvals); Draft-first rendering (360p draft → QC → master);
+Relight Studio (named lighting-setup presets — promoted from Stage 1 stretch);
+Coverage (new-angle generation, subject-reference anchored); Revision Room
+(script/caption alignment → script edit → affected spans regenerated);
+Camera Language (presets + Gemini suggestions + reference-style transfer);
+stretch: Transition Forge, Versioning (9:16). Every generated clip is an
+ALTERNATE on its shot — add/remove-from-continuity is approval-tracked.
+**Worst case the product ships complete with Stage 1 alone.**
 
 **Stage 2 — compliance (nothing ships unless every box ticks):** Cue Sheet
 Auditor; Conform Sentinel; Accessibility Auditor; Handoff Validator UI

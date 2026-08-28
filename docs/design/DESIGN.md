@@ -106,6 +106,25 @@ approve/reject with reason. Spend Control escalations land here under a red
 The report as a dated contact-sheet: headline verdicts per station, citations
 (linking to evidence), embedded Grafana panel links. Readable in 20 seconds on video.
 
+### Stage 1a surfaces (A5 — reuses the established vocabulary; no new visual language)
+- **Alternates lane** (Season Timeline): every generated clip appears as an
+  alternate attached to its shot — ghost-styled clip cards under the locked one;
+  the locked cut is never silently replaced. Add/remove-from-continuity is an
+  approval-tracked action rendered in the Screening Room, not a toggler.
+- **Revision Room**: script panel beside the timeline — script lines aligned to
+  shots (mono, timecode-anchored); a user edit highlights affected spans
+  (tungsten edge) and proposes regeneration as alternates. Diff view = folded
+  evidence chips (before/after line).
+- **Camera Language options**: genre-aware suggestion chips per shot (dolly,
+  shaky handheld, Steadicam, locked-off…) with one-line rationale; selecting one
+  proposes an alternate. Suggestions are model output and say so.
+- **Relight Studio presets**: named lighting setups (floor-lamp practical /
+  ambient daylight / overhead ceiling / noir) as a preset row in the drawer;
+  the before/after wipe carries the lighting label.
+- **Draft-first badge**: every generated artifact carries a state chip
+  (draft 360p → in QC → master 1080p); drafts render at draft quality and say so
+  (paused-frame truthfulness applies).
+
 ### Status vocabulary (film-native mapping, 1:1 with the job state machine)
 | State | Term | Glyph | Color |
 |---|---|---|---|

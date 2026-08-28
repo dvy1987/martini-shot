@@ -59,6 +59,13 @@ async def run_loudness(job: Job) -> JobResult:
 - **Scope frozen in 4 stages (Amendment A4):** Stage 1 core → 2 compliance → 3 audio/library → 4 editing. Re-cutting stages needs owner amendment; build stations via plan tasks, never improvised features.
 - **MCP auth duality (ADR 0001):** hosted Grafana MCP = one-time browser OAuth (dev machine ok); OSS `grafana/mcp-grafana` + service-account token = headless fallback behind `MCP_MODE`.
 
+## Generative Depth (owner ruling 2026-08-28, A5 / Stage 1a)
+- Use the real Google media-model family generously: Gemini Omni Flash (`gemini-omni-1.1-flash`, Interactions API — conversational editing, video extension ≤40s, first/last-frame interpolation, subject references, 360p→4K resolution tiers), Veo 3.1, Imagen, Chirp 3 HD TTS, Gemini video understanding. **Vertex AI is the primary runtime** (owner GCP credits); AI Studio API is the per-model fallback — G0 probe records which models are callable where.
+- Thin adapters, thick system: ops are parameterized pipelines over OFFICIAL model capabilities (documented prompt tags: `<FIRST_FRAME>`, `<LAST_FRAME>`, `<IMAGE_REF_N>`, `<VIDEO_REF_N>`, `[# Sources …]`, "Keep everything else the same"). The product's value is the QC-gated, cost-metered, audit-trailed pipeline around the models — never build a free chat UI where the pipeline is the product.
+- Draft-first: cheap low-res renders for QC loops; masters only after eval bars pass (Spend Control enforces).
+- Every generated clip is an **ALTERNATE** attached to its shot — never silently overwrite a locked cut; add/remove-from-continuity is an approval-tracked action.
+- Model choices are eval decisions: compare candidates (Omni vs Veo etc.) on the same dataset; winner recorded via ADR + JSONL evidence.
+
 ## Boundaries
 
 ### Allowed without asking
@@ -81,7 +88,7 @@ async def run_loudness(job: Job) -> JobResult:
 ## User Context
 - **Strong at:** product story, film/post-production domain judgment, demo narrative, scoping.
 - **Agents lead on:** everything technical — architecture, code, testing, DevOps, security — deciding with rigor (below) and translating trade-offs to plain language.
-- **Working style:** owner approves product implications, not code. Demo beats (batch: 8–10 eps × ~30 langs) matter more than feature count. Submit ≥24 h before deadline.
+- **Working style:** owner approves product implications, not code. Demo beats (batch: 8–10 eps × 3 langs) matter more than feature count. Submit ≥24 h before deadline.
 
 ## Agent-Led Architecture & Design
 The owner cannot evaluate architecture/design choices, so the agent OWNS them — apply full rigor, never pick the first option, never defer the technical call to the owner.
