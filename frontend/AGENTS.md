@@ -5,6 +5,8 @@ See root `AGENTS.md` for project-wide context (constitution, boundaries, Session
 ## What this is
 React + Vite + TypeScript SPA in `frontend/`. Interim deploy: Firebase Hosting; final: Replit (static deployment serving `frontend/dist`) — identical build, only base-URL/CORS change (spec §7, task J-3). The SPA talks ONLY to the backend `/api/v1` API, never directly to Google AI or Grafana.
 
+**No-backend period is expected:** the frontend builds, deploys, and runs truthfully before the backend exists (build needs no API). Until G1 connects them, every view shows its designed empty state and the connection pill reads "backend unreachable." NEVER create a mock API, seed script, or fake data server to "see something" — banned by C-1.2/A2. Unit tests may use labeled fixture data (C-1.3); the app may not.
+
 ## Key Commands (after scaffold task C-1 creates package.json)
 ```
 Install:  npm ci              (in frontend/)
