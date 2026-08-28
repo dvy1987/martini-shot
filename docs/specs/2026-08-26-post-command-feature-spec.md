@@ -1,5 +1,5 @@
 # Feature Spec: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged) | Status: **Approved** | Constitution: `docs/constitution.md@1`
+Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics) | Status: **Approved** | Constitution: `docs/constitution.md@1`
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
@@ -204,9 +204,34 @@ All 15 original stations are accounted for, plus Spend Control (16 total).
 - **Final host swap (pre-submission):** identical build deployed to Replit static hosting; only base URL/CORS change. Swap rehearsed by G4. Replit URL is the submission URL; Firebase remains as documented fallback deployment (both real).
 - Design bar: dark cinematic console (matches Diverge-grade product taste), no lorem ipsum, real data only.
 
+### 7.1 SSE event envelope (amendment 2026-08-28)
+
+All events on `GET /api/v1/projects/{project_id}/events` share one envelope; clients MUST ignore unknown `type` values (forward compatibility). Server emits a `: ping` comment every 30s as keepalive.
+
+```
+data: {"type":"<type>","at":"<RFC3339 UTC>","payload":{ ... }}
+```
+
+Initial event set: `job.updated` (payload: `{job}`), `incident.opened` (payload: `{incident_id, job_id?, severity, title}`), `annotation.created` (payload: `{annotation_id, job_id?}`). Typed mirror: `frontend/src/types/api.ts` (`SseEvent` union).
+
+### 7.2 Auth model: sign-in-to-approve (amendment 2026-08-28, owner ruling)
+
+- **Reads** (projects, jobs, SSE, reports): no login; transport auth via `X-API-Key` header baked at build time (`VITE_API_KEY`). The key is extractable from a static bundle by a determined user — accepted demo trade-off; all enforcement stays server-side.
+- **Deciding writes** (`POST /api/v1/approvals/{id}/decision`, `PATCH /api/v1/settings`): require Google sign-in. Frontend uses Firebase Auth (Google provider); on first decision the sign-in opens, then the request carries `Authorization: Bearer <ID token>`. Backend verifies via firebase-admin; missing/invalid → `401 {"error":{"code":"auth_required"}}`.
+- Approver identity (uid + email) is stored on the approval record and included in the Grafana annotation (C-4.3) — the audit trail names the human.
+- Replit Auth is NOT used (no server-side runtime on Replit static hosting). Frontend adds the Firebase JS SDK (covered by this ruling); backend adds firebase-admin under the owner's standing security/auth autonomy.
+
+### 7.3 Replit hosting mechanics (amendment 2026-08-28)
+
+- Replit static deployment serves `frontend/dist`; build command `cd frontend && npm ci && npm run build`.
+- SPA rewrites: all non-asset paths → `/index.html` so `/approvals` and `/reports` deep-link.
+- `VITE_API_BASE_URL`, `VITE_API_KEY` (and later `VITE_FIREBASE_*` web config — public by design) are BUILD-time env vars, baked per host; two hosts = two builds.
+- `.replit` sits at repo root and points build/serve at `frontend/`. Deploy/undeploy actions remain owner-approved ("ask first" boundary).
+- Track compliance: features built via Replit Agent (step prompts); deployed URL on replit.app is the submission URL, rehearsed at G4.
+
 ## 8. Non-Goals
 
-Multi-tenant auth/RBAC beyond single-team API-key; mobile apps; non-Google model support; real client integrations (frame.io etc.); i18n of UI; SLA guarantees.
+Multi-tenant auth/RBAC (reads stay API-key-only; Google sign-in gates decision writes only — §7.2, 2026-08-28); mobile apps; non-Google model support; real client integrations (frame.io etc.); i18n of UI; SLA guarantees.
 
 ## 9. Key Decisions (ADRs will mirror)
 
@@ -223,6 +248,7 @@ Multi-tenant auth/RBAC beyond single-team API-key; mobile apps; non-Google model
 | Captions | Part of delivery check, not own screen | rule check, not a workflow |
 | Spend Control | NEW station in Stage 1 (acts: throttle/stop/approve) | real action vs reporting; Diverge retry-loop pain; protects budget |
 | Demo dataset | Batch: 8–10 episodes × ~30 languages | charts must look like a working system, not a list |
+| FE auth | Public reads (API key); Google sign-in (Firebase) gates decision writes; approver identity in audit trail (§7.2) | owner ruling 2026-08-28 — accountability without demo friction |
 
 ## 10. Risks & Mitigations
 
