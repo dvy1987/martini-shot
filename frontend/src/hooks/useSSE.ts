@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import type { SseEvent } from "@/types/api";
+
 export type SseStatus = "live" | "reconnecting" | "unreachable";
 
 export interface SseState {
@@ -9,15 +11,28 @@ export interface SseState {
   lastEventAt: number | null;
 }
 
+export type SseEventHandler = (event: SseEvent) => void;
+
 const BASE_DELAY_MS = 500;
 const MAX_DELAY_MS = 15_000;
 
-export function useSSE(url: string | null): SseState {
+function isSseEvent(value: unknown): value is SseEvent {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { type?: unknown; payload?: unknown; at?: unknown };
+  return typeof candidate.type === "string" && "payload" in candidate && typeof candidate.at === "string";
+}
+
+export function useSSE(url: string | null, onEvent?: SseEventHandler): SseState {
   const [state, setState] = useState<SseState>({
     status: url ? "reconnecting" : "unreachable",
     lastEventAt: null,
   });
   const attemptRef = useRef(0);
+  const onEventRef = useRef(onEvent);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
 
   useEffect(() => {
     if (!url) {
@@ -34,8 +49,14 @@ export function useSSE(url: string | null): SseState {
         attemptRef.current = 0;
         setState((previous) => ({ ...previous, status: "live" }));
       };
-      source.onmessage = () => {
+      source.onmessage = (message) => {
         setState((previous) => ({ ...previous, lastEventAt: Date.now() }));
+        try {
+          const event: unknown = JSON.parse(message.data);
+          if (isSseEvent(event)) onEventRef.current?.(event);
+        } catch {
+          // Ignore malformed server events; the stream remains available.
+        }
       };
       source.onerror = () => {
         if (disposed) return;

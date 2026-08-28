@@ -2,6 +2,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useSSE } from "@/hooks/useSSE";
+import type { SseEvent } from "@/types/api";
 
 /** Minimal scripted transport for jsdom (no EventSource there): open / error / close only. */
 class ScriptedEventSource {
@@ -72,5 +73,32 @@ describe("useSSE", () => {
     const { result } = renderHook(() => useSSE(null));
     expect(result.current.status).toBe("unreachable");
     expect(ScriptedEventSource.instances).toHaveLength(0);
+  });
+
+  it("forwards valid event envelopes to the callback", () => {
+    const events: SseEvent[] = [];
+    renderHook(() => useSSE("/api/v1/projects/p1/events", (event) => events.push(event)));
+
+    act(() => {
+      ScriptedEventSource.instances[0]?.onmessage?.({
+        data: JSON.stringify({
+          type: "job.updated",
+          payload: {
+            job: {
+              job_id: "job-1",
+              station: "ingest",
+              project_id: "p1",
+              input_refs: [],
+              status: "running",
+              attempts: 1,
+            },
+          },
+          at: "2026-08-28T00:00:00Z",
+        }),
+      });
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0]?.type).toBe("job.updated");
   });
 });

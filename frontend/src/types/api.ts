@@ -17,6 +17,7 @@ export interface Project {
   created_at: string;
   station_counts: Record<string, number>;
   health: ProjectHealth;
+  jobs?: Job[];
 }
 
 export interface Job {
