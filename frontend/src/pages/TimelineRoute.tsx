@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getProject, listProjects } from "@/api/endpoints";
+import { getJob, getProject, listProjects } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
+import InvestigationDrawer, {
+  type InvestigationDrawerError,
+} from "@/components/InvestigationDrawer";
 import TimelineBoard from "@/components/TimelineBoard";
 import { STATUS_META } from "@/lib/status";
 import type { JobStatus } from "@/types/api";
@@ -82,12 +85,32 @@ export default function TimelineRoute({
   onSelectedProjectIdChange,
 }: TimelineRouteProps) {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [inspectedJobId, setInspectedJobId] = useState<string | null>(null);
+  const jobTriggerRef = useRef<HTMLElement | null>(null);
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: listProjects });
   const projectQuery = useQuery({
     queryKey: ["project", selectedProjectId],
     queryFn: () => getProject(selectedProjectId ?? ""),
     enabled: selectedProjectId !== null,
   });
+  const jobQuery = useQuery({
+    queryKey: ["job", inspectedJobId],
+    queryFn: () => getJob(inspectedJobId ?? ""),
+    enabled: inspectedJobId !== null,
+  });
+
+  const handleJobSelection = useCallback(
+    (jobId: string, trigger: HTMLElement) => {
+      jobTriggerRef.current = trigger;
+      if (selectedJobId === jobId || inspectedJobId !== null) setInspectedJobId(jobId);
+      setSelectedJobId(jobId);
+    },
+    [inspectedJobId, selectedJobId],
+  );
+
+  const closeInvestigation = useCallback(() => {
+    setInspectedJobId(null);
+  }, []);
 
   useEffect(() => {
     const projects = projectsQuery.data;
@@ -105,6 +128,8 @@ export default function TimelineRoute({
 
   useEffect(() => {
     setSelectedJobId(null);
+    setInspectedJobId(null);
+    jobTriggerRef.current = null;
   }, [selectedProjectId]);
 
   if (projectsQuery.isPending) {
@@ -229,7 +254,7 @@ export default function TimelineRoute({
         <TimelineBoard
           jobs={jobs}
           selectedJobId={selectedJobId}
-          onSelectJob={setSelectedJobId}
+          onSelectJob={handleJobSelection}
         />
       ) : null}
 
@@ -240,6 +265,25 @@ export default function TimelineRoute({
       ) : null}
 
       <StatusLegend />
+
+      <InvestigationDrawer
+        open={inspectedJobId !== null}
+        job={jobQuery.data ?? null}
+        isLoading={jobQuery.isPending}
+        error={
+          jobQuery.error instanceof ApiError
+            ? jobQuery.error
+            : jobQuery.isError
+              ? ({
+                  code: "network_error",
+                  message: "The selected job could not be reached.",
+                } satisfies InvestigationDrawerError)
+              : null
+        }
+        returnFocusRef={jobTriggerRef}
+        onRetry={() => void jobQuery.refetch()}
+        onClose={closeInvestigation}
+      />
     </section>
   );
 }

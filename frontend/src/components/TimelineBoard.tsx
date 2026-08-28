@@ -10,7 +10,7 @@ import type { Job } from "@/types/api";
 interface TimelineBoardProps {
   jobs: readonly Job[];
   selectedJobId: string | null;
-  onSelectJob: (jobId: string) => void;
+  onSelectJob: (jobId: string, trigger: HTMLElement) => void;
 }
 
 const COLLAPSED_JOB_LIMIT = 8;
@@ -51,7 +51,7 @@ function TimelineTable({
                       type="button"
                       aria-label={`Select job ${job.job_id}`}
                       aria-pressed={selected}
-                      onClick={() => onSelectJob(job.job_id)}
+                      onClick={(event) => onSelectJob(job.job_id, event.currentTarget)}
                       className="font-mono text-xs text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
                     >
                       {job.job_id}
@@ -177,7 +177,7 @@ export default function TimelineBoard({
                           aria-label={`${meta.term}: ${job.job_id}`}
                           aria-pressed={selected}
                           title={`${meta.term}: ${job.job_id}`}
-                          onClick={() => onSelectJob(job.job_id)}
+                          onClick={(event) => onSelectJob(job.job_id, event.currentTarget)}
                           className={[
                             "group min-w-36 rounded-md border bg-surface-2 px-3 py-2 text-left",
                             "transition-colors ease-chrome hover:border-ink-muted active:bg-surface-1",

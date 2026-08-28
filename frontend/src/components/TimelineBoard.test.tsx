@@ -55,6 +55,6 @@ describe("TimelineBoard", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /select job job-2/i }));
-    expect(onSelectJob).toHaveBeenCalledWith("job-2");
+    expect(onSelectJob).toHaveBeenCalledWith("job-2", expect.any(HTMLButtonElement));
   });
 });
