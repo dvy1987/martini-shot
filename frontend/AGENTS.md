@@ -18,7 +18,7 @@ Lint:     npm run lint
 - Env vars MUST be `VITE_`-prefixed and are baked at BUILD time from `frontend/.env.local` (gitignored; see `.env.example`). Two hosts = two build-time base URLs; never resolve the host at runtime.
 - ALL backend calls go through ONE typed API client module (`src/api/`), contract-tested against the backend OpenAPI schema. Components never call fetch directly.
 - SSE (`/api/v1/projects/{id}/events`) is the only live channel; reconnect with backoff; no polling unless the plan adds it.
-- Dark cinematic console aesthetic: direction + tokens come from `frontend-design` → `design-direction` → `design-system`/`design-tokens-craft` BEFORE components (root Agent-Led Design block). No lorem ipsum, no placeholder data — the UI renders only real API state.
+- Design is DECIDED: `docs/design/DESIGN.md` (owner-approved 2026-08-28, evidence-first / exception-first / film-native grammar) is the binding direction — read it before any component work. Future visual changes still run the `frontend-design` chain (root Agent-Led Design block) and amend DESIGN.md. No lorem ipsum, no placeholder data — the UI renders only real API state.
 - The Approvals inbox renders Spend Control escalations (S5b) — same inbox component, distinct badge.
 - Replit static hosting: SPA routing needs the platform's SPA/rewrite option enabled (verify at task J-3); `.replit` lives at repo root and only points build/serve commands at `frontend/`.
 

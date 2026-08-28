@@ -9,3 +9,6 @@
 3. First build action after that: **G0 spike** (real Gemini bg-swap on 3 frames) — mandatory, blocks all generative work.
 4. Proposed (owner not yet approved): spec §7 amendment for SSE envelope + FE auth + Replit mechanics (`.replit`, SPA rewrites, VITE_API_BASE_URL). See session log for the draft.
 **Drift:** none from handoff; repo was docs-only before this session.
+
+## 2026-08-28 — UX direction decided (setup session, continuation)
+Owner rejected the 3-option archetype menu and ordered independent first-principles + adversarial thinking. Decision recorded in `docs/design/DESIGN.md` v1 (binding): evidence-first, exception-first, film-native grammar; flagships = Season Timeline (CSS-grid lanes, table fallback), Investigation Cards (case file, not chat), Screening Room (approvals incl. Spend Control escalations); DI-suite dark tokens (tungsten #E8A33D attention, signal #3FB68B, agent #5B7FDB); IBM Plex Sans + JetBrains Mono; demo-legibility rules (APCA ≥60, 1080p). Floor = spec §7 console, flagship additive on same typed API. Deliverable to owner: initial Replit prompt for frontend scaffold.
