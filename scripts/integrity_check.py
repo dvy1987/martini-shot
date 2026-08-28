@@ -14,7 +14,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCAN_DIRS = [ROOT / "backend", ROOT / "frontend" / "src"]
-EXCLUDE_PARTS = {"tests", "node_modules", "dist", ".venv", ".git"}
+EXCLUDE_PARTS = {"tests", "test", "node_modules", "dist", ".venv", ".git"}
+VITEST_TEST_SUFFIXES = (".test.ts", ".test.tsx", ".spec.ts", ".spec.tsx")
 SCAN_SUFFIXES = {".py", ".ts", ".tsx", ".js"}
 
 BANNED = [
@@ -35,8 +36,12 @@ def main() -> int:
                 continue
             if EXCLUDE_PARTS & set(path.parts):
                 continue
-            if path.name.startswith("test_") or path.name == "conftest.py":
-                continue  # C-1.2: tests excluded
+            if (
+                path.name.startswith("test_")
+                or path.name == "conftest.py"
+                or path.name.endswith(VITEST_TEST_SUFFIXES)
+            ):
+                continue  # C-1.2: tests excluded (pytest + vitest naming)
             text = path.read_text(encoding="utf-8", errors="replace")
             for lineno, line in enumerate(text.splitlines(), start=1):
                 for pattern, label in BANNED:

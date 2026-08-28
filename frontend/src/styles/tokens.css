@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/*
+ * Martini Shot design tokens — docs/design/DESIGN.md is the source of truth.
+ * Tailwind v4 @theme: colors become utilities (bg-bg, text-tungsten, border-line…),
+ * fonts and easings map to the font and ease utility namespaces.
+ */
+@theme {
+  --color-bg: #0b0b0d;
+  --color-surface-1: #121316;
+  --color-surface-2: #17181c;
+  --color-line: #232529;
+  --color-ink: #e8e6e1;
+  --color-ink-muted: #a8a6a0;
+  --color-tungsten: #e8a33d;
+  --color-signal: #3fb68b;
+  --color-agent: #5b7fdb;
+  --color-danger: #d9544f;
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-chrome: cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* Non-utility tokens (used by JS motion variants and inline styles). */
+:root {
+  --scrim: rgba(11, 11, 13, 0.72);
+  --dur-chrome: 120ms;
+  --dur-reveal: 200ms;
+  --dur-drawer: 200ms;
+  --spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: rgba(232, 163, 61, 0.35);
+    color: var(--color-ink);
+  }
+}

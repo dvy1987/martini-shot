@@ -21,7 +21,7 @@ Eval check:  make eval-check      (thresholds.yaml structure gate, C-3.4)
 Integrity:   make integrity       (C-1.2 no-mocks grep)
 Full gate:   make check           (run before declaring ANY task done)
 ```
-Frontend commands (npm) land with scaffold task C-1 — see `frontend/AGENTS.md`.
+Frontend (in `frontend/`): `npm ci` · `npm run dev` · `npm run build` · `npm run test` · `npm run lint` · `npm run typecheck` — see `frontend/AGENTS.md`.
 
 ## Project Structure (non-obvious only)
 - `docs/constitution.md` — BINDING invariants C-1..C-8; every plan task cites it; violations reject work.
