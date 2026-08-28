@@ -1,0 +1,40 @@
+{
+  "timestamp_utc": "2026-08-28T12:49:45.149784+00:00",
+  "project": "martini-shot",
+  "location": "global",
+  "pinned_models": {
+    "text": "gemini-3.7-flash",
+    "video_gen_edit": "gemini-omni-1.1-flash-preview",
+    "video_extension": "veo-3.1-generate-preview"
+  },
+  "model_availability": {
+    "text": {
+      "pinned": "gemini-3.7-flash",
+      "listed": true
+    },
+    "video_gen_edit": {
+      "pinned": "gemini-omni-1.1-flash-preview",
+      "listed": true,
+      "near_matches": [
+        "gemini-omni-1.1-flash-preview"
+      ]
+    },
+    "video_extension": {
+      "pinned": "veo-3.1-generate-preview",
+      "listed": false,
+      "near_matches": []
+    }
+  },
+  "text_probe": {
+    "ok": true,
+    "reply": "G0 probe OK",
+    "thinking_level": "high",
+    "thought_summary_present": true,
+    "usage_metadata": "cache_tokens_details=None cached_content_token_count=None candidates_token_count=4 candidates_tokens_details=[ModalityTokenCount(\n  modality=<MediaModality.TEXT: 'TEXT'>,\n  token_count=4\n)] prompt_token_count=8 prompt_tokens_details=[ModalityTokenCount(\n  modality=<MediaModality.TEXT: 'TEXT'>,\n  token_count=8\n)] thoughts_token_count=71 tool_use_prompt_token_count=None tool_use_prompt_tokens_details=None total_token_count=83 traffic_type=<TrafficType.ON_DEMAND: 'ON_DEMAND'>"
+  },
+  "tts_probe": {
+    "ok": true,
+    "voice_count": 2066,
+    "chirp_hd_voices": 1598
+  }
+}

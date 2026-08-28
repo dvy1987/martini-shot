@@ -16,7 +16,7 @@ Studio API as per-model fallback.
 | Task class | Model | Config |
 |---|---|---|
 | **ALL text-LLM reasoning** — supervisor investigation chains, morning report, camera-work suggestions, script alignment, rubric judges, fix proposals | `gemini-3.7-flash` | **thinking level HIGH** (+ thought summaries for the audit trail) |
-| Video generation & conversational editing | `gemini-omni-1.1-flash` | Interactions API; stateful multi-turn via `previous_interaction_id`; tasks: edit/extend/image_to_video/reference_to_video; resolution 360p (draft) → 1080p (master) |
+| Video generation & conversational editing | `gemini-omni-1.1-flash-preview` | Interactions API; stateful multi-turn via `previous_interaction_id`; tasks: edit/extend/image_to_video/reference_to_video; resolution 360p (draft) → 1080p (master) |
 | Precision video extension / first-last-frame | `veo-3.1` | used where Omni's extension needs frame-exact anchors; Omni-vs-Veo decided per-op by eval (JSONL evidence) |
 | Dub voices (3 languages) | Chirp 3 HD via Cloud Text-to-Speech | SSML pacing; duration-delta measured by S4 |
 | Video understanding (script extraction, content QC, scene analysis) | `gemini-3.7-flash` | video input, thinking high |
@@ -48,3 +48,10 @@ Studio API as per-model fallback.
 
 - google-genai 2.20.0 (PyPI, 2026-08-25) · google-adk 2.8.0 (PyPI, 2026-08-26)
 - Gemini API docs: video/Omni (ai.google.dev/gemini-api/docs/omni), thinking (…/docs/thinking), latest-model (Gemini 3.7 Flash)
+
+## G0 probe verification (2026-08-28, docs/evidence/G0/capability_probe.json)
+
+- `gemini-3.7-flash` thinking HIGH: **callable on Vertex** (`martini-shot`, global); thought summaries confirmed (include_thoughts=True).
+- Omni: Vertex serves the **`-preview`** suffixed ID only — pin updated from `gemini-omni-1.1-flash` to `gemini-omni-1.1-flash-preview`.
+- Veo: absent from `models.list` (expected; separate API surface). Direct-call verification happens in the quality spike before any Veo reliance.
+- Cloud TTS: **2,066 voices, 1,598 Chirp HD** available. ADC quota project set to `martini-shot`.

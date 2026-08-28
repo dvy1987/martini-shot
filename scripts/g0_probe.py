@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -25,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_DIR = ROOT / "docs" / "evidence" / "G0"
 PINNED = {
     "text": "gemini-3.7-flash",
-    "video_gen_edit": "gemini-omni-1.1-flash",
+    "video_gen_edit": "gemini-omni-1.1-flash-preview",
     "video_extension": "veo-3.1-generate-preview",
 }
 TEXT_THINKING_LEVEL = "high"
@@ -43,8 +44,11 @@ def load_env(path: Path) -> dict[str, str]:
 
 
 def adc_token() -> str:
+    gcloud = shutil.which("gcloud") or shutil.which("gcloud.cmd")
+    if gcloud is None:
+        raise RuntimeError("gcloud executable not found on PATH")
     result = subprocess.run(
-        ["gcloud", "auth", "application-default", "print-access-token"],
+        [gcloud, "auth", "application-default", "print-access-token"],
         capture_output=True,
         text=True,
         check=True,
@@ -53,8 +57,14 @@ def adc_token() -> str:
 
 
 def tts_probe(project: str, token: str) -> dict[str, object]:
-    url = f"https://texttospeech.googleapis.com/v1/voices?project={project}"
-    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    url = "https://texttospeech.googleapis.com/v1/voices"
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "x-goog-user-project": project,
+        },
+    )
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             body = json.loads(response.read().decode("utf-8"))
