@@ -1,0 +1,47 @@
+# Secrets & credentials (constitution C-5.1) — names in .env.example only
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+*.pem
+*.key
+*.p12
+**/service-account*.json
+.grafana-token*
+.mcp-auth*
+.oauth-token*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+.vite/
+*.tsbuildinfo
+
+# Build artifacts
+dist/
+build/
+*.zip
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large raw media (evidence packs keep screenshots/JSONL; raw video takes stay local)
+docs/evidence/video/raw/
+fixtures/tmp/

@@ -1,0 +1,22 @@
+{
+  "tasks": [
+    {
+      "id": "smoke-001",
+      "file_phrase": "tests/test_smoke.py",
+      "command": "python -m pytest tests/test_smoke.py -q",
+      "split": "held-in"
+    },
+    {
+      "id": "integrity-001",
+      "file_phrase": "scripts/integrity_check.py",
+      "command": "python scripts/integrity_check.py",
+      "split": "held-in"
+    },
+    {
+      "id": "eval-gate-001",
+      "file_phrase": "backend/evals/check_thresholds.py",
+      "command": "python backend/evals/check_thresholds.py",
+      "split": "held-out"
+    }
+  ]
+}

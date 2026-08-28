@@ -1,0 +1,1022 @@
+{
+  "generated_at": "2026-08-28T04:33:30.683696+00:00",
+  "edges": [
+    {
+      "source": "skill_agent_builder",
+      "target": "skill_harness_generation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\agent-builder\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_agent_builder",
+      "target": "skill_setup_evaluation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\agent-builder\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_agent_loom_sync",
+      "target": "skill_validate_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\agent-loom-sync\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_agent_system_architecture",
+      "target": "skill_agent_observability",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\agent-system-architecture\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_apply_paper_to_project",
+      "target": "skill_learn_from_paper",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\apply-paper-to-project\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_architectural_decision_log",
+      "target": "skill_memory_decision",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\architectural-decision-log\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_brainstorming",
+      "target": "skill_feature_spec",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\brainstorming\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_brainstorming",
+      "target": "skill_venture_exploration",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\brainstorming\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_business_modeling",
+      "target": "skill_venture_exploration",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\business-modeling\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_compress_skill",
+      "target": "skill_split_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\compress-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_customer_discovery",
+      "target": "skill_venture_exploration",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\customer-discovery\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_dependency_mapping",
+      "target": "skill_safe_change",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\dependency-mapping\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_design_system",
+      "target": "skill_svg_creation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\design-system\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_dynamic_routing",
+      "target": "skill_debug_and_fix",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\dynamic-routing\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_eval_judge",
+      "target": "skill_eval_rubric_design",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\eval-judge\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_eval_output",
+      "target": "skill_eval_rubric_design",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\eval-output\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_eval_output",
+      "target": "skill_eval_judge",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\eval-output\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experiment_backlog",
+      "target": "skill_experiment_spec",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experiment-backlog\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experiment_readout",
+      "target": "skill_prd_writing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experiment-readout\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experiment_readout",
+      "target": "skill_architectural_decision_log",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experiment-readout\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experiment_runbook",
+      "target": "skill_problem_to_plan",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experiment-runbook\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experiment_spec",
+      "target": "skill_experiment_runbook",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experiment-spec\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_experimentation",
+      "target": "skill_experiment_readout",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\experimentation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_feature_spec",
+      "target": "skill_project_constitution",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\feature-spec\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_feature_spec",
+      "target": "skill_spec_driven_development",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\feature-spec\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_feature_spec",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\feature-spec\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_frontend_design",
+      "target": "skill_design_direction",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\frontend-design\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_frontend_design",
+      "target": "skill_design_system",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\frontend-design\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_frontend_design",
+      "target": "skill_design_review",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\frontend-design\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_generate_changelog",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\generate-changelog\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_gsap_animation",
+      "target": "skill_svg_creation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\gsap-animation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_gsap_animation",
+      "target": "skill_motion_animation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\gsap-animation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_harness_engineering",
+      "target": "skill_harness_evolution",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\harness-engineering\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_harness_evolution",
+      "target": "skill_eval_pipeline",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\harness-evolution\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_idea_evaluation",
+      "target": "skill_fermi",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\idea-evaluation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_idea_evaluation",
+      "target": "skill_assumption_mapping",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\idea-evaluation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_idea_evaluation",
+      "target": "skill_venture_exploration",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\idea-evaluation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_idea_generation",
+      "target": "skill_venture_exploration",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\idea-generation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_implementation_plan",
+      "target": "skill_feature_spec",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\implementation-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_implementation_plan",
+      "target": "skill_model_selection",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\implementation-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_implementation_plan",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\implementation-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_validate_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_prune_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_research_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_skill_deconflict",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_split_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_improve_skills",
+      "target": "skill_cross_link_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\improve-skills\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from",
+      "target": "skill_apply_paper_to_project",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from",
+      "target": "skill_compress_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from",
+      "target": "skill_split_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from",
+      "target": "skill_learn_from_article",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from",
+      "target": "skill_learn_from_repo",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_learn_from_paper",
+      "target": "skill_apply_paper_to_project",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\learn-from-paper\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_library_skill",
+      "target": "skill_generate_changelog",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\library-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_library_skill",
+      "target": "skill_codebase_understanding",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\library-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_library_skill",
+      "target": "skill_prd_writing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\library-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_learn_from_chat",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_startup",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_recall",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_handoff",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_decision",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_promote",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_compact",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_audit",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory",
+      "target": "skill_memory_forget",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory_capture",
+      "target": "skill_learn_from_chat",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory-capture\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory_capture",
+      "target": "skill_memory_compact",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory-capture\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory_compact",
+      "target": "skill_memory_forget",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory-compact\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory_promote",
+      "target": "skill_memory_compact",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory-promote\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_memory_startup",
+      "target": "skill_harness_engineering",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\memory-startup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_motion_animation",
+      "target": "skill_svg_creation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\motion-animation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_prd_writing",
+      "target": "skill_feature_spec",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\prd-writing\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_prd_writing",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\prd-writing\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_problem_to_plan",
+      "target": "skill_spec_driven_development",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\problem-to-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_problem_to_plan",
+      "target": "skill_prd_writing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\problem-to-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_problem_to_plan",
+      "target": "skill_feature_spec",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\problem-to-plan\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_process_decomposer",
+      "target": "skill_problem_to_plan",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\process-decomposer\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_orchestrator",
+      "target": "skill_skill_routing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-orchestrator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_orchestrator",
+      "target": "skill_process_decomposer",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-orchestrator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_orchestrator",
+      "target": "skill_project_setup",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-orchestrator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_setup",
+      "target": "skill_project_constitution",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_setup",
+      "target": "skill_memory_startup",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_setup",
+      "target": "skill_harness_generation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_project_setup",
+      "target": "skill_retroactive_project_setup",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_publish_skill",
+      "target": "skill_validate_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\publish-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_publish_skill",
+      "target": "skill_improve_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\publish-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_reality_check",
+      "target": "skill_assumption_mapping",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\reality-check\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_reality_check",
+      "target": "skill_adversarial_hat",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\reality-check\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_retroactive_project_setup",
+      "target": "skill_harness_generation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\retroactive-project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_retroactive_project_setup",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\retroactive-project-setup\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_runtime_learning_loop",
+      "target": "skill_agent_observability",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\runtime-learning-loop\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_safe_change",
+      "target": "skill_dependency_mapping",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\safe-change\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_safe_change",
+      "target": "skill_dynamic_routing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\safe-change\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_skill_finder",
+      "target": "skill_universal_skill_creator",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\skill-finder\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_spec_driven_development",
+      "target": "skill_problem_to_plan",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\spec-driven-development\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_split_skill",
+      "target": "skill_improve_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\split-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_split_skill",
+      "target": "skill_compress_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\split-skill\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_structured_planning",
+      "target": "skill_dynamic_routing",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\structured-planning\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_svg_creation",
+      "target": "skill_design_system",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\svg-creation\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_research_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_skill_deconflict",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_validate_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_cross_link_skills",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_library_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_publish_skill",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_universal_skill_creator",
+      "target": "skill_memory_capture",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\universal-skill-creator\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_product_soul",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_brainstorming",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_reality_check",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_business_modeling",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_idea_evaluation",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    },
+    {
+      "source": "skill_venture_exploration",
+      "target": "skill_customer_discovery",
+      "relation": "invokes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".agents\\skills\\venture-exploration\\SKILL.md",
+      "provenance": "SKILL.md"
+    }
+  ]
+}

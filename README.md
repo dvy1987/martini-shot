@@ -1,4 +1,27 @@
-# Agentic Cinema — Grafana Track Idea Lab
+# Post Command
+
+An operations cockpit where a film/TV project travels through post-production
+as instrumented jobs, watched end-to-end by an AI supervisor agent that reads
+all telemetry through the **Grafana Cloud MCP server**, catches failures,
+diagnoses root causes, and drives fixes. Built for the **Grafana Labs track**
+of the [Agentic Cinema hackathon](https://agentic-cinema.devpost.com/)
+(Google Cloud + partner ecosystem, powered by Gemini). Deadline: 2026-09-09 14:00 PT.
+
+**Status:** pre-code (spec + plan approved, repo scaffolded).
+
+- Engineering rules: `docs/constitution.md` (binding invariants)
+- What we're building: `docs/specs/2026-08-26-post-command-feature-spec.md`
+- How we build it: `docs/plans/2026-08-26-post-command-plan.md` (gates G0–G5)
+- Mission briefing: `ideas/AO-STATION-MAP.md`
+
+**Stack & topology:** Python 3.12 FastAPI backend on Cloud Run (jobs in
+Firestore, media in GCS, ADK supervisor via Grafana Cloud MCP) · React+Vite
+frontend in `frontend/` served on Replit (Firebase interim) · OpenTelemetry
+telemetry into Grafana Cloud · both deployables in this one repo.
+
+---
+
+## Idea lab archive
 
 Workspace for generating, comparing, and selecting a hackathon idea for the
 **Grafana Labs track** of the [Agentic Cinema hackathon](https://agentic-cinema.devpost.com/)

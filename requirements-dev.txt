@@ -1,0 +1,6 @@
+# Dev tooling only. Backend runtime deps are pinned by Phase-1 task A-1.
+ruff>=0.8
+mypy>=1.13
+pytest>=8.3
+pre-commit>=4.0
+PyYAML>=6.0

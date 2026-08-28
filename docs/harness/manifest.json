@@ -1,0 +1,82 @@
+{
+  "harness_version": "v0",
+  "created": "2026-08-28",
+  "components": [
+    {
+      "id": "prompt",
+      "path": "AGENTS.md",
+      "status": "generated",
+      "sha256": "5bc4c00f7b048bf255a1ab2dfd711dc0a0e075def98da042a64e77eb0e5c3df1",
+      "allowed_write": true,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "tools",
+      "path": "docs/harness/tools.md",
+      "status": "generated",
+      "sha256": "c79734aef41425687c9eb5bc4cd4760264ffbcf854f2bb215d48fb7d9255dc23",
+      "allowed_write": true,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "middleware",
+      "path": "docs/harness/middleware.md",
+      "status": "generated",
+      "sha256": "e3deb4b9404b17b8a329fc8fbde2d1139022ae0322bf3a2de6f19be649ae4773",
+      "allowed_write": true,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "skills",
+      "path": ".agents/ROUTING.md",
+      "status": "user-edited",
+      "sha256": "534c9d61aeddaf3bb129b0f0e64ee453131f8f5a1e8366773e13a1c28940bef5",
+      "allowed_write": false,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "sub-agents",
+      "path": "docs/plans/2026-08-26-post-command-plan.md",
+      "status": "user-edited",
+      "sha256": "8cd9ef3d1d153996b651a17642fe8e54d8cf6d047e276b0698d7b8d3df0d0fa7",
+      "allowed_write": false,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "memory",
+      "path": "docs/memory/MEMORY-ROUTING.md",
+      "status": "user-edited",
+      "sha256": "29dcfb948ce77eab5e6bd7e6726452e954878247691afd32e7881caa6600ee21",
+      "allowed_write": false,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "governance",
+      "path": "docs/harness/governance.md",
+      "status": "generated",
+      "sha256": "9a421f8b3dc9bf022d479e73b3e5a1468b915cee344078997ff7db84aff26ff4",
+      "allowed_write": true,
+      "written_by": "harness-generation v0"
+    },
+    {
+      "id": "verification",
+      "path": "docs/harness/eval-interface.md",
+      "status": "generated",
+      "sha256": "d74e7b5ecd18fac3ebad186ac6aee07430126957fc6e453e8b10f3785876f11d",
+      "allowed_write": true,
+      "written_by": "harness-generation v0"
+    }
+  ],
+  "eval_interface": "docs/harness/eval-interface.md",
+  "held_out_split": "docs/harness/tasks.json (split=held-out)",
+  "allowed_write_paths": [
+    "backend/**",
+    "frontend/src/**",
+    "scripts/**",
+    "tests/**",
+    "docs/adr/",
+    "docs/harness/runs/",
+    "docs/memory/"
+  ],
+  "notes": "Drift CI: make harness-check (or python docs/harness/drift_check.py). Drift on generated components -> non-zero exit (no silent overwrite). User-edited components are flagged and skipped on regeneration."
+}
