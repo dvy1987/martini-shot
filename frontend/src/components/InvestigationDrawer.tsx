@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { cost } from "@/lib/formatters";
 import { chromeTween, drawerVariants } from "@/lib/motion";
-import { STATUS_META } from "@/lib/status";
+import { statusMetaOrUnknown } from "@/lib/status";
 import type { Job } from "@/types/api";
 
 export interface InvestigationDrawerError {
@@ -59,7 +59,7 @@ function DrawerBody({
   if (error) {
     return (
       <div className="rounded-md border border-line bg-surface-2 p-4">
-        <p className="font-display text-lg text-ink">Case file unavailable.</p>
+        <p className="text-lg text-ink">Case file unavailable.</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">{error.message}</p>
         <p className="mt-3 font-mono text-xs uppercase tracking-wider text-ink-muted">
           {error.code}
@@ -80,7 +80,7 @@ function DrawerBody({
   if (!job) {
     return (
       <div className="rounded-md border border-line bg-surface-2 p-4">
-        <p className="font-display text-lg text-ink">No job record returned.</p>
+        <p className="text-lg text-ink">No job record returned.</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
           The API did not return an observable case file for this selection.
         </p>
@@ -88,7 +88,7 @@ function DrawerBody({
     );
   }
 
-  const status = STATUS_META[job.status];
+  const status = statusMetaOrUnknown(job.status);
   const inputRefCount = job.input_refs.length;
 
   return (
@@ -312,7 +312,7 @@ export default function InvestigationDrawer({
                 >
                   Investigation card
                 </p>
-                <h2 id="investigation-drawer-title" className="mt-1 font-display text-xl text-ink">
+                <h2 id="investigation-drawer-title" className="mt-1 text-xl text-ink">
                   {job?.job_id ?? "Loading case file"}
                 </h2>
               </div>

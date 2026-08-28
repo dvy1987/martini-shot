@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 import { cost } from "@/lib/formatters";
 import { staggerChild, staggerParent } from "@/lib/motion";
-import { STATUS_META } from "@/lib/status";
+import { statusMetaOrUnknown } from "@/lib/status";
 import { groupJobsByStation } from "@/lib/timeline";
 import type { Job } from "@/types/api";
 
@@ -39,7 +39,7 @@ function TimelineTable({
         <tbody>
           {groupJobsByStation(jobs).flatMap((lane) =>
             lane.jobs.map((job) => {
-              const meta = STATUS_META[job.status];
+              const meta = statusMetaOrUnknown(job.status);
               const selected = selectedJobId === job.job_id;
               return (
                 <tr key={job.job_id} className={selected ? "bg-surface-2" : "bg-surface-1"}>
@@ -167,7 +167,7 @@ export default function TimelineBoard({
 
                   <div className="grid auto-cols-fr grid-flow-col gap-2">
                     {visibleJobs.map((job) => {
-                      const meta = STATUS_META[job.status];
+                      const meta = statusMetaOrUnknown(job.status);
                       const selected = selectedJobId === job.job_id;
 
                       return (
@@ -183,7 +183,7 @@ export default function TimelineBoard({
                             "transition-colors ease-chrome hover:border-ink-muted active:bg-surface-1",
                             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten",
                             selected ? "border-tungsten ring-1 ring-tungsten" : "border-line",
-                            job.cost_micros ? "border-r-2 border-r-tungsten" : "",
+                            job.cost_micros !== undefined ? "border-r-2 border-r-tungsten" : "",
                           ].join(" ")}
                         >
                           <span className={`block font-mono text-xs ${meta.textClass}`}>

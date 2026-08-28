@@ -195,7 +195,7 @@ export default function TimelineRoute({
           <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">
             Season timeline
           </p>
-          <h1 id="timeline-heading" className="mt-1 font-display text-2xl text-ink">
+          <h1 id="timeline-heading" className="mt-1 text-2xl text-ink">
             {projectQuery.data?.title ?? selectedProject?.title ?? "Loading project"}
           </h1>
         </div>
@@ -225,7 +225,7 @@ export default function TimelineRoute({
                 : new ApiError("network_error", "The selected project could not be reached.", 0);
             return (
               <div className="rounded-md border border-line bg-surface-1 px-6 py-10 text-center">
-                <p className="font-display text-xl text-ink">This turnover could not be loaded.</p>
+                <p className="text-xl text-ink">This turnover could not be loaded.</p>
                 <p className="mt-2 text-sm text-ink-muted">{error.message}</p>
                 <p className="mt-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
                   {error.code}

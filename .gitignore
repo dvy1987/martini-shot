@@ -45,3 +45,6 @@ Thumbs.db
 # Large raw media (evidence packs keep screenshots/JSONL; raw video takes stay local)
 docs/evidence/video/raw/
 fixtures/tmp/
+
+# Replit Agent paste artifacts (existing files stay tracked; ignore future drops)
+attached_assets/

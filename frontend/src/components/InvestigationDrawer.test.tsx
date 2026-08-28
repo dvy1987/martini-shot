@@ -134,4 +134,20 @@ describe("InvestigationDrawer", () => {
     fireEvent.click(screen.getByRole("button", { name: /retry case file/i }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
+
+  it("renders an unknown API status truthfully instead of crashing", () => {
+    render(
+      <InvestigationDrawer
+        open
+        job={{ ...inspectedJob, status: "cancelled" } as unknown as Job}
+        isLoading={false}
+        error={null}
+        returnFocusRef={{ current: null }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Unrecognized")).toBeInTheDocument();
+    expect(screen.getByText(/cancelled/)).toBeInTheDocument();
+  });
 });

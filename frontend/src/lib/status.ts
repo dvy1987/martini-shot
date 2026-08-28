@@ -37,3 +37,17 @@ export function isJobStatus(value: string): value is JobStatus {
 export function statusMetaFor(value: string): StatusMeta | null {
   return isJobStatus(value) ? STATUS_META[value] : null;
 }
+
+const UNKNOWN_META: StatusMeta = {
+  term: "Unrecognized",
+  hint: "status outside the board vocabulary",
+  glyph: "?",
+  textClass: "text-ink-muted",
+};
+
+/** Total lookup for render paths: unknown API statuses render truthfully instead of crashing. */
+export function statusMetaOrUnknown(value: string): StatusMeta {
+  return isJobStatus(value)
+    ? STATUS_META[value]
+    : { ...UNKNOWN_META, hint: `${UNKNOWN_META.hint}: ${value}` };
+}
