@@ -1,0 +1,29 @@
+   CONTEXT (read before coding): docs/design/DESIGN.md is the binding design charter
+     (v3). frontend/AGENTS.md holds the rules. A skeleton already exists in frontend/
+     (shell, routes, tokens.css, lib/motion.ts, lib/status.ts, api/client.ts +
+     api/endpoints.ts, hooks/useSSE.ts + useBackendHealth.ts, empty states).
+
+     LAWS: (1) NEVER create mock APIs, seed data, or fake rows — if the backend is
+     unreachable, show the designed offline/empty state; that is correct behavior.
+     (2) Use only tokens/classes from src/styles/tokens.css. (3) Motion: the shared
+     variants in lib/motion.ts, entrances ≤280ms, at most the 3 sanctioned loops,
+     reduced-motion honored (MotionConfig already set). (4) All backend calls go
+     through src/api/ only. (5) New pure logic (grouping, sorting, rollups) gets
+     vitest tests first. (6) Finish every step by running, in frontend/:
+     npm run typecheck && npm run test && npm run lint && npm run build — all must
+     pass. Then summarize what changed in 5 bullets.
+
+   Step 1 — Season Timeline board:
+
+     STEP 1 — Season Timeline (read-only truth).
+     Build the timeline landing on the existing "/" route: when listProjects()
+     returns projects, render a Season Timeline of lanes per station with job clips
+     positioned in a CSS grid; clicking a clip selects it (selection state only for
+     now). Keep density on the data surface only; lanes collapse by default per the
+     charter. Wire a project selector (dropdown) that drives getProject() and
+     projectEventsUrl(projectId) into useSSE; job.updated SSE events update the
+     query cache. If listProjects fails or there are no projects, keep the existing
+     designed empty/offline state — never fabricate rows. Put pure logic (lane
+     grouping + sort order) in src/lib/timeline.ts with failing tests written first.
+     DONE WHEN: gates green; with no backend the page still shows the empty state
+     and Offline pill with zero console errors.
