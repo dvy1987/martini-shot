@@ -47,7 +47,7 @@ Score across 6 dimensions (max 12/12). **Gate: >=6/12 to proceed.**
 | Dimension | 0 | 1 | 2 |
 |---|---|---|---|
 | **Author expertise** | Anonymous / no track record | Some relevant experience | Known practitioner, built production systems |
-| **Publication venue** | Random blog, no editorial standards | Personal blog of known engineer | Eng blog (Stripe, Netflix, Google) or curated publication |
+| **Publication venue** | Random blog, no editorial standards | Personal blog of known engineer | Eng blog (Stripe, Google, or another established technology company) or curated publication |
 | **Evidence type** | Pure opinion / theory | Anecdotal experience | Production data, metrics, case studies |
 | **Reproducibility** | Claims untestable | Partially testable | Concrete steps, code, or configs provided |
 | **Recency** | >3 years, tech has changed | 1-3 years, mostly current | <1 year, current tech |

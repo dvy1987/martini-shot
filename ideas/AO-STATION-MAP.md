@@ -68,14 +68,13 @@ Understanding the path matters because every turn left residue in the final idea
 2. **Batch 3–4 (pattern break):** ticket drops, esports, escape rooms, theme
    parks, AI production lines (Q), night-shift AI supervisors (R). Still no hit,
    but Q and R later became ingredients.
-3. **Owner question: "Ben Affleck's startup?"** Research surfaced **Artists
-   Equity** (Affleck/Damon's fair-share studio — crew share film profits; needs
+3. **Owner question about filmmaker-led studios and AI filmmaking tools.**
+   Research surfaced fair-share studio models (crew share film profits; needs
    trustworthy performance numbers). Mined for ideas AD/AE/AF. Owner pushed
-   deeper; correction discovered they are NOT a post/VFX company — which led to
-   the real target: **InterPositive**, Affleck's AI-filmmaking-tools startup
-   (soundstage-trained model fixing backgrounds/lighting/missing shots,
-   technique-only guardrails), acquired by **Netflix for $587M in March 2026**.
-   Signal: governed AI-assisted film production is industry consensus now.
+   deeper; the discussion then moved to governed AI filmmaking tools
+   (soundstage-trained models fixing backgrounds/lighting/missing shots,
+   technique-only guardrails). Signal: governed AI-assisted film production is
+   an important industry direction.
 4. **Market research request:** interactive storytelling products. Finding:
    micro-drama apps (ReelShort etc.) are exploding (~$700M quarterly revenue,
    tripling YoY); branching itself stays niche. Produced AL (micro-drama factory
@@ -146,7 +145,7 @@ use deterministic checks; MED are middleweight. Sources point back to catalog ID
 | 0 | Handoff Validator | NEW (gap) | silent-in-spine | Locked cuts ship to sound/VFX/color with manifests (EDL/AAF, count sheets); files go missing constantly. Verifies manifest vs delivered files; annotates discrepancies. Runs invisibly inside the spine. |
 | 1 | Ingest & Dailies Watchdog | B | thin-med | Overnight footage processing fails silently at 3am; discovered at 7am with half-empty bins. Watches arrival/integrity/sync; catches stalls mid-night; annotates the dailies board. |
 | 2 | Edit-Assist & Continuity | AK | med (v2 if tight) | Continuity errors (glass full→empty) slip past one exhausted script supervisor into locked cuts; fans make viral compilations. Monitors automated scene-comparison checks; triages severity/visibility. |
-| 3 | **Virtual Pickups** ★ | AI+AN merged | HERO | Reshoot days cost six figures; generative repair now possible (Netflix paid $587M proving it). Editor marks problems ("flat sky", "need vertical", "make it dusk"); jobs run isolate→transform→QC. Agent watches per-op cost/duration AND a classically-computed **flicker/drift score** between frames; flags threshold breaches; auto-retries with anchored prompts; annotates before/after evidence on the delivery dashboard. Ops: background swap ✅, outpaint reframing 16:9↔9:16 ✅, relight ⚠️ stretch (demote to detect-and-flag if unstable). |
+| 3 | **Virtual Pickups** ★ | AI+AN merged | HERO | Reshoot days cost six figures; targeted generative repair is now practical. Editor marks problems ("flat sky", "need vertical", "make it dusk"); jobs run isolate→transform→QC. Agent watches per-op cost/duration AND a classically-computed **flicker/drift score** between frames; flags threshold breaches; auto-retries with anchored prompts; annotates before/after evidence on the delivery dashboard. Ops: background swap ✅, outpaint reframing 16:9↔9:16 ✅, relight ⚠️ stretch (demote to detect-and-flag if unstable). |
 | 4 | Restoration | K | thin-med (v2 default) | Old films scanned/cleaned frame-by-frame by multi-day automated jobs that fail quietly halfway. Treats restoration as a journey; stall/anomaly detection; "minute 43 went wrong" reports. |
 | 5 | Dialogue Doctor | AP (gap) | med (v2 default) | Clipped/noisy/off-mic dialogue lines found late; ADR is expensive. Gemini LISTENS to stems, ranks worst lines, drafts the ADR cue list. |
 | 6 | Loudness Marshal | AQ (gap) | thin-must-have | Loudness compliance (EBU R128/ATSC A/85) is legally mandated per platform; violations bounce deliveries. ffmpeg math as metrics; agent diagnoses WHICH stem is hot; blocks delivery until fixed. Cheapest credibility in the whole build. |

@@ -193,15 +193,15 @@ Constraints baked into every idea (see `docs/grafana-track-notes.md`):
 
 ---
 
-## Batch 6 — Inspired by Artists Equity (Affleck/Damon's fair-share studio) (AD–AF)
+## Batch 6 — Inspired by fair-share studio models (AD–AF)
 
-Source insight: Artists Equity's business model pays crew a share of a film's
-success (Netflix paid *The Rip* crew bonus, May 2026), which makes trustworthy,
-timely performance measurement existential — and streaming-era numbers are opaque
-by design (Affleck has said so publicly). Ideas below productize that trust gap.
+Source insight: fair-share studio models pay crew a share of a film's
+success, which makes trustworthy, timely performance measurement existential —
+and streaming-era numbers are opaque by design. Ideas below productize that
+trust gap.
 
 ### AD. Equity Engine — Fair-Share Telemetry ⭐ batch favorite
-- **World:** Films promising crew success-bonuses (the Artists Equity model).
+- **World:** Films promising crew success-bonuses.
 - **Pain:** Contractual triggers ("opening weekend > $40M activates the crew pool") go unnoticed for weeks; disputed spreadsheets, late/wrong payouts poison the model's core trust.
 - **Agent:** Streams all observable performance signals (public box-office reports, charts, buzz) into Grafana; detects exact trigger crossings; computes per-deal payouts; every step annotated = dual-sided audit trail.
 - **Proof:** Replay a REAL film's published weekend grosses as live telemetry; trigger detection + payout math + audit trail fully real. Honestly labeled replay.
@@ -223,42 +223,42 @@ by design (Affleck has said so publicly). Ideas below productize that trust gap.
 
 ---
 
-## Batch 7 — Second pass on Artists Equity divisions (AG–AH)
+## Batch 7 — Second pass on fair-share studio divisions (AG–AH)
 
-Follow-up mining of AE's actual divisions (advertising arm + writers' program).
-Context: AE is NOT a post/VFX company — it is a fair-share studio (film/TV/advertising/writers development).
+Follow-up mining of fair-share studio divisions (advertising arm + writers'
+program). Context: this is not a post/VFX company — it is a fair-share studio
+covering film, TV, advertising, and writers development.
 
 ### AG. Commercial Delivery Conductor
-- **World:** Celebrity-commercial production (AE Advertising territory): shoot-to-air in days, dozens of versions (TV 16:9, social 9:16, cinema), strict broadcaster specs, immovable air dates like the Super Bowl.
+- **World:** Celebrity-commercial production: shoot-to-air in days, dozens of versions (TV 16:9, social 9:16, cinema), strict broadcaster specs, immovable air dates like the Super Bowl.
 - **Pain:** Final-mile delivery chaos: wrong aspect ratios, loudness violations, missing legal cards discovered after upload bounce; a missed network slot burns millions.
 - **Agent:** Tracks every cut/version as pipeline stages; auto-validates specs per destination; counts down to air dates as first-class metrics; escalates versions predicted to miss slots; annotates campaign dashboards.
 - **Proof:** Real ffmpeg-generated multi-format versions + real spec validator + injected failures caught pre-"air." Audience = studio crews, squarely in-brief.
 
 ### AH. Writers' Room Tracker
-- **World:** Development slates (AE runs a Writers' Room Program): hundreds of scripts in coverage, notes waiting on readers, option windows ticking.
+- **World:** Development slates with writers' programs: hundreds of scripts in coverage, notes waiting on readers, option windows ticking.
 - **Pain:** Development dies silently: scripts stall weeks in coverage, options lapse unread, executives discover the backlog too late.
 - **Agent:** Coverage-flow-as-throughput-telemetry (sibling of S. Festival Copilot); flags stalls ("thriller scripts all queued behind one reader"); forecasts slipping deadlines; drafts nudge emails.
 - **Proof:** Small review app + simulated reader activity; starve one genre deliberately. Audience = screenwriters, named verbatim in the hackathon brief.
 
 ---
 
-## Batch 8 — Inspired by InterPositive (Affleck's AI-filmmaking startup, acquired by Netflix Mar 2026 for $587M)
+## Batch 8 — Governed AI-assisted filmmaking
 
-What InterPositive is (from Netflix's announcement): AI tools built by/for filmmakers;
-proprietary soundstage-trained model fixing production problems (missing shots,
-background replacements, incorrect lighting); strict guardrails — techniques only,
-never performances, humans keep judgment. Signal: Netflix paid $587M saying
-"governed AI-assisted film production is the future." We don't compete with it —
-we OPERATE and GOVERN such pipelines. That's the Grafana-shaped question.
+The relevant industry direction is AI tools built by and for filmmakers:
+models fixing production problems (missing shots, background replacements,
+incorrect lighting) with strict guardrails — techniques only, never
+performances, humans keep judgment. We don't compete with those tools — we
+OPERATE and GOVERN such pipelines. That's the Grafana-shaped question.
 
 ### AI. The Fix Farm Foreman ⭐⭐ flagship candidate (evolves Q)
-- **World:** Post houses now run "fix farms": nightly batches of generative repair jobs (sky replacement, relighting, object removal) — miniature InterPositive-style pipelines.
+- **World:** Post houses now run "fix farms": nightly batches of generative repair jobs (sky replacement, relighting, object removal) — governed filmmaking-tool pipelines.
 - **Pain:** Jobs fail expensively: halo artifacts, prompt-template regressions warping 47 shots overnight, runaway GPU spend; discovered at 6am against Friday delivery.
 - **Agent:** Cost/latency/failure telemetry + Gemini VISION spot-checks of outputs ("template change caused warped window reflections"); kills runaway jobs; annotates delivery dashboard.
 - **Proof:** Tier 1 — real Gemini image-editing jobs on public-domain film frames (Google credits), real cost telemetry, real injected regression. Looks like 2026, not 2015.
 
-### AJ. Technique-or-Performance Consent Guard (refines X with InterPositive's rulebook)
-- **World:** The industry line InterPositive drew: AI may fix TECHNIQUE (lighting/backgrounds), never PERFORMANCE (faces/acting).
+### AJ. Technique-or-Performance Consent Guard (refines X with industry guardrails)
+- **World:** The industry line: AI may fix TECHNIQUE (lighting/backgrounds), never PERFORMANCE (faces/acting).
 - **Pain:** No systematic enforcement of that line across thousands of generative post jobs; one violation = lawsuit/PR disaster.
 - **Agent:** Cross-checks job logs + output metadata against approved scopes; blocks & escalates violations; maintains auditable ledger.
 - **Proof:** Same fix-farm pipeline + policy engine; sneaky violations (face region touched inside a "relight") get caught. Could ship as a feature inside AI.
@@ -303,7 +303,7 @@ write the new project's code fresh.
 
 ### AM. Storyland Studio Ops — control room for AI storytelling factories ⭐⭐ LEADING CANDIDATE
 - **Fusion of:** R (Night Shift Supervisor) + AI (Fix Farm Foreman) + owner's lived Diverge pain.
-- **World:** Studios run fleets of generative-storytelling pipelines (InterPositive $587M; micro-drama factories shipping dozens/month). Each pipeline = a multi-agent creative crew, all software.
+- **World:** Studios run fleets of generative-storytelling pipelines; micro-drama factories ship dozens of episodes per month. Each pipeline = a multi-agent creative crew, all software.
 - **Pain (owner experienced firsthand):** silent 3am failures: continuity editor rejecting everything after a prompt tweak; visual drift off the character bible; retry loops burning tokens overnight; latency regressions in interleaved generation. No ops tooling exists for CREATIVE agent fleets.
 - **Agent:** supervisor agent reading fleet telemetry via Grafana MCP (per-role traces, token cost, rejection rates) + Gemini vision spot-checks of generated scenes vs character bible; kills runaway jobs; annotates dashboards; files morning report cards.
 - **Demo:** small freshly-written story-generation fleet running real Gemini jobs; break it in exactly the ways Diverge's README documents; catch every failure live. Authentic founder arc for the video.
@@ -315,8 +315,8 @@ write the new project's code fresh.
 
 Owner's own direction (Aug 25): not regeneration — targeted edits of existing
 footage: background swap, lighting change incl. location-matched light,
-"green screen without green screen," camera-angle change. = InterPositive's
-exact first-model scope, aimed at filmmakers (perfect brief vocabulary).
+"green screen without green screen," camera-angle change. This is a natural
+filmmaker-focused scope (perfect brief vocabulary).
 
 Feature feasibility (Google-APIs-only, solo, 15 days): subject isolation/bg swap
 ✅ (Nano Banana per-frame + classical OpenCV masks, short clips); relight ⚠️
