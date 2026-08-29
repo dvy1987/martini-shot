@@ -42,6 +42,36 @@ the G3 state (complete Stage 1) is the guaranteed coherent fallback submission.
 
 ## PHASE 1 — Spine (day 0–2) — three parallel tracks
 
+### Orchestration & QC (owner ruling 2026-08-29 — binding for ALL phases)
+
+Sub-agent dispatch is allowed and encouraged for throughput, but the
+orchestrator (main agent) owns quality control. Rules:
+
+1. **Dispatch:** independent, well-scoped tasks (a plan task, a station, a
+   test suite) may go to worker sub-agents. Orchestrator never delegates:
+   gate runs, commits, evidence verdicts, owner communication, and any
+   spec/plan/ADR amendment.
+2. **Review gates per task (no exceptions, strict SDD discipline):**
+   - **Self-review by orchestrator:** read the sub-agent's diff line-by-line
+     against the task DoD before accepting.
+   - **Deterministic work (TDD):** tests must genuinely fail first (RED
+     observed, not claimed). Verify by running the failing state, not by
+     trusting the report.
+   - **Generative work (SDD+EDD):** dataset + metric + numeric threshold
+     exist BEFORE the feature runs; orchestrator inspects real outputs, not
+     the sub-agent's descriptions of them (C-1.1).
+   - **Full gate on the slice:** `make check` (or frontend equivalent) green
+     in the orchestrator's own run — a sub-agent's green report is not
+     evidence.
+   - **Adversarial pass** on anything touching money (Spend Control),
+     credentials, lease/queue correctness, or audit trail (C-4.3).
+3. **Shoddy-work protocol:** a sub-agent report that contradicts the
+   orchestrator's own verification = task reverted to orchestrator's hands +
+   noted in the session log; repeated failures demote that sub-agent lane to
+   read-only research only.
+4. **Commits:** only the orchestrator commits, in logical units, after the
+   review gates above pass.
+
 ### Track A — Core services (agent A)
 | Task | Mode | After | DoD |
 |---|---|---|---|
