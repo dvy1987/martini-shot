@@ -1,0 +1,55 @@
+{
+  "timestamp_utc": "2026-08-29T08:46:48.524775+00:00",
+  "matrix": [
+    {
+      "location": "global",
+      "model": "gemini-omni-1.1-flash-preview",
+      "error": "Error code: 429 - {'error': {'message': 'Quota exceeded for aiplatform.googleapis.com/global_generate_content_requests_per_minute_per_project_per_base_model with base model: gemini-omni-1.1-flash-preview. Please submit a"
+    },
+    {
+      "location": "global",
+      "model": "gemini-3.7-flash",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported model interaction: gemini-3.7-flash', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "us-central1",
+      "model": "gemini-omni-1.1-flash-preview",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported location: us-central1. Supported locations are global, us, and eu.', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "us-central1",
+      "model": "gemini-3.7-flash",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported model interaction: gemini-3.7-flash', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "us",
+      "model": "gemini-omni-1.1-flash-preview",
+      "error": "Error code: 404 - {'error': {'message': 'Publisher model `projects/martini-shot/locations/us/publishers/google/models/gemini-omni-1.1-flash-preview` was not found or your project does not have access to it. Ensure you ar"
+    },
+    {
+      "location": "us",
+      "model": "gemini-3.7-flash",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported model interaction: gemini-3.7-flash', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "europe-west1",
+      "model": "gemini-omni-1.1-flash-preview",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported location: europe-west1. Supported locations are global, us, and eu.', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "europe-west1",
+      "model": "gemini-3.7-flash",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported model interaction: gemini-3.7-flash', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "asia-southeast1",
+      "model": "gemini-omni-1.1-flash-preview",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported location: asia-southeast1. Supported locations are global, us, and eu.', 'code': 'invalid_request'}}"
+    },
+    {
+      "location": "asia-southeast1",
+      "model": "gemini-3.7-flash",
+      "error": "Error code: 400 - {'error': {'message': 'Unsupported model interaction: gemini-3.7-flash', 'code': 'invalid_request'}}"
+    }
+  ]
+}

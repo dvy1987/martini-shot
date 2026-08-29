@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-08-29T09:54:54.898668+00:00",
+  "variants": [
+    {
+      "name": "minimal_plus_response_format",
+      "error": "Error code: 404 - {'error': {'message': 'Requested entity was not found.', 'code': 'not_found'}}"
+    },
+    {
+      "name": "pure_minimal",
+      "error": "Error code: 429 - {'error': {'message': 'Quota exceeded for aiplatform.googleapis.com/global_generate_content_requests_per_minute_per_project_per_base_model with base model: gemini-omni-1.1-flash-preview. Please submit a quota increase request. https://cloud.google.com/vertex-ai/docs/generative-ai/q"
+    }
+  ]
+}
