@@ -31,7 +31,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_DIR = ROOT / "docs" / "evidence" / "G0"
 OUTPUT_DIR = EVIDENCE_DIR / "outputs"
-VIDEO_MODEL = "gemini-omni-1.1-flash-preview"
+VIDEO_MODEL = "gemini-omni-1.1-flash"
 RESOLUTION = "360p"
 DURATION = "8s"
 
@@ -141,9 +141,32 @@ def usage_record(interaction: object) -> dict[str, object]:
 
 def run_op(client: object, spec: dict[str, str], token: str) -> dict[str, object]:
     shot_path = ROOT / "fixtures" / "spike" / spec["shot"]
-    video_b64 = base64.b64encode(shot_path.read_bytes()).decode("ascii")
     print(f"[{spec['op_id']}] task={spec['task']} shot={spec['shot']} ...", flush=True)
     started = datetime.now(tz=timezone.utc)
+
+    # Official docs path: upload via Files API, reference by URI.
+    print("  uploading via Files API...", flush=True)
+    video_file = client.files.upload(file=str(shot_path))
+    video_file = client.files.get(name=video_file.name)
+    wait_seconds = 0
+    while getattr(video_file, "state", "") == "PROCESSING" and wait_seconds < 300:
+        time.sleep(10)
+        wait_seconds += 10
+        video_file = client.files.get(name=video_file.name)
+    if getattr(video_file, "state", "") == "FAILED":
+        return {
+            "op_id": spec["op_id"],
+            "status": "upload_failed",
+            "error": "Files API state FAILED",
+        }
+    file_uri = getattr(video_file, "uri", None)
+    if not file_uri:
+        return {
+            "op_id": spec["op_id"],
+            "status": "upload_failed",
+            "error": "no URI returned",
+        }
+
     record: dict[str, object] = {
         "op_id": spec["op_id"],
         "task": spec["task"],
@@ -151,19 +174,20 @@ def run_op(client: object, spec: dict[str, str], token: str) -> dict[str, object
         "resolution": RESOLUTION,
         "requested_duration": DURATION,
         "input_shot": spec["shot"],
+        "input_file_uri": str(file_uri)[:160],
         "prompt": spec["prompt"],
         "started_utc": started.isoformat(),
     }
     try:
         for attempt in range(10):
             try:
-                # Vertex Omni preview: bare conversational request only —
-                # response_format/video_config route to a nonexistent entity (G0 finding).
+                # Gemini API runtime (official docs): Interactions API with
+                # Files-API URI reference; bare conversational payload.
                 interaction = client.interactions.create(
                     model=VIDEO_MODEL,
                     input=[
                         {"type": "text", "text": spec["prompt"]},
-                        {"type": "video", "data": video_b64, "mime_type": "video/mp4"},
+                        {"type": "video", "uri": file_uri, "mime_type": "video/mp4"},
                     ],
                     response_modalities=["video"],
                     timeout=900,
@@ -223,8 +247,9 @@ def main() -> int:
     env.update(os.environ)
     project = env.get("GOOGLE_CLOUD_PROJECT", "")
     location = env.get("GOOGLE_CLOUD_LOCATION", "global")
-    if not project:
-        print("GOOGLE_CLOUD_PROJECT missing")
+    api_key = env.get("GEMINI_API_KEY", "")
+    if not project and not api_key:
+        print("GOOGLE_CLOUD_PROJECT or GEMINI_API_KEY required (.env)")
         return 1
 
     import shutil
@@ -232,17 +257,28 @@ def main() -> int:
 
     from google import genai
 
-    client = genai.Client(enterprise=True, project=project, location=location)
-    gcloud_exe = shutil.which("gcloud") or shutil.which("gcloud.cmd")
-    if gcloud_exe is None:
-        print("gcloud executable not found on PATH")
-        return 1
-    gcloud = subprocess.run(
-        [gcloud_exe, "auth", "application-default", "print-access-token"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.strip()
+    client = None
+    gcloud = ""
+    runtime = ""
+    if api_key:
+        # Documented Omni runtime: Gemini API with API key (ADR 0002).
+        client = genai.Client(api_key=api_key)
+        runtime = "gemini_api"
+        print("runtime: Gemini API (API key)", flush=True)
+    else:
+        client = genai.Client(enterprise=True, project=project, location=location)
+        runtime = "vertex"
+        print("runtime: Vertex AI enterprise", flush=True)
+        gcloud_exe = shutil.which("gcloud") or shutil.which("gcloud.cmd")
+        if gcloud_exe is None:
+            print("gcloud executable not found on PATH")
+            return 1
+        gcloud = subprocess.run(
+            [gcloud_exe, "auth", "application-default", "print-access-token"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
 
     evidence_path = EVIDENCE_DIR / "spike_ops.jsonl"
     all_ok = True
@@ -252,6 +288,7 @@ def main() -> int:
                 print("  spacing 90s between ops for per-minute quota...", flush=True)
                 time.sleep(90)
             record = run_op(client, spec, gcloud)
+            record["runtime"] = runtime
             record["recorded_utc"] = datetime.now(tz=timezone.utc).isoformat()
             evidence.write(json.dumps(record) + "\n")
             evidence.flush()

@@ -46,5 +46,8 @@ Thumbs.db
 docs/evidence/video/raw/
 fixtures/tmp/
 
+# Owner-captured console screenshots (local reference only)
+docs/screenshots/
+
 # Replit Agent paste artifacts (existing files stay tracked; ignore future drops)
 attached_assets/

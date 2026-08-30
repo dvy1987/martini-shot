@@ -1,0 +1,36 @@
+{
+  "bg-swap": {
+    "input": {
+      "ok": true,
+      "flicker_score": 0.00071,
+      "p99_residual": 0.01078,
+      "frames_analyzed": 240,
+      "definition": "mean |I_t - median3| grayscale [0,1], half-res, lower=better"
+    },
+    "output": {
+      "ok": true,
+      "flicker_score": 0.00992,
+      "p99_residual": 0.13529,
+      "frames_analyzed": 192,
+      "definition": "mean |I_t - median3| grayscale [0,1], half-res, lower=better"
+    },
+    "output_over_input": 13.97
+  },
+  "scene-extend": {
+    "input": {
+      "ok": true,
+      "flicker_score": 0.00473,
+      "p99_residual": 0.13235,
+      "frames_analyzed": 240,
+      "definition": "mean |I_t - median3| grayscale [0,1], half-res, lower=better"
+    },
+    "output": {
+      "ok": true,
+      "flicker_score": 0.00327,
+      "p99_residual": 0.09608,
+      "frames_analyzed": 408,
+      "definition": "mean |I_t - median3| grayscale [0,1], half-res, lower=better"
+    },
+    "output_over_input": 0.69
+  }
+}
