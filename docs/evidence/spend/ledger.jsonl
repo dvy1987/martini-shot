@@ -1,0 +1,6 @@
+{"ts_utc": "2026-08-30T03:56:56.927674+00:00", "model": "veo-3.1-fast-generate-001", "op": "g0-probe-balloon", "units": 4.0, "unit_type": "seconds", "est_usd": 0.6, "note": "first successful Veo render"}
+{"ts_utc": "2026-08-30T03:56:57.094629+00:00", "model": "veo-3.1-fast-generate-001", "op": "G0-bg-swap-01", "units": 8.0, "unit_type": "seconds", "est_usd": 1.2, "note": "spike op 1 meadow to neon city"}
+{"ts_utc": "2026-08-30T03:56:57.243447+00:00", "model": "veo-3.1-fast-generate-001", "op": "G0-scene-extend-01", "units": 7.0, "unit_type": "seconds", "est_usd": 1.05, "note": "spike op 2 clearing extension"}
+{"ts_utc": "2026-08-30T03:56:57.449189+00:00", "model": "gemini-3.1-flash-image", "op": "modality-tests", "units": 4.0, "unit_type": "image", "est_usd": 0.08, "note": "balloon+coffee+control renders"}
+{"ts_utc": "2026-08-30T03:56:57.666188+00:00", "model": "gemini-3.7-flash", "op": "probes-and-thinking-tests", "units": 40.0, "unit_type": "request", "est_usd": 0.02, "note": "all text probes incl thinking-HIGH tests"}
+{"ts_utc": "2026-08-30T03:56:57.892955+00:00", "model": "texttospeech-chirp3-hd", "op": "dub-voice-test", "units": 2.0, "unit_type": "request", "est_usd": 0.01, "note": "chirp3 + gemini tts tests"}
