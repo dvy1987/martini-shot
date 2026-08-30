@@ -21,6 +21,8 @@
 
 | 2026-08-28 | feature-spec + plan + AO map (amend A5, owner-directed) | Stage 1a generative fast-follow (Extend, Corrections, Draft-first, Relight Studio, Coverage, Revision Room, Camera Language, Alternates model; stretch: Transition Forge, Versioning) + plan Phase 3a with gate G3a + calendar re-baseline (submit Sep 8) + demo batch 3 languages + Vertex AI compute | Amended | staging, gen-ai, calendar | Owner rulings: new features = Stage 1a fast-follow; Stage 1 unchanged as guaranteed coherent fallback submission; try for 1a before deadline. Omni 1.1 Flash capability research (docs fetched 2026-08-27/28) drove op definitions; thin-adapters/thick-system + draft-first + alternates principles added to AGENTS.md "Generative Depth". Compute: Vertex AI primary (GCP credits), AI Studio fallback per model, G0 probe records availability. Frontend surfaces added to spec §7 + DESIGN.md (alternates lane, Revision Room, camera chips, relight presets, draft badge). |
 
+| 2026-08-30 | spec-crosscheck (`/analyze`) | docs/reviews/2026-08-30-post-command-spec-crosscheck.md | Crosscheck: post-command → FAIL (3 blockers: C-5.3/C-2.4/C-8.1 unaddressed; tasks artifact missing) → amendment A7 applied (owner-approved) + tasks file generated → **re-run PASS**. Owner rulings recorded: Stage 1a stays as amended (A5, behind G3); this sprint builds Stage 1 only. |
+
 ## Next SDD phases for slug `post-command`
 1. `/tasks` — derive agent-pickable task list from the plan (implementation-plan tasks-only mode) when ready to start execution
 2. `/analyze` — spec-crosscheck readiness gate (required before `/implement`)
