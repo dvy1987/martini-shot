@@ -17,8 +17,8 @@ lint:               ## Ruff lint + format check
 typecheck:          ## Mypy on backend
 >python -m mypy backend
 
-test:               ## Unit + integration harness
->python -m pytest tests -q
+test:               ## Unit + integration harness (C-3.2 coverage gate on service layer)
+>python -m pytest tests --cov=backend --cov-report=term-missing --cov-fail-under=90 -q
 
 eval-check:         ## Eval thresholds structure gate (constitution C-3.4)
 >python backend/evals/check_thresholds.py
