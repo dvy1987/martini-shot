@@ -11,7 +11,12 @@ from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExp
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 from backend.core.config import Settings
-from backend.core.otel import TelemetryHandle, init_telemetry, shutdown_telemetry
+from backend.core.otel import (
+    TelemetryHandle,
+    _signal_endpoints,
+    init_telemetry,
+    shutdown_telemetry,
+)
 
 STAGING = "http://127.0.0.1:4318"
 
@@ -62,3 +67,29 @@ def test_shutdown_clears_handle_and_is_idempotent() -> None:
     assert second.enabled is True
     shutdown_telemetry()
     shutdown_telemetry()  # idempotent, no raise
+
+
+def test_gateway_base_url_gets_signal_paths_appended() -> None:
+    """RED for G1: Python OTLP HTTP exporters use the endpoint URL verbatim,
+    so a gateway base like https://otlp-gateway-…/otlp must be expanded per
+    signal or metrics/logs POSTs 404 (observed live 2026-08-30)."""
+    eps = _signal_endpoints("https://otlp-gateway-prod-ap-south-1.grafana.net/otlp")
+    assert (
+        eps["traces"]
+        == "https://otlp-gateway-prod-ap-south-1.grafana.net/otlp/v1/traces"
+    )
+    assert (
+        eps["metrics"]
+        == "https://otlp-gateway-prod-ap-south-1.grafana.net/otlp/v1/metrics"
+    )
+    assert (
+        eps["logs"] == "https://otlp-gateway-prod-ap-south-1.grafana.net/otlp/v1/logs"
+    )
+
+
+def test_full_signal_urls_pass_through_unchanged() -> None:
+    base = "https://otlp-gateway-prod-ap-south-1.grafana.net/otlp/v1/traces"
+    eps = _signal_endpoints(base)
+    assert eps["traces"] == base
+    assert eps["metrics"] == base
+    assert eps["logs"] == base

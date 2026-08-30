@@ -39,6 +39,20 @@ class TelemetryHandle:
 _handle: TelemetryHandle | None = None
 
 
+def _signal_endpoints(base: str) -> dict[str, str]:
+    """Python OTLP HTTP exporters POST to the endpoint URL verbatim (no path
+    appending), so a Grafana gateway base …/otlp must be expanded per signal;
+    observed live: metrics/logs 404 when given the bare base (G1, 2026-08-30)."""
+    base = base.rstrip("/")
+    if base.endswith("/otlp"):
+        return {
+            "traces": f"{base}/v1/traces",
+            "metrics": f"{base}/v1/metrics",
+            "logs": f"{base}/v1/logs",
+        }
+    return {"traces": base, "metrics": base, "logs": base}
+
+
 def _auth_headers(token: str) -> dict[str, str] | None:
     """Accept every Grafana Cloud credential shape the owner can paste:
     the portal template `base64(<instanceId>:<token>)`, the standard OTLP
@@ -65,16 +79,16 @@ def init_telemetry(settings: Settings) -> TelemetryHandle:
         _handle = TelemetryHandle(enabled=False)
         return _handle
 
-    endpoint = settings.grafana_otlp_endpoint
+    endpoints = _signal_endpoints(settings.grafana_otlp_endpoint)
     headers = _auth_headers(settings.grafana_otlp_token)
     resource = Resource.create({"service.name": settings.service_name})
 
-    span_exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
+    span_exporter = OTLPSpanExporter(endpoint=endpoints["traces"], headers=headers)
     tracer_provider = TracerProvider(resource=resource)
     tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
     trace.set_tracer_provider(tracer_provider)
 
-    metric_exporter = OTLPMetricExporter(endpoint=endpoint, headers=headers)
+    metric_exporter = OTLPMetricExporter(endpoint=endpoints["metrics"], headers=headers)
     meter_provider = MeterProvider(
         resource=resource,
         metric_readers=[
@@ -98,7 +112,7 @@ def init_telemetry(settings: Settings) -> TelemetryHandle:
             BatchLogRecordProcessor,
         )
 
-        log_exporter = OTLPLogExporter(endpoint=endpoint, headers=headers)
+        log_exporter = OTLPLogExporter(endpoint=endpoints["logs"], headers=headers)
         logger_provider = LoggerProvider(resource=resource)
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
         log_handler = LoggingHandler(
@@ -118,7 +132,10 @@ def init_telemetry(settings: Settings) -> TelemetryHandle:
     )
     log.info(
         "telemetry initialized",
-        extra={"endpoint": endpoint, "service": settings.service_name},
+        extra={
+            "endpoint": settings.grafana_otlp_endpoint,
+            "service": settings.service_name,
+        },
     )
     return _handle
 
