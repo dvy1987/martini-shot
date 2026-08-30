@@ -6,6 +6,7 @@ no-ops (local unit runs), it never fakes telemetry.
 
 from __future__ import annotations
 
+import base64
 import logging
 from dataclasses import dataclass
 
@@ -39,7 +40,20 @@ _handle: TelemetryHandle | None = None
 
 
 def _auth_headers(token: str) -> dict[str, str] | None:
-    return {"Authorization": f"Bearer {token}"} if token else None
+    """Accept every Grafana Cloud credential shape the owner can paste:
+    the portal template `base64(<instanceId>:<token>)`, the standard OTLP
+    env header `Authorization=Basic <b64>` (optionally URL-encoded space),
+    or a raw cloud-access-policy token (Bearer). No manual base64 math."""
+    if not token:
+        return None
+    if token.startswith("base64(") and token.endswith(")"):
+        inner = token[len("base64(") : -1]
+        blob = base64.b64encode(inner.encode()).decode()
+        return {"Authorization": f"Basic {blob}"}
+    for prefix in ("Authorization=Basic%20", "Authorization=Basic ", "Basic "):
+        if token.startswith(prefix):
+            return {"Authorization": f"Basic {token[len(prefix) :]}"}
+    return {"Authorization": f"Bearer {token}"}
 
 
 def init_telemetry(settings: Settings) -> TelemetryHandle:
