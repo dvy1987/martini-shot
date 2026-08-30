@@ -34,7 +34,9 @@ def main() -> int:
     env = load_env(ROOT / ".env")
     key = env.get("GEMINI_API_KEY", "")
     key_client = genai.Client(api_key=key) if key else None
-    vertex_client = genai.Client(enterprise=True, project="martini-shot", location="global")
+    vertex_client = genai.Client(
+        enterprise=True, project="martini-shot", location="global"
+    )
 
     results: dict[str, object] = {
         "timestamp_utc": datetime.now(tz=timezone.utc).isoformat(),
@@ -157,7 +159,9 @@ def main() -> int:
     probe("veo-3.1-fast gemini-api-key", veo_key)
 
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    (EVIDENCE_DIR / "rego_probe.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    (EVIDENCE_DIR / "rego_probe.json").write_text(
+        json.dumps(results, indent=2), encoding="utf-8"
+    )
     print("any_success:", any_success, flush=True)
     return 0
 

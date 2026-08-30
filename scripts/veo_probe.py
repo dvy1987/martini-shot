@@ -35,7 +35,9 @@ def main() -> int:
     }
     accepted = None
     for model, location in COMBOS:
-        client = genai.Client(enterprise=True, project="martini-shot", location=location)
+        client = genai.Client(
+            enterprise=True, project="martini-shot", location=location
+        )
         entry: dict[str, object] = {"model": model, "location": location}
         try:
             op = client.models.generate_videos(
