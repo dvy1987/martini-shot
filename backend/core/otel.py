@@ -1,0 +1,124 @@
+"""OTel telemetry init (C-4.1): traces, metrics, and logs exported via real
+OTLP HTTP exporters to the Grafana Cloud endpoints configured in the env.
+No mock exporters anywhere — when no endpoint is configured this module
+no-ops (local unit runs), it never fakes telemetry.
+"""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+
+from opentelemetry import metrics, trace
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+from backend.core.config import Settings
+
+log = logging.getLogger(__name__)
+
+
+@dataclass
+class TelemetryHandle:
+    """Owns the initialized exporters/providers; enabled=False means no-op."""
+
+    enabled: bool
+    span_exporter: OTLPSpanExporter | None = None
+    metric_exporter: OTLPMetricExporter | None = None
+    log_handler: logging.Handler | None = None
+    tracer_provider: TracerProvider | None = None
+    meter_provider: MeterProvider | None = None
+
+
+_handle: TelemetryHandle | None = None
+
+
+def _auth_headers(token: str) -> dict[str, str] | None:
+    return {"Authorization": f"Bearer {token}"} if token else None
+
+
+def init_telemetry(settings: Settings) -> TelemetryHandle:
+    """Initialize OTLP traces/metrics/logs once per process (idempotent)."""
+    global _handle
+    if _handle is not None:
+        return _handle
+    if not settings.grafana_otlp_endpoint:
+        _handle = TelemetryHandle(enabled=False)
+        return _handle
+
+    endpoint = settings.grafana_otlp_endpoint
+    headers = _auth_headers(settings.grafana_otlp_token)
+    resource = Resource.create({"service.name": settings.service_name})
+
+    span_exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
+    tracer_provider = TracerProvider(resource=resource)
+    tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
+    trace.set_tracer_provider(tracer_provider)
+
+    metric_exporter = OTLPMetricExporter(endpoint=endpoint, headers=headers)
+    meter_provider = MeterProvider(
+        resource=resource,
+        metric_readers=[
+            PeriodicExportingMetricReader(
+                metric_exporter, export_interval_millis=60_000
+            )
+        ],
+    )
+    metrics.set_meter_provider(meter_provider)
+
+    log_handler: logging.Handler | None = None
+    try:
+        from opentelemetry.exporter.otlp.proto.http._log_exporter import (
+            OTLPLogExporter,
+        )
+        from opentelemetry.sdk._logs import (
+            LoggerProvider,
+            LoggingHandler,
+        )
+        from opentelemetry.sdk._logs.export import (
+            BatchLogRecordProcessor,
+        )
+
+        log_exporter = OTLPLogExporter(endpoint=endpoint, headers=headers)
+        logger_provider = LoggerProvider(resource=resource)
+        logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
+        log_handler = LoggingHandler(
+            level=logging.INFO, logger_provider=logger_provider
+        )
+        logging.getLogger().addHandler(log_handler)
+    except ImportError:  # logs SDK layout shifted across OTel 1.39-1.42
+        log.warning("OTLP log exporter unavailable; traces and metrics remain active")
+
+    _handle = TelemetryHandle(
+        enabled=True,
+        span_exporter=span_exporter,
+        metric_exporter=metric_exporter,
+        log_handler=log_handler,
+        tracer_provider=tracer_provider,
+        meter_provider=meter_provider,
+    )
+    log.info(
+        "telemetry initialized",
+        extra={"endpoint": endpoint, "service": settings.service_name},
+    )
+    return _handle
+
+
+def shutdown_telemetry() -> None:
+    """Flush and release providers; idempotent. Global OTel API providers stay
+    registered (API limitation) but their exporters are shut down."""
+    global _handle
+    handle, _handle = _handle, None
+    if handle is None:
+        return
+    if handle.log_handler is not None:
+        logging.getLogger().removeHandler(handle.log_handler)
+    if handle.tracer_provider is not None:
+        handle.tracer_provider.shutdown()
+    if handle.meter_provider is not None:
+        handle.meter_provider.shutdown()

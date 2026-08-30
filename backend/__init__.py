@@ -1,0 +1,1 @@
+"""Martini Shot backend package."""
