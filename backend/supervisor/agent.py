@@ -43,7 +43,7 @@ def _make_tools(store: FirestoreStore) -> ToolRegistry:
         description="List recently failed jobs with station and failure reason"
     )
     def list_failed_jobs(limit: int = 10) -> list[dict]:
-        rows = store.list_where("pc-jobs", "status", "==", "failed", limit=limit)
+        rows = store.list_where("pc-jobs", "status", "failed")[:limit]
         return [
             {
                 "job_id": r.get("job_id") or r.get("id"),

@@ -77,7 +77,7 @@ class HandoffValidator:
         self._store = store
 
     @classmethod
-    def without_store(cls) -> "HandoffValidator":
+    def without_store(cls) -> HandoffValidator:
         """Pure gate for unit contexts (no annotation persistence)."""
         return cls(store=None)
 

@@ -23,7 +23,7 @@ class Autonomy:
     mode: AutonomyMode
 
     @classmethod
-    def from_env(cls, env: dict[str, str]) -> "Autonomy":
+    def from_env(cls, env: dict[str, str]) -> Autonomy:
         raw = env.get("POST_COMMAND_AUTONOMY", "propose_only").strip().lower()
         try:
             return cls(mode=AutonomyMode(raw))

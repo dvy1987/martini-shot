@@ -11,7 +11,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from google.adk.tools import FunctionTool
+from google.adk.tools import BaseTool, FunctionTool
+from google.adk.tools.base_toolset import BaseToolset
+
+ToolBinding = Callable[..., Any] | BaseTool | BaseToolset
 
 
 @dataclass(frozen=True)
@@ -54,10 +57,11 @@ class ToolRegistry:
     def is_act_tool(self, name: str) -> bool:
         return self.get(name).act
 
-    def adk_tools(self, *, allow_act: bool) -> list[FunctionTool]:
-        """Real ADK FunctionTool bindings for the allowed toolset."""
-        return [
+    def adk_tools(self, *, allow_act: bool) -> list[ToolBinding]:
+        """Real ADK tool bindings for the allowed toolset."""
+        tools: list[ToolBinding] = [
             FunctionTool(t.fn)
             for t in sorted(self._tools.values(), key=lambda t: t.name)
             if allow_act or not t.act
         ]
+        return tools
