@@ -19,6 +19,8 @@ _ENV_NAMES: dict[str, tuple[str, ...]] = {
     "gcp_project_id": ("GCP_PROJECT_ID", "GOOGLE_CLOUD_PROJECT"),
     "gcs_bucket": ("GCS_BUCKET",),
     "gcs_signing_sa": ("GCS_SIGNING_SA",),
+    "ffmpeg_bin": ("FFMPEG_BIN",),
+    "ffprobe_bin": ("FFPROBE_BIN",),
     "firestore_database": ("FIRESTORE_DATABASE",),
     "google_application_credentials": ("GOOGLE_APPLICATION_CREDENTIALS",),
     "grafana_stack_url": ("GRAFANA_STACK_URL",),
@@ -42,6 +44,8 @@ class Settings:
     gcp_project_id: str = ""
     gcs_bucket: str = ""
     gcs_signing_sa: str = ""
+    ffmpeg_bin: str = ""
+    ffprobe_bin: str = ""
     firestore_database: str = "(default)"
     google_application_credentials: str = ""
     grafana_stack_url: str = ""
@@ -91,6 +95,8 @@ def from_env(env: Mapping[str, str], dotenv: Path | None = None) -> Settings:
         gcp_project_id=pick("gcp_project_id"),
         gcs_bucket=pick("gcs_bucket"),
         gcs_signing_sa=pick("gcs_signing_sa"),
+        ffmpeg_bin=pick("ffmpeg_bin"),
+        ffprobe_bin=pick("ffprobe_bin"),
         firestore_database=pick("firestore_database") or "(default)",
         google_application_credentials=pick("google_application_credentials"),
         grafana_stack_url=pick("grafana_stack_url"),
