@@ -23,6 +23,8 @@
 
 | 2026-08-30 | spec-crosscheck (`/analyze`) | docs/reviews/2026-08-30-post-command-spec-crosscheck.md | Crosscheck: post-command → FAIL (3 blockers: C-5.3/C-2.4/C-8.1 unaddressed; tasks artifact missing) → amendment A7 applied (owner-approved) + tasks file generated → **re-run PASS**. Owner rulings recorded: Stage 1a stays as amended (A5, behind G3); this sprint builds Stage 1 only. |
 
+| 2026-08-30 | memory-capture | docs/memory/current-state.md + agent-handoffs.md#2026-08-30 + project-index.md | Captured: A-1 shipped (d0d866c), A7/PASS crosscheck, worker lane demotion. Rejected: raw pip/pytest transcripts (ephemeral). |
+
 ## Next SDD phases for slug `post-command`
 1. `/tasks` — derive agent-pickable task list from the plan (implementation-plan tasks-only mode) when ready to start execution
 2. `/analyze` — spec-crosscheck readiness gate (required before `/implement`)

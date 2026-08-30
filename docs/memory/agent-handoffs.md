@@ -1,5 +1,13 @@
 # Agent Handoffs
 
+## 2026-08-30 — crosscheck PASS, A6 worker verdict, A-1 shipped (orchestrator)
+**Done:** Spec-crosscheck executed (FAIL: C-5.3/C-2.4/C-8.1 unaddressed + tasks artifact missing) → owner approved plan → amendment A7 applied to plan (C-5.3 clause in A-1 DoD, F-3b fresh-source attestation, C-8.1 station-README clause ×7, G1 records AC-S0.2 evidence) → tasks file `docs/plans/2026-08-26-post-command-tasks.md` generated → re-run **PASS** (commit `0f6c412`). Worker review (A6): B-1 (dc7b787f) + Track C (d946c76f) reported complete but wrote ZERO files → reverted to orchestrator; lane 0-for-3 → **workers demoted to read-only research**. A-1 rebuilt orchestrator-led TDD: RED observed (`docs/evidence/A-1/red-pytest.txt`), then GREEN — config/logging/otel/models/errors + app factory + main.py; C-5.3 error envelope tested; API-key gate fail-closed; test_smoke fixed to check git index (local gitignored .env is expected). Commit `d0d866c`, all hooks green, 27/27 tests. Owner rulings recorded: **Stage 1a stays as amended (A5) but this sprint builds Stage 1 only** (Phase 3a behind G3, untouched).
+**Next for executing agent:**
+1. A-2 GCS/Firestore wrappers (TDD, real dev bucket + temp doc) → A-3 lease queue + AC-S0.1 chaos test + pytest-cov (C-3.2) → A-4 ffmpeg wrapper → A-5 handoff validator.
+2. B-2 Grafana MCP REAL round-trip (annotation write + read back); C-1 FE review delta.
+3. Gate G1 evidence pack: trace ID + 3 PromQL + Loki line + annotation JSON (A7 requirement).
+**Drift:** none from handoff; backend/core+api now exist (previously empty).
+
 ## 2026-08-28 — project-setup (setup agent)
 **Done:** Project setup executed per `.agents/skills/project-setup`. Owner interview: non-technical owner (agents lead architecture + design), full autonomy granted for security/secrets/auth and testing/evals, Session Lifecycle + harness ON, Replit = frontend hosting + partial dev (verified rule-compliant for the Grafana track; AI restriction covers AI tooling only). Created: root/frontend/backend AGENTS.md (multi-mode), `.cursor/rules/*.mdc` adapters, knowledge graph (docs/knowledge-graph/), F-3 scaffold (LICENSE Apache-2.0, .gitignore, Makefile CI-lite, pre-commit, .env.example x2, mypy.ini, tests/test_smoke.py, scripts/integrity_check.py C-1.2, backend/evals/check_thresholds.py C-3.4, dir skeleton), README rewritten as product README.
 **Validation:** `make`-equivalent gate all green: ruff check+format clean, mypy clean, pytest 3 passed, integrity clean, eval-check OK (no suites yet). Pre-commit installed.
