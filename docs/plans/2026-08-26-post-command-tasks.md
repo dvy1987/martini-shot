@@ -27,7 +27,7 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 ## SPRINT — Lane B: Supervisor skeleton
 | ID | Task | Mode | Refs | Target | After | DoD |
 |---|---|---|---|---|---|---|
-| B-1 | ADK agent scaffold: Post-Supervisor persona, tool registry, autonomy toggle (propose-only default) — **worker output awaiting orchestrator review** | TDD | C-2.1, AC-A.1 prep | `backend/supervisor/` | F-3 | registry + toggle unit tests (A6: diff review + own gate run) |
+| B-1 ✅ done 2026-08-30 | ADK agent scaffold: Post-Supervisor persona, tool registry, autonomy toggle (propose-only default) — rebuilt by orchestrator (A6 worker reverted) | TDD | C-2.1, AC-A.1 prep | `backend/supervisor/` | F-3 | registry + toggle unit tests — **evidence: `docs/evidence/B-1/`, 7/7, real LlmAgent w/ pinned TEXT_MODEL** |
 | B-2 | Grafana MCP connector: hosted client w/ OAuth persistence + OSS/service-account env-flag switch; tool surface: search_dashboards, query_promql, query_loki, search_traces, add_annotation, create_incident | TDD | C-2.2, C-4.3 | `backend/supervisor/mcp.py` | F-4 | REAL round-trip: annotation written + read back via API; response JSON archived; zero mocks |
 | B-3 | AI Observability instrumentation: tokens, cost, latency per agent call | TDD | C-4.4 | `backend/supervisor/otel_ai.py` | A-1, B-1 | one real agent call visible in AI Observability (screenshot evidence) |
 
