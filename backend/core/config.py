@@ -13,20 +13,25 @@ from pathlib import Path
 
 ROOT_DOTENV = ".env"
 
-_ENV_NAMES: dict[str, str] = {
-    "gcp_project_id": "GCP_PROJECT_ID",
-    "gcs_bucket": "GCS_BUCKET",
-    "firestore_database": "FIRESTORE_DATABASE",
-    "google_application_credentials": "GOOGLE_APPLICATION_CREDENTIALS",
-    "grafana_stack_url": "GRAFANA_STACK_URL",
-    "grafana_otlp_endpoint": "GRAFANA_OTLP_ENDPOINT",
-    "grafana_otlp_token": "GRAFANA_OTLP_TOKEN",
-    "mcp_mode": "MCP_MODE",
-    "grafana_sa_token": "GRAFANA_SA_TOKEN",
-    "api_key": "POST_COMMAND_API_KEY",  # pragma: allowlist secret (env var name, not a secret)
-    "cors_allowed_origins": "CORS_ALLOWED_ORIGINS",
-    "service_name": "POST_COMMAND_SERVICE_NAME",
-    "log_level": "POST_COMMAND_LOG_LEVEL",
+_ENV_NAMES: dict[str, tuple[str, ...]] = {
+    # First listed name wins; later entries are accepted aliases
+    # (e.g. Google's standard GOOGLE_CLOUD_PROJECT on dev machines).
+    "gcp_project_id": ("GCP_PROJECT_ID", "GOOGLE_CLOUD_PROJECT"),
+    "gcs_bucket": ("GCS_BUCKET",),
+    "gcs_signing_sa": ("GCS_SIGNING_SA",),
+    "firestore_database": ("FIRESTORE_DATABASE",),
+    "google_application_credentials": ("GOOGLE_APPLICATION_CREDENTIALS",),
+    "grafana_stack_url": ("GRAFANA_STACK_URL",),
+    "grafana_otlp_endpoint": ("GRAFANA_OTLP_ENDPOINT",),
+    "grafana_otlp_token": ("GRAFANA_OTLP_TOKEN",),
+    "mcp_mode": ("MCP_MODE",),
+    "grafana_sa_token": ("GRAFANA_SA_TOKEN",),
+    "api_key": (
+        "POST_COMMAND_API_KEY",
+    ),  # pragma: allowlist secret (env var name, not a secret)
+    "cors_allowed_origins": ("CORS_ALLOWED_ORIGINS",),
+    "service_name": ("POST_COMMAND_SERVICE_NAME",),
+    "log_level": ("POST_COMMAND_LOG_LEVEL",),
 }
 
 
@@ -36,6 +41,7 @@ class Settings:
 
     gcp_project_id: str = ""
     gcs_bucket: str = ""
+    gcs_signing_sa: str = ""
     firestore_database: str = "(default)"
     google_application_credentials: str = ""
     grafana_stack_url: str = ""
@@ -74,12 +80,17 @@ def from_env(env: Mapping[str, str], dotenv: Path | None = None) -> Settings:
     merged.update(env)
 
     def pick(name: str) -> str:
-        return merged.get(_ENV_NAMES[name], "").strip()
+        for alias in _ENV_NAMES[name]:
+            value = merged.get(alias, "").strip()
+            if value:
+                return value
+        return ""
 
     cors = [o.strip() for o in pick("cors_allowed_origins").split(",") if o.strip()]
     return Settings(
         gcp_project_id=pick("gcp_project_id"),
         gcs_bucket=pick("gcs_bucket"),
+        gcs_signing_sa=pick("gcs_signing_sa"),
         firestore_database=pick("firestore_database") or "(default)",
         google_application_credentials=pick("google_application_credentials"),
         grafana_stack_url=pick("grafana_stack_url"),

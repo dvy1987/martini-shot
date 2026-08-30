@@ -16,6 +16,17 @@ def test_defaults_when_nothing_set() -> None:
     assert s.service_name == "martini-shot-backend"
 
 
+def test_gcp_project_alias_and_precedence() -> None:
+    """GOOGLE_CLOUD_PROJECT is accepted as an alias; GCP_PROJECT_ID wins."""
+    assert from_env(env={"GOOGLE_CLOUD_PROJECT": "alias-project"}).gcp_project_id == (
+        "alias-project"
+    )
+    both = from_env(
+        env={"GCP_PROJECT_ID": "primary", "GOOGLE_CLOUD_PROJECT": "alias-project"}
+    )
+    assert both.gcp_project_id == "primary"
+
+
 def test_dotenv_values_applied(tmp_path: Path) -> None:
     dotenv = tmp_path / ".env"
     dotenv.write_text(
