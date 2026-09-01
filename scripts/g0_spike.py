@@ -81,7 +81,7 @@ def extract_video_bytes(interaction: object) -> tuple[bytes | None, str | None]:
     if isinstance(data, str) and data:
         try:
             return base64.b64decode(data), None
-        except Exception:  # noqa: BLE001 - raw-bytes fallback, never raises past this
+        except Exception:
             return data.encode("utf-8"), None
     if uri:
         return None, uri
@@ -93,7 +93,7 @@ def download_uri(uri: str, token: str) -> bytes:
     try:
         with urllib.request.urlopen(request, timeout=120) as response:
             return response.read()
-    except Exception:  # noqa: BLE001 - signed URLs reject auth headers
+    except Exception:
         with urllib.request.urlopen(uri, timeout=120) as response:  # signed URL path
             return response.read()
 
@@ -135,7 +135,7 @@ def usage_record(interaction: object) -> dict[str, object]:
         return {}
     try:
         return {"total_token_count": getattr(usage, "total_token_count", None)}
-    except Exception:  # noqa: BLE001 - usage object shape varies across versions
+    except Exception:
         return {}
 
 
@@ -203,7 +203,7 @@ def run_op(client: object, spec: dict[str, str], token: str) -> dict[str, object
                     time.sleep(90)
                     continue
                 raise
-    except Exception as exc:  # noqa: BLE001 - spike records failures verbatim
+    except Exception as exc:
         record["status"] = "api_error"
         record["error"] = str(exc)[:500]
         return record
@@ -222,7 +222,7 @@ def run_op(client: object, spec: dict[str, str], token: str) -> dict[str, object
     if video_bytes is None and uri:
         try:
             video_bytes = download_uri(uri, token)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             record["error"] = f"download failed: {str(exc)[:300]}"
             return record
     if video_bytes is None:

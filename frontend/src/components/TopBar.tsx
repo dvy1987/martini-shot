@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type RefObject, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 import ConnectionPill from "@/components/ConnectionPill";
@@ -9,10 +9,21 @@ import { ROUTES } from "@/lib/navigation";
 interface TopBarProps {
   connected: boolean;
   sseStatus: SseStatus;
+  proposedCount: number;
+  onOpenPalette: () => void;
+  onReplaySlate: () => void;
+  paletteTriggerRef: RefObject<HTMLButtonElement>;
 }
 
-/** Charter top bar: brand, mono UTC clock, primary nav, ⌘K hint, connection pill. */
-export default function TopBar({ connected, sseStatus }: TopBarProps) {
+/** Charter top bar: brand, mono UTC clock, primary nav, ⌘K, slate replay, connection pill. */
+export default function TopBar({
+  connected,
+  sseStatus,
+  proposedCount,
+  onOpenPalette,
+  onReplaySlate,
+  paletteTriggerRef,
+}: TopBarProps) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -40,17 +51,32 @@ export default function TopBar({ connected, sseStatus }: TopBarProps) {
             }
           >
             {entry.label}
+            {entry.id === "approvals" && proposedCount > 0 ? (
+              <span className="ml-2 font-mono text-xs text-tungsten">{proposedCount}</span>
+            ) : null}
           </NavLink>
         ))}
       </nav>
 
       <div className="ml-auto flex items-center gap-3">
-        <kbd
-          title="Command palette lands with the Replit build steps"
-          className="rounded border border-line px-1.5 py-0.5 font-mono text-xs text-ink-muted"
+        <button
+          type="button"
+          aria-label="Replay this slate"
+          onClick={onReplaySlate}
+          className="rounded-sm px-2 py-1 font-mono text-xs text-ink-muted transition-colors ease-chrome hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+        >
+          ?
+        </button>
+        <button
+          ref={paletteTriggerRef}
+          type="button"
+          aria-label="Open command palette"
+          aria-keyshortcuts="Meta+K Control+K"
+          onClick={onOpenPalette}
+          className="rounded border border-line px-1.5 py-0.5 font-mono text-xs text-ink-muted transition-colors ease-chrome hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
         >
           ⌘K
-        </kbd>
+        </button>
         <ConnectionPill connected={connected} sseStatus={sseStatus} />
       </div>
     </header>

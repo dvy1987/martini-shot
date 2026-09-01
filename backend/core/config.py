@@ -60,6 +60,23 @@ class Settings:
     service_name: str = "martini-shot-backend"
     log_level: str = "INFO"
 
+    def __repr__(self) -> str:
+        """Never echo tokens (C-5.1); pytest traces print this."""
+
+        def flag(value: str) -> str:
+            return "set" if value else "empty"
+
+        return (
+            "Settings("
+            f"gcp_project_id={self.gcp_project_id!r}, "
+            f"gcs_bucket={self.gcs_bucket!r}, "
+            f"mcp_mode={self.mcp_mode!r}, "
+            f"api_key={flag(self.api_key)}, "
+            f"grafana_sa_token={flag(self.grafana_sa_token)}, "
+            f"grafana_otlp_token={flag(self.grafana_otlp_token)}, "
+            f"cors={self.cors_allowed_origins!r})"
+        )
+
 
 def parse_dotenv(path: Path) -> dict[str, str]:
     """Minimal KEY=VALUE parser: comments, blanks, surrounding quotes."""

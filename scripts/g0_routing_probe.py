@@ -44,7 +44,7 @@ def main() -> int:
                 entry["reply"] = str(getattr(interaction, "output_text", ""))[:60]
                 if entry["status"] == "completed":
                     any_ok = True
-            except Exception as exc:  # noqa: BLE001 - probe records failures verbatim
+            except Exception as exc:
                 entry["error"] = str(exc)[:220]
             results["matrix"].append(entry)  # type: ignore[union-attr]
             print(entry, flush=True)

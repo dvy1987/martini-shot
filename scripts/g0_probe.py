@@ -75,7 +75,7 @@ def tts_probe(project: str, token: str) -> dict[str, object]:
             "voice_count": len(voices),
             "chirp_hd_voices": len(chirp),
         }
-    except Exception as exc:  # noqa: BLE001 - probe records any failure verbatim
+    except Exception as exc:
         return {"ok": False, "error": str(exc)[:300]}
 
 
@@ -142,14 +142,14 @@ def main() -> int:
             "thought_summary_present": bool(thought_parts),
             "usage_metadata": str(response.usage_metadata),
         }
-    except Exception as exc:  # noqa: BLE001 - probe records any failure verbatim
+    except Exception as exc:
         results["text_probe"] = {"ok": False, "error": str(exc)[:300]}
 
     # 3. Cloud TTS reachability (Chirp 3 HD voice census).
     try:
         token = adc_token()
         results["tts_probe"] = tts_probe(project, token)
-    except Exception as exc:  # noqa: BLE001 - probe records any failure verbatim
+    except Exception as exc:
         results["tts_probe"] = {"ok": False, "error": str(exc)[:300]}
 
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)

@@ -41,7 +41,7 @@ _TOOL_PREFERENCES: dict[str, tuple[str, ...]] = {
     "search_dashboards": ("search_dashboards",),
     "query_promql": ("query_prometheus", "query_promql"),
     "query_loki": ("query_loki_logs", "query_loki"),
-    "search_traces": ("search_traces",),
+    "search_traces": ("search_traces", "tempo_traceql-search"),
     "get_annotations": ("get_annotations",),
     "add_annotation": ("create_annotation", "add_annotation"),
     "create_incident": ("create_incident",),
@@ -204,6 +204,8 @@ class GrafanaMcpConnector:
                     self._ds_uids.setdefault(dtype, uid)
                 if dtype == "loki" and str(ds.get("name", "")).endswith("-logs"):
                     self._ds_uids["loki"] = uid
+                if dtype == "tempo" and "traces" in str(ds.get("uid", "")).lower():
+                    self._ds_uids["tempo"] = uid
         uid = self._ds_uids.get(signal)
         if not uid:
             raise ToolUnavailable(
@@ -245,7 +247,7 @@ class GrafanaMcpConnector:
             if stack is not None:
                 try:
                     self._loop.run(stack.aclose(), timeout=30)
-                except Exception:  # noqa: BLE001, S110 - shutdown best effort
+                except Exception:
                     pass
             self._loop.stop()
             self._loop = None

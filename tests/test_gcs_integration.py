@@ -16,9 +16,9 @@ pytestmark = pytest.mark.integration
 @pytest.fixture()
 def media() -> GCSMedia:
     settings = get_settings()
-    assert (
-        settings.gcp_project_id
-    ), "GCP_PROJECT_ID must be configured (real-service law C-6.2)"
+    assert settings.gcp_project_id, (
+        "GCP_PROJECT_ID must be configured (real-service law C-6.2)"
+    )
     assert settings.gcs_bucket, "GCS_BUCKET must be configured"
     return get_gcs(settings)
 

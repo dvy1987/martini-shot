@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sys
 from datetime import datetime, timezone
 from typing import IO
@@ -14,6 +15,30 @@ from typing import IO
 _RESERVED: set[str] = set(
     logging.LogRecord("x", 0, "x", 0, "x", (), None).__dict__.keys()
 ) | {"message", "asctime", "taskName"}
+
+_API_KEY_QUERY = re.compile(r"(api_key=)[^&\s]+", re.IGNORECASE)
+
+
+def redact_api_key_query(text: str) -> str:
+    """Strip EventSource query keys from access-log lines (C-5.1)."""
+    return _API_KEY_QUERY.sub(r"\1REDACTED", text)
+
+
+class ApiKeyAccessLogFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        request_line = getattr(record, "request_line", None)
+        if isinstance(request_line, str):
+            record.request_line = redact_api_key_query(request_line)
+        if isinstance(record.msg, str):
+            record.msg = redact_api_key_query(record.msg)
+        return True
+
+
+def install_access_log_redaction() -> None:
+    logger = logging.getLogger("uvicorn.access")
+    if any(isinstance(item, ApiKeyAccessLogFilter) for item in logger.filters):
+        return
+    logger.addFilter(ApiKeyAccessLogFilter())
 
 
 class JsonFormatter(logging.Formatter):

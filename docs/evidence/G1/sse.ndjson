@@ -1,0 +1,7 @@
+: ping
+data: {"type": "job.updated", "at": "2026-09-01T06:32:36.948Z", "payload": {"job": {"job_id": "job-12f1bb8f8b98", "station": "ingest", "project_id": "g1", "input_refs": ["projects/g1/ingest/job-12f1bb8f8b98/slate.mp4"], "status": "queued", "attempts": 0, "cost_micros": 0, "error": null, "checksum_sha256": null}}}
+data: {"type": "job.updated", "at": "2026-09-01T06:32:38.643Z", "payload": {"job": {"job_id": "job-12f1bb8f8b98", "station": "ingest", "project_id": "g1", "input_refs": ["projects/g1/ingest/job-12f1bb8f8b98/slate.mp4"], "status": "running", "attempts": 1, "cost_micros": 0, "error": null, "checksum_sha256": null}}}
+data: {"type": "job.updated", "at": "2026-09-01T06:32:40.194Z", "payload": {"job": {"job_id": "job-12f1bb8f8b98", "station": "ingest", "project_id": "g1", "input_refs": ["projects/g1/ingest/job-12f1bb8f8b98/slate.mp4"], "status": "pass", "attempts": 1, "cost_micros": 0, "error": null, "checksum_sha256": "202459a82f3c557e08563a5a7d7bfbeecbe024ebfc1d23c3fa15160d14636bb2"}}}
+data: {"type": "annotation.created", "at": "2026-09-01T06:32:42.222Z", "payload": {"annotation_id": "grafana", "job_id": "job-12f1bb8f8b98"}}
+: ping
+: ping

@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import { cost } from "@/lib/formatters";
+import { filterJobsByStatus } from "@/lib/lens";
 import { staggerChild, staggerParent } from "@/lib/motion";
-import { statusMetaOrUnknown } from "@/lib/status";
+import { STATUS_BOARD_ORDER, statusMetaOrUnknown } from "@/lib/status";
 import { groupJobsByStation } from "@/lib/timeline";
-import type { Job } from "@/types/api";
+import type { Job, JobStatus } from "@/types/api";
 
 interface TimelineBoardProps {
   jobs: readonly Job[];
   selectedJobId: string | null;
   onSelectJob: (jobId: string, trigger: HTMLElement) => void;
+  lensOpen?: boolean;
+  statusFilter?: ReadonlySet<JobStatus>;
+  onToggleStatus?: (status: JobStatus) => void;
 }
 
 const COLLAPSED_JOB_LIMIT = 8;
@@ -81,10 +85,22 @@ export default function TimelineBoard({
   jobs,
   selectedJobId,
   onSelectJob,
+  lensOpen = false,
+  statusFilter,
+  onToggleStatus,
 }: TimelineBoardProps) {
-  const lanes = groupJobsByStation(jobs);
+  const visibleJobs = statusFilter ? filterJobsByStatus(jobs, statusFilter) : [...jobs];
+  const lanes = groupJobsByStation(visibleJobs);
   const [view, setView] = useState<"timeline" | "table">("timeline");
   const [expandedStations, setExpandedStations] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    if (lensOpen) {
+      setExpandedStations(new Set(groupJobsByStation(jobs).map((lane) => lane.station)));
+      return;
+    }
+    setExpandedStations(new Set());
+  }, [lensOpen, jobs]);
 
   function toggleStation(station: string) {
     setExpandedStations((current) => {
@@ -128,8 +144,46 @@ export default function TimelineBoard({
         </button>
       </div>
 
+      {lensOpen && onToggleStatus ? (
+        <fieldset className="mb-3 rounded-md border border-line bg-surface-1 px-4 py-3">
+          <legend className="font-mono text-xs uppercase tracking-widest text-ink-muted">
+            Lens filters
+          </legend>
+          <div role="group" aria-label="Filter jobs by status" className="mt-2 flex flex-wrap gap-1">
+            {STATUS_BOARD_ORDER.map((status) => {
+              const meta = statusMetaOrUnknown(status);
+              const pressed = Boolean(statusFilter?.has(status));
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  aria-pressed={pressed}
+                  onClick={() => onToggleStatus(status)}
+                  className={`rounded-sm border px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors ease-chrome focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten ${
+                    pressed
+                      ? "border-tungsten bg-surface-2 text-ink"
+                      : "border-line bg-surface-1 text-ink-muted hover:border-ink-muted"
+                  }`}
+                >
+                  <span aria-hidden className="mr-2">
+                    {meta.glyph}
+                  </span>
+                  {meta.term}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
+
+      {jobs.length > 0 && visibleJobs.length === 0 ? (
+        <p className="mb-3 font-mono text-xs uppercase tracking-widest text-ink-muted">
+          No observed jobs match the Lens filter.
+        </p>
+      ) : null}
+
       {view === "table" ? (
-        <TimelineTable jobs={jobs} selectedJobId={selectedJobId} onSelectJob={onSelectJob} />
+        <TimelineTable jobs={visibleJobs} selectedJobId={selectedJobId} onSelectJob={onSelectJob} />
       ) : (
         <motion.div
           variants={staggerParent}

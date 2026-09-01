@@ -9,6 +9,17 @@ export interface StatusMeta {
   textClass: string;
 }
 
+/** Legend / Lens chip order — exception-first, then locked, then in-bin. */
+export const STATUS_BOARD_ORDER: JobStatus[] = [
+  "running",
+  "needs_human",
+  "fail",
+  "quarantined",
+  "throttled",
+  "pass",
+  "queued",
+];
+
 export const STATUS_META: Record<JobStatus, StatusMeta> = {
   queued: { term: "In bin", hint: "queued", glyph: "●", textClass: "text-ink-muted" },
   running: { term: "In the lab", hint: "running", glyph: "▶", textClass: "text-agent" },

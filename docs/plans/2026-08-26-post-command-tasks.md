@@ -35,7 +35,7 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 | ID | Task | Mode | Refs | Target | After | DoD |
 |---|---|---|---|---|---|---|
 | C-1 | FE interim shell: API client `/api/v1`, SSE hook, routed pages per spec §7 — **worker output awaiting orchestrator review** (skeleton already committed 2026-08-28; review remaining deltas) | TDD (client) | C-6.1, §7.1 | `frontend/` | F-3 | contract tests vs backend OpenAPI; gates green (`npm run build/test/lint/typecheck`) |
-| G1 | **Gate G1 run** (orchestrator only): real MP4 → FE upload → job → minimal ingest (arrival+checksum) → trace/metrics/logs in Grafana Explore → supervisor writes real investigation annotation w/ job_id → SSE updates UI | integration | AC-S0.2, C-4.*, C-2.2 | `docs/evidence/G1/` | A-1..A-5, B-1..B-2, C-1 | evidence pack: trace ID + 3 PromQL queries + Loki line + annotation JSON + SSE capture (A7) |
+| G1 ✅ 2026-09-01 | **Gate G1 run** (orchestrator): real MP4 → ingest (arrival+checksum) → traces/metrics/logs in Grafana → annotation w/ job_id → SSE queued→running→pass | integration | AC-S0.2, C-4.*, C-2.2 | `docs/evidence/G1/` (`gate.json`, `sse.ndjson`, README) | A-1..A-5, B-1..B-2 | job `job-12f1bb8f8b98` pass; trace `1558b20e2f5b0e99fd29d2dd40627bfd`; 3 PromQL + Loki line + annotation id 4 |
 
 ## SPRINT — Phase 2: deterministic stations (parallel after A-4; each = RED first, then green, evidence + README)
 | ID | Task | Station | Mode | Refs | DoD |

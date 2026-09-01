@@ -48,7 +48,7 @@ def main() -> int:
             entry["status"] = "accepted"
             entry["operation_name"] = str(getattr(op, "name", ""))[:120]
             accepted = (client, model, location, op)
-        except Exception as exc:  # noqa: BLE001 - probe records failures verbatim
+        except Exception as exc:
             err = str(exc)
             entry["error_code"] = next(
                 (c for c in ["404", "403", "429", "400"] if c in err[:200]), "other"

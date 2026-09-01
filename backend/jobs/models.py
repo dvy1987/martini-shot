@@ -38,6 +38,7 @@ class Job:
     updated_at: str = field(default_factory=utc_now_iso)
     lease_owner: str | None = None
     lease_expires_at: str | None = None
+    checksum_sha256: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

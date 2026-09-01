@@ -1,26 +1,62 @@
-import { useCallback, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Route, Routes } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import { projectEventsUrl } from "@/api/endpoints";
+import { getProject, listApprovals, projectEventsUrl } from "@/api/endpoints";
+import CommandPalette from "@/components/CommandPalette";
+import SlateDeck from "@/components/SlateDeck";
 import TopBar from "@/components/TopBar";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSSE } from "@/hooks/useSSE";
+import { allCommands, pathForRouteCommand, type PaletteCommand } from "@/lib/palette";
+import { slateForRoute } from "@/lib/slates";
 import { jobFromSseEvent, upsertJob } from "@/lib/timeline";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
-import type { Project, SseEvent } from "@/types/api";
+import type { BackendReach, Project, SseEvent } from "@/types/api";
+
+function backendReach(health: { isPending: boolean; isSuccess: boolean }): BackendReach {
+  if (health.isPending) return "checking";
+  return health.isSuccess ? "up" : "down";
+}
 
 /**
- * App shell. Until the backend exists (gate G1) the health probe fails and the
- * SSE stream is null — every view truthfully renders its designed empty state
- * (frontend/AGENTS.md: no-backend period is expected; mock APIs are banned).
+ * App shell. Until the backend is reachable the health probe fails and every
+ * view truthfully renders its designed empty state (C-1: no mock APIs).
  */
 export default function App() {
   const health = useBackendHealth();
+  const backend = backendReach(health);
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [lensOpen, setLensOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [investigationOpen, setInvestigationOpen] = useState(false);
+  const [slateReplay, setSlateReplay] = useState(0);
+  const consumePendingJob = useCallback(() => setPendingJobId(null), []);
+  const paletteTriggerRef = useRef<HTMLButtonElement>(null);
+  const paletteReturnRef = useRef<HTMLElement | null>(null);
+
+  const projectQuery = useQuery({
+    queryKey: ["project", selectedProjectId],
+    queryFn: () => getProject(selectedProjectId ?? ""),
+    enabled: selectedProjectId !== null,
+  });
+  const approvalsQuery = useQuery({
+    queryKey: ["approvals"],
+    queryFn: listApprovals,
+    enabled: backend === "up",
+  });
+
+  const jobs = projectQuery.data?.jobs ?? [];
+  const proposedCount = (approvalsQuery.data ?? []).filter(
+    (item) => item.status === "proposed",
+  ).length;
+  const slateId = investigationOpen ? "investigation" : slateForRoute(location.pathname);
 
   const handleSseEvent = useCallback(
     (event: SseEvent) => {
@@ -40,33 +76,93 @@ export default function App() {
     handleSseEvent,
   );
 
+  const openPalette = useCallback(() => {
+    paletteReturnRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : paletteTriggerRef.current;
+    setPaletteOpen(true);
+  }, []);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+  }, []);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((open) => {
+          if (open) return false;
+          paletteReturnRef.current =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : paletteTriggerRef.current;
+          return true;
+        });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function runCommand(command: PaletteCommand) {
+    setPaletteOpen(false);
+    if (command.kind === "lens") {
+      setLensOpen((open) => !open);
+      return;
+    }
+    if (command.kind === "route") {
+      navigate(pathForRouteCommand(command.id));
+      return;
+    }
+    if (command.kind === "job") {
+      const jobId = command.id.slice("job:".length);
+      navigate("/");
+      setPendingJobId(jobId);
+    }
+  }
+
+  const timeline = (
+    <TimelineRoute
+      selectedProjectId={selectedProjectId}
+      onSelectedProjectIdChange={setSelectedProjectId}
+      lensOpen={lensOpen}
+      pendingJobId={pendingJobId}
+      onPendingJobConsumed={consumePendingJob}
+      onInvestigationOpenChange={setInvestigationOpen}
+    />
+  );
+
   return (
     <div className="flex h-dvh flex-col bg-bg text-ink">
-      <TopBar connected={health.isSuccess} sseStatus={sse.status} />
+      <TopBar
+        connected={health.isSuccess}
+        sseStatus={sse.status}
+        proposedCount={proposedCount}
+        onOpenPalette={openPalette}
+        onReplaySlate={() => setSlateReplay((token) => token + 1)}
+        paletteTriggerRef={paletteTriggerRef}
+      />
       <main className="min-h-0 flex-1 overflow-y-auto">
         <Routes>
+          <Route path="/" element={timeline} />
+          <Route path="/approvals" element={<ApprovalsRoute backend={backend} />} />
           <Route
-            path="/"
+            path="/reports"
             element={
-              <TimelineRoute
-                selectedProjectId={selectedProjectId}
-                onSelectedProjectIdChange={setSelectedProjectId}
-              />
+              <ReportsRoute backend={backend} selectedProjectId={selectedProjectId} />
             }
           />
-          <Route path="/approvals" element={<ApprovalsRoute />} />
-          <Route path="/reports" element={<ReportsRoute />} />
-          <Route
-            path="*"
-            element={
-              <TimelineRoute
-                selectedProjectId={selectedProjectId}
-                onSelectedProjectIdChange={setSelectedProjectId}
-              />
-            }
-          />
+          <Route path="*" element={timeline} />
         </Routes>
       </main>
+      <SlateDeck id={slateId} replayToken={slateReplay} />
+      <CommandPalette
+        open={paletteOpen}
+        commands={allCommands(jobs)}
+        returnFocusRef={paletteReturnRef}
+        onClose={closePalette}
+        onSelect={runCommand}
+      />
     </div>
   );
 }

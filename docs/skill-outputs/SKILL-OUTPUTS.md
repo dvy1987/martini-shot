@@ -25,7 +25,8 @@
 
 | 2026-08-30 | memory-capture | docs/memory/current-state.md + agent-handoffs.md#2026-08-30 + project-index.md | Captured: A-1 shipped (d0d866c), A7/PASS crosscheck, worker lane demotion. Rejected: raw pip/pytest transcripts (ephemeral). |
 | 2026-09-01 | test-driven-development | tests/test_supervisor_mcp.py + tests/test_supervisor_mcp_integration.py | TDD: Grafana MCP connector (B-2). Live round-trip GREEN; evidence `docs/evidence/B-2/`. |
-| 2026-09-01 | memory-handoff | docs/memory/agent-handoffs.md#2026-09-01 | B-2 continuity: OSS MCP proven; next G1 remaining + C-1; hosted OAuth is F-4. |
+| 2026-09-01 | test-driven-development | frontend/src/lib/{wipe,approvals,slates,palette,lens,dates,errors}*.ts + route/component tests | TDD: Replit UX Steps 3–6 (Screening Room, dailies, slates, ⌘K, Lens). No fabricated API rows. |
+| 2026-09-01 | memory-handoff | docs/plans/2026-09-01-post-command-handover.md (rev 2) + agent-handoffs#13:45 + current-state.md | G1 gate GREEN + D-1 core + Replit Steps 3–6 verified/committed by orchestrator; remaining queue D-1 completion → §7.2 sign-in (no firebase dep yet) → B-3 → F-4 → D-2..D-7/G2; chaos FIFO flake fixed (order-agnostic victim). |
 
 ## Next SDD phases for slug `post-command`
 1. `/tasks` — derive agent-pickable task list from the plan (implementation-plan tasks-only mode) when ready to start execution

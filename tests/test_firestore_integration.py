@@ -17,9 +17,9 @@ pytestmark = pytest.mark.integration
 @pytest.fixture()
 def store() -> FirestoreStore:
     settings = get_settings()
-    assert (
-        settings.gcp_project_id
-    ), "GCP_PROJECT_ID must be configured (real-service law C-6.2)"
+    assert settings.gcp_project_id, (
+        "GCP_PROJECT_ID must be configured (real-service law C-6.2)"
+    )
     return get_firestore(settings)
 
 

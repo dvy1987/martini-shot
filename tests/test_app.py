@@ -49,6 +49,28 @@ def test_fail_closed_when_api_key_unset() -> None:
     assert r.status_code == 401
 
 
+def test_sse_path_accepts_api_key_query_parameter() -> None:
+    from backend.api.app import _provided_api_key
+
+    scope = {
+        "headers": [],
+        "path": "/api/v1/projects/g1/events",
+        "query_string": b"api_key=test-key-123",
+    }
+    assert _provided_api_key(scope) == "test-key-123"
+
+
+def test_non_sse_path_ignores_api_key_query_parameter() -> None:
+    from backend.api.app import _provided_api_key
+
+    scope = {
+        "headers": [],
+        "path": "/api/v1/version",
+        "query_string": b"api_key=test-key-123",
+    }
+    assert _provided_api_key(scope) == ""
+
+
 def test_cors_allows_listed_origin_only() -> None:
     c = client()
     ok = c.options(

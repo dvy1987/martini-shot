@@ -5,6 +5,13 @@ import type { ApiErrorBody } from "@/types/api";
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 const apiKey = import.meta.env.VITE_API_KEY ?? "";
 
+export function eventsUrl(path: string): string {
+  const base = `${apiBaseUrl}${path}`;
+  if (!apiKey) return base;
+  const join = base.includes("?") ? "&" : "?";
+  return `${base}${join}api_key=${encodeURIComponent(apiKey)}`;
+}
+
 export class ApiError extends Error {
   constructor(
     readonly code: string,
@@ -20,7 +27,9 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
   if (apiKey) headers.set("X-API-Key", apiKey);
-  if (init?.body) headers.set("Content-Type", "application/json");
+  if (init?.body && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
 
   const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers });
   if (!response.ok) {

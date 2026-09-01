@@ -8,22 +8,19 @@ import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
 import TimelineBoard from "@/components/TimelineBoard";
-import { STATUS_META } from "@/lib/status";
-import type { JobStatus } from "@/types/api";
+import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
+import { toggleStatus } from "@/lib/lens";
+import type { Job, JobStatus } from "@/types/api";
 
-const BOARD_ORDER: JobStatus[] = [
-  "running",
-  "needs_human",
-  "fail",
-  "quarantined",
-  "throttled",
-  "pass",
-  "queued",
-];
+const EMPTY_JOBS: Job[] = [];
 
 interface TimelineRouteProps {
   selectedProjectId: string | null;
   onSelectedProjectIdChange: (projectId: string | null) => void;
+  lensOpen?: boolean;
+  pendingJobId?: string | null;
+  onPendingJobConsumed?: () => void;
+  onInvestigationOpenChange?: (open: boolean) => void;
 }
 
 function StatusLegend() {
@@ -33,7 +30,7 @@ function StatusLegend() {
         Reading the board
       </h2>
       <dl className="mt-3 grid gap-2 sm:grid-cols-2">
-        {BOARD_ORDER.map((status) => {
+        {STATUS_BOARD_ORDER.map((status) => {
           const meta = STATUS_META[status];
           return (
             <div key={status} className="flex items-baseline gap-3 text-sm">
@@ -83,9 +80,14 @@ function TimelineSkeleton() {
 export default function TimelineRoute({
   selectedProjectId,
   onSelectedProjectIdChange,
+  lensOpen = false,
+  pendingJobId = null,
+  onPendingJobConsumed,
+  onInvestigationOpenChange,
 }: TimelineRouteProps) {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [inspectedJobId, setInspectedJobId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<Set<JobStatus>>(() => new Set());
   const jobTriggerRef = useRef<HTMLElement | null>(null);
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: listProjects });
   const projectQuery = useQuery({
@@ -131,6 +133,26 @@ export default function TimelineRoute({
     setInspectedJobId(null);
     jobTriggerRef.current = null;
   }, [selectedProjectId]);
+
+  useEffect(() => {
+    onInvestigationOpenChange?.(inspectedJobId !== null);
+  }, [inspectedJobId, onInvestigationOpenChange]);
+
+  useEffect(() => {
+    if (!lensOpen) setStatusFilter(new Set());
+  }, [lensOpen]);
+
+  const jobs = projectQuery.data?.jobs ?? EMPTY_JOBS;
+
+  useEffect(() => {
+    if (!pendingJobId || !projectQuery.isSuccess) return;
+    const match = jobs.some((job) => job.job_id === pendingJobId);
+    if (match) {
+      setSelectedJobId(pendingJobId);
+      setInspectedJobId(pendingJobId);
+    }
+    onPendingJobConsumed?.();
+  }, [jobs, onPendingJobConsumed, pendingJobId, projectQuery.isSuccess]);
 
   if (projectsQuery.isPending) {
     return (
@@ -186,7 +208,6 @@ export default function TimelineRoute({
   const selectedProject = projectsQuery.data.find(
     ({ project_id }) => project_id === selectedProjectId,
   );
-  const jobs = projectQuery.data?.jobs ?? [];
 
   return (
     <section aria-labelledby="timeline-heading" className="px-6 py-8">
@@ -255,6 +276,9 @@ export default function TimelineRoute({
           jobs={jobs}
           selectedJobId={selectedJobId}
           onSelectJob={handleJobSelection}
+          lensOpen={lensOpen}
+          statusFilter={statusFilter}
+          onToggleStatus={(status) => setStatusFilter((current) => toggleStatus(current, status))}
         />
       ) : null}
 
@@ -264,7 +288,7 @@ export default function TimelineRoute({
         </p>
       ) : null}
 
-      <StatusLegend />
+      {lensOpen || jobs.length === 0 ? <StatusLegend /> : null}
 
       <InvestigationDrawer
         open={inspectedJobId !== null}

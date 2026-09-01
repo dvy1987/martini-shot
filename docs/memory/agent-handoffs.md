@@ -1,5 +1,29 @@
 # Agent Handoffs
 
+## 2026-09-01 13:45 - G1 gate + D-1 core + Replit Steps 3–6 verified & committed (orchestrator)
+
+### Done
+- Gate G1 RUN GREEN (real MP4 → ingest → Grafana signals → annotation w/ job_id → SSE; evidence `docs/evidence/G1/gate.json`, `sse.ndjson`).
+- D-1 core: ingest station (checksum), `jobs/worker.py` lease loop, `api/spine.py` (projects/jobs/ingest/SSE), `present.py`, `events.py`, `supervisor/annotate.py`, FE timeline wiring.
+- Replit UX Steps 3–6: Screening Room, dailies, slates, ⌘K, Lens (63/63 FE tests). Runbook `docs/runbooks/replit-static-deploy.md`.
+- Orchestrator fixes: spine `Annotated[UploadFile, File()]`, ruff format, FE localStorage test shim (`src/test/setup.ts`), chaos-test FIFO flake fixed (order-agnostic victim).
+- Full handover rev 2: `docs/plans/2026-09-01-post-command-handover.md`.
+
+### Decisions
+- Test-only localStorage shim allowed under C-1.3 (Node ≥22 needs `--localstorage-file`; app always runs in real browser origin).
+- Chaos test must not assume FIFO on tied `created_at` (ms precision) — victim is whatever the queue leases.
+
+### Next Agent Should Know
+- Remaining queue in handover §3: D-1 completion → sign-in-to-approve (NO firebase dep yet — spec §7.2 open) → B-3 → F-4 (one-way door) → D-2..D-7 + G2 → H-* → J-*.
+- `make check` + FE gates all green at handover; commit + push done.
+
+### Revisit Triggers
+- Firestore lease-order tie-break: if a station needs strict FIFO, queue needs a created_at+doc-id ordering change (ask first — queue semantics).
+- mcp-grafana upgrade changing tool names/shapes; SA token expiry (401s across python+curl+MCP = dead token, regenerate).
+
+### Working Tree
+- Clean after this commit (receiving agent's tree verified + committed + pushed).
+
 ## 2026-09-01 11:16 - B-2 Grafana MCP live round-trip GREEN
 
 ### Done

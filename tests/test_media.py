@@ -14,9 +14,9 @@ FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "spike"
 @pytest.fixture()
 def media() -> FFmpeg:
     settings = get_settings()
-    assert (
-        settings.ffmpeg_bin and settings.ffprobe_bin
-    ), "FFMPEG_BIN/FFPROBE_BIN must be configured (real binaries, no shims)"
+    assert settings.ffmpeg_bin and settings.ffprobe_bin, (
+        "FFMPEG_BIN/FFPROBE_BIN must be configured (real binaries, no shims)"
+    )
     return FFmpeg(ffmpeg_bin=settings.ffmpeg_bin, ffprobe_bin=settings.ffprobe_bin)
 
 

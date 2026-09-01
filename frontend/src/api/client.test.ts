@@ -58,4 +58,18 @@ describe("apiFetch", () => {
     const data = await apiFetch<{ project_id: string }[]>("/api/v1/projects");
     expect(data[0]?.project_id).toBe("p1");
   });
+
+  it("does not force JSON content-type on FormData bodies", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const headers = new Headers(init?.headers);
+      expect(headers.get("Content-Type")).toBeNull();
+      return new Response(JSON.stringify({ job_id: "job-1" }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const body = new FormData();
+    body.append("file", new Blob([new Uint8Array([0, 1])]), "clip.mp4");
+    await apiFetch("/api/v1/projects/g1/ingest", { method: "POST", body });
+    expect(fetchMock).toHaveBeenCalled();
+  });
 });

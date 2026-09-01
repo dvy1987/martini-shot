@@ -36,6 +36,22 @@ describe("TimelineBoard", () => {
     expect(screen.queryByRole("button", { name: /in the lab: job-9/i })).not.toBeInTheDocument();
   });
 
+  it("Lens expands collapsed jobs and reveals the filter row", () => {
+    render(
+      <TimelineBoard
+        jobs={Array.from({ length: 9 }, (_, index) => job(index + 1))}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+        lensOpen
+        statusFilter={new Set()}
+        onToggleStatus={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /in the lab: job-9/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /filter jobs by status/i })).toBeInTheDocument();
+  });
+
   it("shows the same jobs in table view and preserves selection behavior", () => {
     const onSelectJob = vi.fn();
     render(

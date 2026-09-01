@@ -5,6 +5,19 @@ from pathlib import Path
 from backend.core.config import Settings, from_env, get_settings, reset_settings
 
 
+def test_repr_redacts_secret_values() -> None:
+    s = Settings(
+        api_key="super-secret-api-key",  # pragma: allowlist secret
+        grafana_sa_token="glsa_dummy_token",  # pragma: allowlist secret
+        grafana_otlp_token="glc_dummy_token",  # pragma: allowlist secret
+    )
+    text = repr(s)
+    assert "super-secret-api-key" not in text
+    assert "glsa_dummy_token" not in text
+    assert "glc_dummy_token" not in text
+    assert "api_key=set" in text
+
+
 def test_defaults_when_nothing_set() -> None:
     s = from_env(env={})
     assert isinstance(s, Settings)

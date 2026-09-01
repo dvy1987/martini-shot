@@ -63,14 +63,17 @@ def _wait_status(
     raise AssertionError(f"job {job_id} never reached {wanted}")
 
 
-def _wait_leased(queue: FirestoreLeaseQueue, job_id: str, timeout_s: float) -> None:
+def _wait_any_leased(
+    queue: FirestoreLeaseQueue, job_ids: list[str], timeout_s: float
+) -> str:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
-        job = queue.get(job_id)
-        if job is not None and job.status == "leased":
-            return
+        for job_id in job_ids:
+            job = queue.get(job_id)
+            if job is not None and job.status == "leased":
+                return job_id
         time.sleep(0.2)
-    raise AssertionError(f"job {job_id} was never leased")
+    raise AssertionError("no job was ever leased by the killer worker")
 
 
 def test_ac_s0_1_crash_then_exactly_once(env: object) -> None:
@@ -87,13 +90,16 @@ def test_ac_s0_1_crash_then_exactly_once(env: object) -> None:
     for job in jobs:
         queue.submit(job)
 
-    # 1) worker crashes mid-job on the first lease
+    # 1) worker crashes mid-job on its first lease. The victim is whichever
+    # job the queue hands over first — created_at is millisecond-precision, so
+    # three submits in a tight loop can tie and Firestore ordering is then
+    # undefined. 60s: under full-suite load the cold subprocess + first lease
+    # can exceed 20s. The exactly-once assertion below is unaffected.
     killer = _spawn("die", collection)
-    first = jobs[0]
-    _wait_leased(queue, first.id, timeout_s=20)
+    victim_id = _wait_any_leased(queue, [job.id for job in jobs], timeout_s=60)
     killer.wait(timeout=15)
 
-    # 2) two live workers drain everything (first job only after lease expiry)
+    # 2) two live workers drain everything (victim only after lease expiry)
     workers = [_spawn("complete", collection) for _ in range(2)]
     try:
         for job in jobs:
@@ -107,14 +113,21 @@ def test_ac_s0_1_crash_then_exactly_once(env: object) -> None:
     store = get_firestore(settings2)
     for job in jobs:
         executions = store.list_where("integration-test-executions", "job_id", job.id)
-        assert (
-            len(executions) == 1
-        ), f"exactly-once violated for {job.id}: {len(executions)} executions"
+        assert len(executions) == 1, (
+            f"exactly-once violated for {job.id}: {len(executions)} executions"
+        )
 
-    stored_first = queue.get(first.id)
-    assert (
-        stored_first is not None and stored_first.attempts == 2
-    ), "lease expiry reassignment not recorded"
+    stored_victim = queue.get(victim_id)
+    assert stored_victim is not None and stored_victim.attempts == 2, (
+        "lease expiry reassignment not recorded"
+    )
+    for job in jobs:
+        if job.id == victim_id:
+            continue
+        stored_clean = queue.get(job.id)
+        assert stored_clean is not None and stored_clean.attempts == 1, (
+            f"clean job {job.id} has wrong attempt count"
+        )
     # cleanup: delete the test collection docs and execution ledger entries
     for job in jobs:
         queue.forget(job.id)

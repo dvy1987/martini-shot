@@ -29,6 +29,7 @@ export interface Job {
   attempts: number;
   cost_micros?: number;
   error?: { code: string; message: string } | null;
+  checksum_sha256?: string | null;
 }
 
 export type SseEvent =
@@ -63,6 +64,7 @@ export interface ReportVerdict {
   verdict: string;
   summary: string;
   evidence_url?: string;
+  cost_micros?: number;
 }
 
 export interface MorningReport {
@@ -76,6 +78,8 @@ export type Autonomy = "propose_only" | "act_with_approval" | "autonomous";
 export interface Settings {
   autonomy: Autonomy;
 }
+
+export type BackendReach = "checking" | "up" | "down";
 
 export interface ApiErrorBody {
   error: { code: string; message: string };

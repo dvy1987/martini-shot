@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "generated_at": "2026-09-01T05:47:56.605308+00:00",
+  "generated_at": "2026-09-01T08:16:31.812462+00:00",
   "mode": "application",
   "mode_reason": "application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).",
   "scan_layers": [
@@ -14,33 +14,33 @@
   ],
   "root": "C:\\Users\\reall\\Building_Apps\\martini-shot",
   "stats": {
-    "nodes": 726,
-    "edges": 221,
+    "nodes": 767,
+    "edges": 236,
     "authoritative_edges": 0,
-    "extracted_edges": 153,
-    "inferred_edges": 68,
+    "extracted_edges": 165,
+    "inferred_edges": 71,
     "node_types": {
       "config": 417,
       "directory": 11,
-      "doc": 35,
-      "handoff": 10,
+      "doc": 37,
+      "handoff": 11,
       "memory": 9,
-      "module": 120,
+      "module": 158,
       "package": 1,
       "skill": 123
     }
   },
   "god_nodes": [
-    "models.py (module)",
+    "__init__.py (module)",
     "venture-exploration",
     "memory",
     "memory-capture",
     "universal-skill-creator",
+    "models.py (module)",
     "improve-skills",
     "feature-spec",
     "problem-to-plan",
-    "split-skill",
-    "project-setup"
+    "memory-startup"
   ],
   "surprising_connections": [
     {
@@ -104,12 +104,17 @@
     "How does agent-builder (agent) connect to harness-generation (harness)?",
     "How does agent-builder (agent) connect to setup-evaluation (setup)?",
     "How does agent-loom-sync (agent) connect to validate-skills (validate)?",
-    "What depends on models.py (module), and what does models.py (module) invoke?",
+    "What depends on __init__.py (module), and what does __init__.py (module) invoke?",
     "What depends on venture-exploration, and what does venture-exploration invoke?",
     "What depends on memory, and what does memory invoke?"
   ],
   "communities": {
-    "project": [
+    "eval": [
+      "eval-judge",
+      "eval-output",
+      "eval-rubric-design"
+    ],
+    "memory": [
       "adversarial-hat",
       "agent-builder",
       "agent-loom-sync",
@@ -177,12 +182,18 @@
       "validate-skills",
       "venture-exploration"
     ],
-    "agent": [
-      "agent-launcher",
-      "agent-observability",
-      "agent-run-retro",
-      "agent-system-architecture",
-      "runtime-learning-loop"
+    "tool": [
+      "tool-finder"
+    ],
+    "incremental": [
+      "incremental-implementation"
+    ],
+    "debug": [
+      "debug-and-fix",
+      "dependency-mapping",
+      "dynamic-routing",
+      "safe-change",
+      "structured-planning"
     ],
     "core": [
       "inversion",
@@ -190,26 +201,11 @@
       "quickstart",
       "socratic"
     ],
-    "structured": [
-      "debug-and-fix",
-      "dependency-mapping",
-      "dynamic-routing",
-      "safe-change",
-      "structured-planning"
+    "spec": [
+      "spec-crosscheck"
     ],
-    "first": [
-      "first-principles"
-    ],
-    "source": [
-      "source-driven-development"
-    ],
-    "git": [
-      "git-workflow-and-versioning"
-    ],
-    "eval": [
-      "eval-judge",
-      "eval-output",
-      "eval-rubric-design"
+    "pre": [
+      "pre-mortem"
     ],
     "gsap": [
       "design-direction",
@@ -220,6 +216,35 @@
       "motion-animation",
       "svg-creation"
     ],
+    "code": [
+      "code-review-crsp",
+      "code-simplification"
+    ],
+    "agent": [
+      "agent-launcher",
+      "agent-observability",
+      "agent-run-retro",
+      "agent-system-architecture",
+      "runtime-learning-loop"
+    ],
+    "deprecate": [
+      "deprecate-skill"
+    ],
+    "test": [
+      "test-driven-development"
+    ],
+    "git": [
+      "git-workflow-and-versioning"
+    ],
+    "run": [
+      "run-trace"
+    ],
+    "source": [
+      "source-driven-development"
+    ],
+    "first": [
+      "first-principles"
+    ],
     "knowledge": [
       "knowledge-graph"
     ],
@@ -227,14 +252,14 @@
       "api-and-interface-design",
       "api-deprecation-and-migration"
     ],
-    "pre": [
-      "pre-mortem"
+    "ci": [
+      "ci-cd-and-automation"
     ],
-    "spec": [
-      "spec-crosscheck"
+    "deep": [
+      "deep-thinking"
     ],
-    "performance": [
-      "performance-optimization"
+    "pr": [
+      "pr-authoring"
     ],
     "secure": [
       "secure-skill",
@@ -242,63 +267,38 @@
       "secure-skill-repo-ingestion",
       "secure-skill-runtime"
     ],
-    "ci": [
-      "ci-cd-and-automation"
-    ],
-    "browser": [
-      "browser-testing-with-devtools"
-    ],
-    "shipping": [
-      "shipping-and-launch"
-    ],
-    "run": [
-      "run-trace"
-    ],
     "fault": [
       "fault-localize"
     ],
-    "technical": [
-      "technical-debt-audit"
-    ],
-    "app": [
-      "app-security-hardening"
-    ],
-    "incremental": [
-      "incremental-implementation"
-    ],
-    "tool": [
-      "tool-finder"
+    "create": [
+      "create-agent-prompt"
     ],
     "issue": [
       "issue-sync"
     ],
-    "pr": [
-      "pr-authoring"
+    "shipping": [
+      "shipping-and-launch"
     ],
-    "code": [
-      "code-review-crsp",
-      "code-simplification"
+    "performance": [
+      "performance-optimization"
     ],
-    "second": [
-      "second-order"
+    "technical": [
+      "technical-debt-audit"
     ],
-    "test": [
-      "test-driven-development"
-    ],
-    "deprecate": [
-      "deprecate-skill"
-    ],
-    "deploy": [
-      "deploy-anywhere"
-    ],
-    "deep": [
-      "deep-thinking"
+    "browser": [
+      "browser-testing-with-devtools"
     ],
     "context": [
       "context-engineering"
     ],
-    "create": [
-      "create-agent-prompt"
+    "deploy": [
+      "deploy-anywhere"
+    ],
+    "second": [
+      "second-order"
+    ],
+    "app": [
+      "app-security-hardening"
     ]
   },
   "nodes": [
@@ -1567,10 +1567,34 @@
       "language": "py"
     },
     {
+      "id": "module_backend_api_events_py",
+      "label": "events.py",
+      "type": "module",
+      "path": "backend\\api\\events.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_api_main_py",
       "label": "main.py",
       "type": "module",
       "path": "backend\\api\\main.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_present_py",
+      "label": "present.py",
+      "type": "module",
+      "path": "backend\\api\\present.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_spine_py",
+      "label": "spine.py",
+      "type": "module",
+      "path": "backend\\api\\spine.py",
       "community": "code",
       "language": "py"
     },
@@ -1687,6 +1711,54 @@
       "language": "py"
     },
     {
+      "id": "module_backend_jobs_telemetry_py",
+      "label": "telemetry.py",
+      "type": "module",
+      "path": "backend\\jobs\\telemetry.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_jobs_worker_py",
+      "label": "worker.py",
+      "type": "module",
+      "path": "backend\\jobs\\worker.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_ingest_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\ingest\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_ingest_checksum_py",
+      "label": "checksum.py",
+      "type": "module",
+      "path": "backend\\stations\\ingest\\checksum.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_ingest_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\ingest\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_init_py",
       "label": "__init__.py",
       "type": "module",
@@ -1699,6 +1771,14 @@
       "label": "agent.py",
       "type": "module",
       "path": "backend\\supervisor\\agent.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_annotate_py",
+      "label": "annotate.py",
+      "type": "module",
+      "path": "backend\\supervisor\\annotate.py",
       "community": "code",
       "language": "py"
     },
@@ -1791,6 +1871,38 @@
       "language": "ts"
     },
     {
+      "id": "module_frontend_src_components_beforeafterwipe_tsx",
+      "label": "BeforeAfterWipe.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\BeforeAfterWipe.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_casenote_tsx",
+      "label": "CaseNote.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\CaseNote.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_commandpalette_test_tsx",
+      "label": "CommandPalette.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\CommandPalette.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_commandpalette_tsx",
+      "label": "CommandPalette.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\CommandPalette.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
       "id": "module_frontend_src_components_connectionpill_tsx",
       "label": "ConnectionPill.tsx",
       "type": "module",
@@ -1823,6 +1935,22 @@
       "language": "tsx"
     },
     {
+      "id": "module_frontend_src_components_slatedeck_test_tsx",
+      "label": "SlateDeck.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\SlateDeck.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_slatedeck_tsx",
+      "label": "SlateDeck.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\SlateDeck.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
       "id": "module_frontend_src_components_timelineboard_test_tsx",
       "label": "TimelineBoard.test.tsx",
       "type": "module",
@@ -1845,6 +1973,14 @@
       "path": "frontend\\src\\components\\TopBar.tsx",
       "community": "code",
       "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_hooks_useapprovalmutations_ts",
+      "label": "useApprovalMutations.ts",
+      "type": "module",
+      "path": "frontend\\src\\hooks\\useApprovalMutations.ts",
+      "community": "code",
+      "language": "ts"
     },
     {
       "id": "module_frontend_src_hooks_usebackendhealth_ts",
@@ -1871,6 +2007,54 @@
       "language": "ts"
     },
     {
+      "id": "module_frontend_src_lib_approvals_test_ts",
+      "label": "approvals.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\approvals.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_approvals_ts",
+      "label": "approvals.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\approvals.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_dates_test_ts",
+      "label": "dates.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\dates.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_dates_ts",
+      "label": "dates.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\dates.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_errors_test_ts",
+      "label": "errors.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\errors.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_errors_ts",
+      "label": "errors.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\errors.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
       "id": "module_frontend_src_lib_formatters_test_ts",
       "label": "formatters.test.ts",
       "type": "module",
@@ -1887,6 +2071,22 @@
       "language": "ts"
     },
     {
+      "id": "module_frontend_src_lib_lens_test_ts",
+      "label": "lens.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\lens.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_lens_ts",
+      "label": "lens.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\lens.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
       "id": "module_frontend_src_lib_motion_ts",
       "label": "motion.ts",
       "type": "module",
@@ -1899,6 +2099,38 @@
       "label": "navigation.ts",
       "type": "module",
       "path": "frontend\\src\\lib\\navigation.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_palette_test_ts",
+      "label": "palette.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\palette.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_palette_ts",
+      "label": "palette.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\palette.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_slates_test_ts",
+      "label": "slates.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\slates.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_slates_ts",
+      "label": "slates.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\slates.ts",
       "community": "code",
       "language": "ts"
     },
@@ -1935,6 +2167,22 @@
       "language": "ts"
     },
     {
+      "id": "module_frontend_src_lib_wipe_test_ts",
+      "label": "wipe.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\wipe.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_wipe_ts",
+      "label": "wipe.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\wipe.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
       "id": "module_frontend_src_main_tsx",
       "label": "main.tsx",
       "type": "module",
@@ -1943,10 +2191,26 @@
       "language": "tsx"
     },
     {
+      "id": "module_frontend_src_pages_approvalsroute_test_tsx",
+      "label": "ApprovalsRoute.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\ApprovalsRoute.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
       "id": "module_frontend_src_pages_approvalsroute_tsx",
       "label": "ApprovalsRoute.tsx",
       "type": "module",
       "path": "frontend\\src\\pages\\ApprovalsRoute.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_pages_reportsroute_test_tsx",
+      "label": "ReportsRoute.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\ReportsRoute.test.tsx",
       "community": "code",
       "language": "tsx"
     },
@@ -2047,6 +2311,22 @@
       "language": "py"
     },
     {
+      "id": "module_scripts_g1_gate_py",
+      "label": "g1_gate.py",
+      "type": "module",
+      "path": "scripts\\g1_gate.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_g1_make_slate_py",
+      "label": "g1_make_slate.py",
+      "type": "module",
+      "path": "scripts\\g1_make_slate.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_scripts_integrity_check_py",
       "label": "integrity_check.py",
       "type": "module",
@@ -2127,6 +2407,14 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_g1_ingest_integration_py",
+      "label": "test_g1_ingest_integration.py",
+      "type": "module",
+      "path": "tests\\test_g1_ingest_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_gcs_integration_py",
       "label": "test_gcs_integration.py",
       "type": "module",
@@ -2147,6 +2435,14 @@
       "label": "test_handoff_annotation_integration.py",
       "type": "module",
       "path": "tests\\test_handoff_annotation_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_ingest_checksum_py",
+      "label": "test_ingest_checksum.py",
+      "type": "module",
+      "path": "tests\\test_ingest_checksum.py",
       "community": "code",
       "language": "py"
     },
@@ -2211,6 +2507,14 @@
       "label": "test_otel_auth.py",
       "type": "module",
       "path": "tests\\test_otel_auth.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_present_py",
+      "label": "test_present.py",
+      "type": "module",
+      "path": "tests\\test_present.py",
       "community": "code",
       "language": "py"
     },
@@ -5327,10 +5631,24 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "label": "2026-09-01-post-command-handover",
+      "type": "doc",
+      "path": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
       "label": "2026-08-30-post-command-spec-crosscheck",
       "type": "doc",
       "path": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_runbooks_replit_static_deploy_md",
+      "label": "replit-static-deploy",
+      "type": "doc",
+      "path": "docs\\runbooks\\replit-static-deploy.md",
       "community": "docs"
     },
     {
@@ -5421,6 +5739,13 @@
       "id": "memory_docs_memory_agent_handoffs_md",
       "label": "agent-handoffs",
       "type": "memory",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_01_13_45_g1_gate_d_1_core_replit_steps_3_6_verified_committed_orchestrator",
+      "label": "2026-09-01 13:45 - G1 gate + D-1 core + Replit Steps 3–6 verified & committed (orchestrator)",
+      "type": "handoff",
       "path": "docs\\memory\\agent-handoffs.md",
       "community": "memory"
     },
@@ -6648,7 +6973,7 @@
     },
     {
       "source": "module_backend_api_app_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6656,8 +6981,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_api_events_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\events.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_api_main_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6665,8 +6999,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_api_present_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\present.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_api_spine_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\spine.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_core_firestore_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6675,7 +7027,7 @@
     },
     {
       "source": "module_backend_core_gcs_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6684,7 +7036,7 @@
     },
     {
       "source": "module_backend_core_otel_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6693,7 +7045,7 @@
     },
     {
       "source": "module_backend_jobs_handoff_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6702,7 +7054,7 @@
     },
     {
       "source": "module_backend_jobs_queue_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6710,8 +7062,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_jobs_worker_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\jobs\\worker.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_stations_ingest_run_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\ingest\\run.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_agent_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6719,8 +7089,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_annotate_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\annotate.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_autonomy_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6729,7 +7108,7 @@
     },
     {
       "source": "module_backend_supervisor_mcp_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6737,8 +7116,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_scripts_g1_gate_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\g1_gate.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_g1_make_slate_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\g1_make_slate.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_scripts_otel_smoke_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6747,7 +7144,7 @@
     },
     {
       "source": "module_tests_chaos_worker_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6756,7 +7153,7 @@
     },
     {
       "source": "module_tests_test_app_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6765,7 +7162,7 @@
     },
     {
       "source": "module_tests_test_config_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6774,7 +7171,7 @@
     },
     {
       "source": "module_tests_test_errors_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6783,7 +7180,7 @@
     },
     {
       "source": "module_tests_test_firestore_integration_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6791,8 +7188,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_g1_ingest_integration_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_g1_ingest_integration.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_gcs_integration_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6801,7 +7207,7 @@
     },
     {
       "source": "module_tests_test_handoff_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6810,7 +7216,7 @@
     },
     {
       "source": "module_tests_test_handoff_annotation_integration_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6818,8 +7224,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_ingest_checksum_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_ingest_checksum.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_jobs_models_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6828,7 +7243,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_chaos_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6837,7 +7252,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_integration_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6846,7 +7261,7 @@
     },
     {
       "source": "module_tests_test_logging_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6855,7 +7270,7 @@
     },
     {
       "source": "module_tests_test_media_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6864,7 +7279,7 @@
     },
     {
       "source": "module_tests_test_models_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6873,7 +7288,7 @@
     },
     {
       "source": "module_tests_test_otel_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6882,7 +7297,7 @@
     },
     {
       "source": "module_tests_test_otel_auth_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6890,8 +7305,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_present_py",
+      "target": "module_backend_api_init_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_present.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_supervisor_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6900,7 +7324,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6909,7 +7333,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_integration_py",
-      "target": "module_backend_core_models_py",
+      "target": "module_backend_api_init_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7196,33 +7620,6 @@
       "provenance": "doc-path"
     },
     {
-      "source": "doc_docs_memory_current_state_md",
-      "target": "module_backend_supervisor_mcp_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs\\memory\\current-state.md",
-      "provenance": "doc-path"
-    },
-    {
-      "source": "doc_docs_memory_current_state_md",
-      "target": "module_backend_core_config_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs\\memory\\current-state.md",
-      "provenance": "doc-path"
-    },
-    {
-      "source": "doc_docs_memory_current_state_md",
-      "target": "module_scripts_otel_smoke_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs\\memory\\current-state.md",
-      "provenance": "doc-path"
-    },
-    {
       "source": "doc_docs_plans_2026_08_26_post_command_plan_md",
       "target": "module_backend_core_models_py",
       "relation": "references",
@@ -7283,6 +7680,69 @@
       "confidence": "INFERRED",
       "confidence_score": 0.7,
       "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "skill_memory_startup",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_backend_jobs_worker_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_backend_jobs_telemetry_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_backend_supervisor_annotate_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_backend_api_spine_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_scripts_otel_smoke_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-01-post-command-handover.md",
       "provenance": "doc-path"
     },
     {
@@ -7512,7 +7972,7 @@
     },
     {
       "source": "doc_docs_evidence_g1_readme_md",
-      "target": "module_tests_test_otel_py",
+      "target": "module_backend_core_logging_py",
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.7,
@@ -7520,13 +7980,13 @@
       "provenance": "doc-path"
     },
     {
-      "source": "doc_docs_evidence_g1_readme_md",
-      "target": "module_tests_test_otel_auth_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs\\evidence\\G1\\README.md",
-      "provenance": "doc-path"
+      "source": "handoff_2026_09_01_13_45_g1_gate_d_1_core_replit_steps_3_6_verified_committed_orchestrator",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
     },
     {
       "source": "handoff_2026_09_01_11_16_b_2_grafana_mcp_live_round_trip_green",

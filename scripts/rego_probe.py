@@ -52,7 +52,7 @@ def main() -> int:
             entry.update(detail)
             if not entry.get("error"):
                 any_success = True
-        except Exception as exc:  # noqa: BLE001 - probe records failures verbatim
+        except Exception as exc:
             entry["error_code"] = classify(str(exc))
             entry["error"] = str(exc)[:200]
         results["probes"].append(entry)  # type: ignore[union-attr]

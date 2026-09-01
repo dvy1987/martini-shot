@@ -96,12 +96,29 @@ class FirestoreLeaseQueue:
         candidates.sort(key=lambda j: j.created_at)
         return self._claim_tx(candidates[0].id, worker_id, now_iso)
 
-    def complete(self, job_id: str, worker_id: str, cost_micros: int) -> bool:
+    def claim(self, job_id: str, worker_id: str) -> Job | None:
+        """Claim a specific job_id if it is still claimable."""
+        return self._claim_tx(job_id, worker_id, utc_now_iso())
+
+    def complete(
+        self,
+        job_id: str,
+        worker_id: str,
+        cost_micros: int,
+        extra: dict[str, Any] | None = None,
+    ) -> bool:
+        payload: dict[str, Any] = {
+            "status": "passed",
+            "cost_micros": cost_micros,
+            "error": None,
+        }
+        if extra:
+            payload.update(extra)
         return self._transition(
             job_id,
             worker_id,
             lambda job: job.status == "leased",
-            {"status": "passed", "cost_micros": cost_micros, "error": None},
+            payload,
         )
 
     def fail(self, job_id: str, worker_id: str, error: str) -> bool:
@@ -133,6 +150,16 @@ class FirestoreLeaseQueue:
         raw = snap.to_dict()
         return Job.from_dict(raw) if snap.exists and raw else None
 
+    def list_for_project(self, project_id: str) -> list[Job]:
+        jobs = [
+            Job.from_dict(row)
+            for row in self._store.list_where(
+                self._collection, "project_id", project_id
+            )
+        ]
+        jobs.sort(key=lambda job: job.created_at)
+        return jobs
+
     # -- transactional core --------------------------------------------------
 
     def _claim_tx(self, job_id: str, worker_id: str, now_iso: str) -> Job | None:
@@ -161,7 +188,7 @@ class FirestoreLeaseQueue:
         ref = self._store.client.collection(self._collection).document(job_id)
         try:
             return _tx(self._store.client.transaction(), ref)
-        except Exception:  # noqa: BLE001 — contention/transient: the worker polls again
+        except Exception:
             return None
 
     def _transition(
@@ -188,5 +215,5 @@ class FirestoreLeaseQueue:
         ref = self._store.client.collection(self._collection).document(job_id)
         try:
             return bool(_tx(self._store.client.transaction(), ref))
-        except Exception:  # noqa: BLE001 — contention/transient: caller retries
+        except Exception:
             return False

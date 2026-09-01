@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-01T05:41:35Z",
+  "date": "2026-09-01T08:21:36Z",
   "mode": "oss",
   "server": "mcp-grafana v1.3.0 (stdio, SA token)",
   "tools_available": [
@@ -85,7 +85,7 @@
     "validate_provisioning_file"
   ],
   "search_dashboards_count": 43,
-  "promql_response": "{\"data\":[{\"metric\":{\"__name__\":\"pc_otel_smoke_total\",\"job\":\"martini-shot-backend\",\"run_id\":\"7c10c2ca\",\"service_name\":\"martini-shot-backend\"},\"values\":[[1788241190.153,\"1\"],[1788241205.153,\"1\"],[1788241220.153,\"1\"],[1788241235.153,\"1\"],[1788241250.153,\"1\"],[1788241265.153,\"1\"],[1788241280.153,\"1\"]]}]}",
-  "annotation_created": "{\"Payload\":{\"id\":1,\"message\":\"Annotation added\"}}",
-  "annotation_readback_contains_job_id": "job_id=b2-9a3c13ed"
+  "promql_response": "{\"data\":[],\"hints\":{\"summary\":\"The Prometheus query returned no data for the specified time range.\",\"possibleCauses\":[\"The metric may not exist in this Prometheus instance\",\"The label selectors may not match any time series\",\"The time range may be outside when the metric was being scraped\",\"The scrape target may be down or not configured\"],\"suggestedActions\":[\"Use list_prometheus_metric_names to verify the metric exists\",\"Use list_prometheus_label_values to check available label values\",\"Try expanding the time range to see if data exists in a different period\",\"Verify the scrape configuration and target health in Prometheus\"],\"debug\":{\"timeRange\":\"2026-09-01T07:21:36Z to 2026-09-01T08:21:35Z\"}}}",
+  "annotation_created": "{\"Payload\":{\"id\":11,\"message\":\"Annotation added\"}}",
+  "annotation_readback_contains_job_id": "job_id=b2-2cabefab"
 }

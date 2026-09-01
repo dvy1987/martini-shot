@@ -5,7 +5,7 @@ import json
 import logging
 from datetime import datetime
 
-from backend.core.logging import setup_logging
+from backend.core.logging import redact_api_key_query, setup_logging
 
 
 def _capture() -> tuple[io.StringIO, logging.Handler]:
@@ -43,3 +43,9 @@ def test_job_context_fields_surface() -> None:
         assert data["project_id"] == "p-1"
     finally:
         logging.getLogger().removeHandler(handler)
+
+
+def test_access_log_redacts_sse_api_key_query() -> None:
+    raw = '127.0.0.1:1 - "GET /api/v1/projects/g1/events?api_key=secret-value HTTP/1.1" 200'
+    assert "secret-value" not in redact_api_key_query(raw)
+    assert "api_key=REDACTED" in redact_api_key_query(raw)

@@ -103,11 +103,11 @@ def main() -> int:
                     try:
                         out_path.write_bytes(base64.b64decode(data))
                         entry["saved_to"] = str(out_path.relative_to(ROOT))
-                    except Exception:  # noqa: BLE001 - unknown string encoding
+                    except Exception:
                         entry["data_is_string_not_b64"] = True
                 elif uri:
                     entry["output_uri"] = str(uri)[:160]
-        except Exception as exc:  # noqa: BLE001 - probe records failures verbatim
+        except Exception as exc:
             entry["error"] = str(exc)[:300]
         results["variants"].append(entry)  # type: ignore[union-attr]
         print(entry, flush=True)

@@ -91,6 +91,7 @@ class RecordingSession:
         {"type": "prometheus", "uid": "grafanacloud-prom", "name": "g-prom"},
         {"type": "loki", "uid": "g-alert", "name": "g-alert-state-history"},
         {"type": "loki", "uid": "g-logs", "name": "g-logs"},
+        {"type": "tempo", "uid": "grafanacloud-traces", "name": "g-traces"},
     ]
 
     def __init__(self, available: list[str]) -> None:
@@ -165,6 +166,16 @@ def test_query_loki_and_annotation_names_resolve() -> None:
     assert loki_args["datasourceUid"] == "g-logs"  # '-logs' loki preferred
     args = dispatched[1][1]
     assert "job_id=x" in args["text"]
+
+
+def test_search_traces_maps_to_tempo_traceql_search() -> None:
+    session = RecordingSession(["tempo_traceql-search", "list_datasources"])
+    connector = GrafanaMcpConnector._for_session(session)
+    connector.search_traces('{ span.pc.job_id = "job-x" }')
+    dispatched = [c for c in session.calls if c[0] != "list_datasources"]
+    assert dispatched[0][0] == "tempo_traceql-search"
+    assert dispatched[0][1]["query"] == '{ span.pc.job_id = "job-x" }'
+    assert dispatched[0][1]["datasourceUid"] == "grafanacloud-traces"
 
 
 def test_add_annotation_accepts_oss_alias_name() -> None:
