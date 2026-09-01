@@ -24,6 +24,8 @@
 | 2026-08-30 | spec-crosscheck (`/analyze`) | docs/reviews/2026-08-30-post-command-spec-crosscheck.md | Crosscheck: post-command → FAIL (3 blockers: C-5.3/C-2.4/C-8.1 unaddressed; tasks artifact missing) → amendment A7 applied (owner-approved) + tasks file generated → **re-run PASS**. Owner rulings recorded: Stage 1a stays as amended (A5, behind G3); this sprint builds Stage 1 only. |
 
 | 2026-08-30 | memory-capture | docs/memory/current-state.md + agent-handoffs.md#2026-08-30 + project-index.md | Captured: A-1 shipped (d0d866c), A7/PASS crosscheck, worker lane demotion. Rejected: raw pip/pytest transcripts (ephemeral). |
+| 2026-09-01 | test-driven-development | tests/test_supervisor_mcp.py + tests/test_supervisor_mcp_integration.py | TDD: Grafana MCP connector (B-2). Live round-trip GREEN; evidence `docs/evidence/B-2/`. |
+| 2026-09-01 | memory-handoff | docs/memory/agent-handoffs.md#2026-09-01 | B-2 continuity: OSS MCP proven; next G1 remaining + C-1; hosted OAuth is F-4. |
 
 ## Next SDD phases for slug `post-command`
 1. `/tasks` — derive agent-pickable task list from the plan (implementation-plan tasks-only mode) when ready to start execution

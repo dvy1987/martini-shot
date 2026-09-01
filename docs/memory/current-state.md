@@ -1,8 +1,8 @@
 # Current State
 
-**Where:** 2026-08-30 (second build block) — Track A nearly complete, all pushed. **A-1 `d0d866c`** core spine (config/logging/OTel/models/errors/app factory; 27 tests). **A-2 `715db8c`** GCS + Firestore wrappers — 4/4 REAL-service round-trips (bucket `martini-shot-media`; default Firestore DB created nam5; V4 signing via IAM signBlob impersonation of the compute SA, TokenCreator granted to dvy1126). **A-3 `5f8456c`** Firestore lease queue — transactional owner-guarded lease/complete/fail/heartbeat (`@firestore.transactional`; note: `Transaction.run` does NOT exist in 2.29), **AC-S0.1 chaos GREEN** (real subprocess os._exit mid-job → expiry reassignment → exactly-once via real execution ledger, attempts==2), coverage gate `--cov-fail-under=90` at 95.44%. **A-4 `f8e4606`** ffmpeg/ffprobe wrapper — probe/extract/reassemble ±1 frame (AC-S2.2 p1) + ebur128 LUFS parse on G0 fixtures; full suite **47 passed**.
-**Blocking:** A-5 (Handoff Validator, AC-S0b.1) completes Track A → B-2 (Grafana MCP real round-trip) + C-1 FE delta → Gate G1 evidence (trace ID + 3 PromQL + Loki line + annotation JSON under docs/evidence/G1/).
+**Where:** 2026-09-01 — Track A complete (A-1..A-5 on `main`), B-1 ADK supervisor on `main`, **B-2 Grafana MCP live round-trip GREEN** (uncommitted until this session's commit). OTLP traces/metrics/logs already accepted by Grafana Cloud (G1 pre-flight, `docs/evidence/G1/`).
+**Blocking:** remaining Gate G1 pack from real station traffic (trace ID + 3 PromQL + Loki line under `docs/evidence/G1/`; annotation JSON now also in `docs/evidence/B-2/`) → C-1 FE review delta.
 **Worker lane (A6):** 0-for-3 → **read-only research only**; orchestrator builds everything.
-**Gate:** CI-lite green across all commits (ruff/mypy/pytest 47/integrity/harness); detect-secrets pragmas only on dummy values.
-**Key files:** backend/core/*, backend/jobs/{models,queue}.py, backend/api/*, tests/* (11 files), docs/evidence/A-1..A-4/.
-**Open:** pytest exit noise from OTel loopback export retries (stderr only); pre-commit ruff-format occasionally reformats staged files → re-add + re-commit when hook aborts; G0 fixtures are 10-s recuts (not 12 s) — test bounds reflect that.
+**Gate:** B-2 unit 12/12 + live MCP integration 1/1; ruff/mypy clean on connector. Full `make check` not re-run this slice (other integration tests hit GCS/Firestore).
+**Key files:** `backend/supervisor/mcp.py`, `tests/test_supervisor_mcp*.py`, `docs/evidence/B-2/`, `backend/core/config.py` (`MCP_GRAFANA_BIN`).
+**Open:** hosted MCP OAuth persistence is F-4; sparse OTLP counters need range PromQL (or a fresh `scripts/otel_smoke.py`); pytest OTel loopback stderr noise; G0 fixtures are 10-s recuts.

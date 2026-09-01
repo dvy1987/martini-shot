@@ -1,7 +1,7 @@
 # Project Knowledge Graph Index
 
-Generated: 2026-08-28T04:33:30.683696+00:00
-Mode: **application** | Nodes: 608 | Edges: 136
+Generated: 2026-09-01T05:47:56.605308+00:00
+Mode: **application** | Nodes: 726 | Edges: 221
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).
 
@@ -14,9 +14,10 @@ Mode: **application** | Nodes: 608 | Edges: 136
 - config (.agents/ROUTING.md, tsconfig, pyproject, etc.)
 - top-level directories
 
-EXTRACTED: 113 | INFERRED: 23
+EXTRACTED: 153 | INFERRED: 68
 
 ## Hub nodes
+- models.py (module)
 - venture-exploration
 - memory
 - memory-capture
@@ -24,7 +25,6 @@ EXTRACTED: 113 | INFERRED: 23
 - improve-skills
 - feature-spec
 - problem-to-plan
-- split-skill
 
 ## Communities
 
@@ -40,23 +40,23 @@ EXTRACTED: 113 | INFERRED: 23
 **deep** (1): deep-thinking
 **deploy** (1): deploy-anywhere
 **deprecate** (1): deprecate-skill
-**design** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **eval** (3): eval-judge, eval-output, eval-rubric-design
 **fault** (1): fault-localize
 **first** (1): first-principles
 **git** (1): git-workflow-and-versioning
+**gsap** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **incremental** (1): incremental-implementation
 **issue** (1): issue-sync
 **knowledge** (1): knowledge-graph
 **performance** (1): performance-optimization
 **pr** (1): pr-authoring
 **pre** (1): pre-mortem
+**project** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
+  … +56 more
 **run** (1): run-trace
 **second** (1): second-order
 **secure** (4): secure-skill, secure-skill-content-sanitization, secure-skill-repo-ingestion, secure-skill-runtime
 **shipping** (1): shipping-and-launch
-**skill** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
-  … +56 more
 **source** (1): source-driven-development
 **spec** (1): spec-crosscheck
 **structured** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
@@ -66,11 +66,13 @@ EXTRACTED: 113 | INFERRED: 23
 
 ## Node types
 
-- **config**: 415
-- **directory**: 9
-- **doc**: 17
+- **config**: 417
+- **directory**: 11
+- **doc**: 35
+- **handoff**: 10
 - **memory**: 9
-- **module**: 35
+- **module**: 120
+- **package**: 1
 - **skill**: 123
 
 See `GRAPH_REPORT.md` for surprising connections and suggested questions.

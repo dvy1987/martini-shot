@@ -36,6 +36,9 @@ dist/
 build/
 *.zip
 
+# Vendored binaries (checksum-verified releases; acquisition documented in docs/)
+tools/
+
 # OS / editors
 .DS_Store
 Thumbs.db

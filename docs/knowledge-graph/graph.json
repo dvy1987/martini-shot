@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "generated_at": "2026-08-28T04:33:30.683696+00:00",
+  "generated_at": "2026-09-01T05:47:56.605308+00:00",
   "mode": "application",
   "mode_reason": "application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).",
   "scan_layers": [
@@ -14,21 +14,24 @@
   ],
   "root": "C:\\Users\\reall\\Building_Apps\\martini-shot",
   "stats": {
-    "nodes": 608,
-    "edges": 136,
+    "nodes": 726,
+    "edges": 221,
     "authoritative_edges": 0,
-    "extracted_edges": 113,
-    "inferred_edges": 23,
+    "extracted_edges": 153,
+    "inferred_edges": 68,
     "node_types": {
-      "config": 415,
-      "directory": 9,
-      "doc": 17,
+      "config": 417,
+      "directory": 11,
+      "doc": 35,
+      "handoff": 10,
       "memory": 9,
-      "module": 35,
+      "module": 120,
+      "package": 1,
       "skill": 123
     }
   },
   "god_nodes": [
+    "models.py (module)",
     "venture-exploration",
     "memory",
     "memory-capture",
@@ -37,8 +40,7 @@
     "feature-spec",
     "problem-to-plan",
     "split-skill",
-    "project-setup",
-    "prd-writing"
+    "project-setup"
   ],
   "surprising_connections": [
     {
@@ -102,12 +104,12 @@
     "How does agent-builder (agent) connect to harness-generation (harness)?",
     "How does agent-builder (agent) connect to setup-evaluation (setup)?",
     "How does agent-loom-sync (agent) connect to validate-skills (validate)?",
+    "What depends on models.py (module), and what does models.py (module) invoke?",
     "What depends on venture-exploration, and what does venture-exploration invoke?",
-    "What depends on memory, and what does memory invoke?",
-    "What depends on memory-capture, and what does memory-capture invoke?"
+    "What depends on memory, and what does memory invoke?"
   ],
   "communities": {
-    "skill": [
+    "project": [
       "adversarial-hat",
       "agent-builder",
       "agent-loom-sync",
@@ -175,13 +177,6 @@
       "validate-skills",
       "venture-exploration"
     ],
-    "structured": [
-      "debug-and-fix",
-      "dependency-mapping",
-      "dynamic-routing",
-      "safe-change",
-      "structured-planning"
-    ],
     "agent": [
       "agent-launcher",
       "agent-observability",
@@ -189,18 +184,34 @@
       "agent-system-architecture",
       "runtime-learning-loop"
     ],
-    "secure": [
-      "secure-skill",
-      "secure-skill-content-sanitization",
-      "secure-skill-repo-ingestion",
-      "secure-skill-runtime"
+    "core": [
+      "inversion",
+      "ooda",
+      "quickstart",
+      "socratic"
+    ],
+    "structured": [
+      "debug-and-fix",
+      "dependency-mapping",
+      "dynamic-routing",
+      "safe-change",
+      "structured-planning"
+    ],
+    "first": [
+      "first-principles"
+    ],
+    "source": [
+      "source-driven-development"
+    ],
+    "git": [
+      "git-workflow-and-versioning"
     ],
     "eval": [
       "eval-judge",
       "eval-output",
       "eval-rubric-design"
     ],
-    "design": [
+    "gsap": [
       "design-direction",
       "design-review",
       "design-system",
@@ -209,94 +220,85 @@
       "motion-animation",
       "svg-creation"
     ],
-    "context": [
-      "context-engineering"
+    "knowledge": [
+      "knowledge-graph"
     ],
     "api": [
       "api-and-interface-design",
       "api-deprecation-and-migration"
     ],
-    "performance": [
-      "performance-optimization"
+    "pre": [
+      "pre-mortem"
     ],
     "spec": [
       "spec-crosscheck"
     ],
+    "performance": [
+      "performance-optimization"
+    ],
+    "secure": [
+      "secure-skill",
+      "secure-skill-content-sanitization",
+      "secure-skill-repo-ingestion",
+      "secure-skill-runtime"
+    ],
+    "ci": [
+      "ci-cd-and-automation"
+    ],
+    "browser": [
+      "browser-testing-with-devtools"
+    ],
+    "shipping": [
+      "shipping-and-launch"
+    ],
+    "run": [
+      "run-trace"
+    ],
+    "fault": [
+      "fault-localize"
+    ],
     "technical": [
       "technical-debt-audit"
     ],
-    "deep": [
-      "deep-thinking"
+    "app": [
+      "app-security-hardening"
     ],
     "incremental": [
       "incremental-implementation"
     ],
-    "second": [
-      "second-order"
+    "tool": [
+      "tool-finder"
     ],
-    "deploy": [
-      "deploy-anywhere"
-    ],
-    "core": [
-      "inversion",
-      "ooda",
-      "quickstart",
-      "socratic"
+    "issue": [
+      "issue-sync"
     ],
     "pr": [
       "pr-authoring"
-    ],
-    "first": [
-      "first-principles"
-    ],
-    "git": [
-      "git-workflow-and-versioning"
     ],
     "code": [
       "code-review-crsp",
       "code-simplification"
     ],
-    "deprecate": [
-      "deprecate-skill"
-    ],
-    "pre": [
-      "pre-mortem"
+    "second": [
+      "second-order"
     ],
     "test": [
       "test-driven-development"
     ],
-    "tool": [
-      "tool-finder"
+    "deprecate": [
+      "deprecate-skill"
     ],
-    "source": [
-      "source-driven-development"
+    "deploy": [
+      "deploy-anywhere"
+    ],
+    "deep": [
+      "deep-thinking"
+    ],
+    "context": [
+      "context-engineering"
     ],
     "create": [
       "create-agent-prompt"
-    ],
-    "run": [
-      "run-trace"
-    ],
-    "ci": [
-      "ci-cd-and-automation"
-    ],
-    "knowledge": [
-      "knowledge-graph"
-    ],
-    "issue": [
-      "issue-sync"
-    ],
-    "browser": [
-      "browser-testing-with-devtools"
-    ],
-    "fault": [
-      "fault-localize"
-    ],
-    "app": [
-      "app-security-hardening"
-    ],
-    "shipping": [
-      "shipping-and-launch"
     ]
   },
   "nodes": [
@@ -1541,10 +1543,506 @@
       "language": "py"
     },
     {
+      "id": "module_backend_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\api\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_app_py",
+      "label": "app.py",
+      "type": "module",
+      "path": "backend\\api\\app.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_main_py",
+      "label": "main.py",
+      "type": "module",
+      "path": "backend\\api\\main.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\core\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_config_py",
+      "label": "config.py",
+      "type": "module",
+      "path": "backend\\core\\config.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_errors_py",
+      "label": "errors.py",
+      "type": "module",
+      "path": "backend\\core\\errors.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_firestore_py",
+      "label": "firestore.py",
+      "type": "module",
+      "path": "backend\\core\\firestore.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_gcs_py",
+      "label": "gcs.py",
+      "type": "module",
+      "path": "backend\\core\\gcs.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_logging_py",
+      "label": "logging.py",
+      "type": "module",
+      "path": "backend\\core\\logging.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_media_py",
+      "label": "media.py",
+      "type": "module",
+      "path": "backend\\core\\media.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_models_py",
+      "label": "models.py",
+      "type": "module",
+      "path": "backend\\core\\models.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_otel_py",
+      "label": "otel.py",
+      "type": "module",
+      "path": "backend\\core\\otel.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_evals_check_thresholds_py",
       "label": "check_thresholds.py",
       "type": "module",
       "path": "backend\\evals\\check_thresholds.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_jobs_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\jobs\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_jobs_handoff_py",
+      "label": "handoff.py",
+      "type": "module",
+      "path": "backend\\jobs\\handoff.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_jobs_models_py",
+      "label": "models.py",
+      "type": "module",
+      "path": "backend\\jobs\\models.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_jobs_queue_py",
+      "label": "queue.py",
+      "type": "module",
+      "path": "backend\\jobs\\queue.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\supervisor\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agent_py",
+      "label": "agent.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agent.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_autonomy_py",
+      "label": "autonomy.py",
+      "type": "module",
+      "path": "backend\\supervisor\\autonomy.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_mcp_py",
+      "label": "mcp.py",
+      "type": "module",
+      "path": "backend\\supervisor\\mcp.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_registry_py",
+      "label": "registry.py",
+      "type": "module",
+      "path": "backend\\supervisor\\registry.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_conftest_py",
+      "label": "conftest.py",
+      "type": "module",
+      "path": "conftest.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_docs_harness_drift_check_py",
+      "label": "drift_check.py",
+      "type": "module",
+      "path": "docs\\harness\\drift_check.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_docs_harness_gen_manifest_py",
+      "label": "gen_manifest.py",
+      "type": "module",
+      "path": "docs\\harness\\gen_manifest.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_frontend_eslint_config_js",
+      "label": "eslint.config.js",
+      "type": "module",
+      "path": "frontend\\eslint.config.js",
+      "community": "code",
+      "language": "js"
+    },
+    {
+      "id": "module_frontend_src_app_tsx",
+      "label": "App.tsx",
+      "type": "module",
+      "path": "frontend\\src\\App.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_api_client_test_ts",
+      "label": "client.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\api\\client.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_api_client_ts",
+      "label": "client.ts",
+      "type": "module",
+      "path": "frontend\\src\\api\\client.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_api_endpoints_ts",
+      "label": "endpoints.ts",
+      "type": "module",
+      "path": "frontend\\src\\api\\endpoints.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_components_connectionpill_tsx",
+      "label": "ConnectionPill.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\ConnectionPill.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_emptystate_tsx",
+      "label": "EmptyState.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\EmptyState.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_investigationdrawer_test_tsx",
+      "label": "InvestigationDrawer.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\InvestigationDrawer.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_investigationdrawer_tsx",
+      "label": "InvestigationDrawer.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\InvestigationDrawer.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_timelineboard_test_tsx",
+      "label": "TimelineBoard.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\TimelineBoard.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_timelineboard_tsx",
+      "label": "TimelineBoard.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\TimelineBoard.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_topbar_tsx",
+      "label": "TopBar.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\TopBar.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_hooks_usebackendhealth_ts",
+      "label": "useBackendHealth.ts",
+      "type": "module",
+      "path": "frontend\\src\\hooks\\useBackendHealth.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_hooks_usesse_test_tsx",
+      "label": "useSSE.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\hooks\\useSSE.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_hooks_usesse_ts",
+      "label": "useSSE.ts",
+      "type": "module",
+      "path": "frontend\\src\\hooks\\useSSE.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_formatters_test_ts",
+      "label": "formatters.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\formatters.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_formatters_ts",
+      "label": "formatters.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\formatters.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_motion_ts",
+      "label": "motion.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\motion.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_navigation_ts",
+      "label": "navigation.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\navigation.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_status_test_ts",
+      "label": "status.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\status.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_status_ts",
+      "label": "status.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\status.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_timeline_test_ts",
+      "label": "timeline.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\timeline.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_timeline_ts",
+      "label": "timeline.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\timeline.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_main_tsx",
+      "label": "main.tsx",
+      "type": "module",
+      "path": "frontend\\src\\main.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_pages_approvalsroute_tsx",
+      "label": "ApprovalsRoute.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\ApprovalsRoute.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_pages_reportsroute_tsx",
+      "label": "ReportsRoute.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\ReportsRoute.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_pages_timelineroute_test_tsx",
+      "label": "TimelineRoute.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\TimelineRoute.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_pages_timelineroute_tsx",
+      "label": "TimelineRoute.tsx",
+      "type": "module",
+      "path": "frontend\\src\\pages\\TimelineRoute.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_test_setup_ts",
+      "label": "setup.ts",
+      "type": "module",
+      "path": "frontend\\src\\test\\setup.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_types_api_ts",
+      "label": "api.ts",
+      "type": "module",
+      "path": "frontend\\src\\types\\api.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_vite_env_d_ts",
+      "label": "vite-env.d.ts",
+      "type": "module",
+      "path": "frontend\\src\\vite-env.d.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_vite_config_ts",
+      "label": "vite.config.ts",
+      "type": "module",
+      "path": "frontend\\vite.config.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_scripts_flicker_report_py",
+      "label": "flicker_report.py",
+      "type": "module",
+      "path": "scripts\\flicker_report.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_g0_probe_py",
+      "label": "g0_probe.py",
+      "type": "module",
+      "path": "scripts\\g0_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_g0_routing_probe_py",
+      "label": "g0_routing_probe.py",
+      "type": "module",
+      "path": "scripts\\g0_routing_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_g0_spike_py",
+      "label": "g0_spike.py",
+      "type": "module",
+      "path": "scripts\\g0_spike.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_g0_variant_probe_py",
+      "label": "g0_variant_probe.py",
+      "type": "module",
+      "path": "scripts\\g0_variant_probe.py",
       "community": "code",
       "language": "py"
     },
@@ -1557,12 +2055,217 @@
       "language": "py"
     },
     {
+      "id": "module_scripts_otel_smoke_py",
+      "label": "otel_smoke.py",
+      "type": "module",
+      "path": "scripts\\otel_smoke.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_rego_probe_py",
+      "label": "rego_probe.py",
+      "type": "module",
+      "path": "scripts\\rego_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_spend_ledger_py",
+      "label": "spend_ledger.py",
+      "type": "module",
+      "path": "scripts\\spend_ledger.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_veo_probe_py",
+      "label": "veo_probe.py",
+      "type": "module",
+      "path": "scripts\\veo_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_chaos_worker_py",
+      "label": "chaos_worker.py",
+      "type": "module",
+      "path": "tests\\chaos_worker.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_app_py",
+      "label": "test_app.py",
+      "type": "module",
+      "path": "tests\\test_app.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_config_py",
+      "label": "test_config.py",
+      "type": "module",
+      "path": "tests\\test_config.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_errors_py",
+      "label": "test_errors.py",
+      "type": "module",
+      "path": "tests\\test_errors.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_firestore_integration_py",
+      "label": "test_firestore_integration.py",
+      "type": "module",
+      "path": "tests\\test_firestore_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_gcs_integration_py",
+      "label": "test_gcs_integration.py",
+      "type": "module",
+      "path": "tests\\test_gcs_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_handoff_py",
+      "label": "test_handoff.py",
+      "type": "module",
+      "path": "tests\\test_handoff.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_handoff_annotation_integration_py",
+      "label": "test_handoff_annotation_integration.py",
+      "type": "module",
+      "path": "tests\\test_handoff_annotation_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_jobs_models_py",
+      "label": "test_jobs_models.py",
+      "type": "module",
+      "path": "tests\\test_jobs_models.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_lease_queue_chaos_py",
+      "label": "test_lease_queue_chaos.py",
+      "type": "module",
+      "path": "tests\\test_lease_queue_chaos.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_lease_queue_integration_py",
+      "label": "test_lease_queue_integration.py",
+      "type": "module",
+      "path": "tests\\test_lease_queue_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_logging_py",
+      "label": "test_logging.py",
+      "type": "module",
+      "path": "tests\\test_logging.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_media_py",
+      "label": "test_media.py",
+      "type": "module",
+      "path": "tests\\test_media.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_models_py",
+      "label": "test_models.py",
+      "type": "module",
+      "path": "tests\\test_models.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_otel_py",
+      "label": "test_otel.py",
+      "type": "module",
+      "path": "tests\\test_otel.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_otel_auth_py",
+      "label": "test_otel_auth.py",
+      "type": "module",
+      "path": "tests\\test_otel_auth.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_smoke_py",
       "label": "test_smoke.py",
       "type": "module",
       "path": "tests\\test_smoke.py",
       "community": "code",
       "language": "py"
+    },
+    {
+      "id": "module_tests_test_supervisor_py",
+      "label": "test_supervisor.py",
+      "type": "module",
+      "path": "tests\\test_supervisor.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_supervisor_mcp_py",
+      "label": "test_supervisor_mcp.py",
+      "type": "module",
+      "path": "tests\\test_supervisor_mcp.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_supervisor_mcp_integration_py",
+      "label": "test_supervisor_mcp_integration.py",
+      "type": "module",
+      "path": "tests\\test_supervisor_mcp_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "package_martini_shot_frontend",
+      "label": "martini-shot-frontend",
+      "type": "package",
+      "path": "frontend",
+      "community": "packages"
+    },
+    {
+      "id": "config_frontend_package_json",
+      "label": "package.json",
+      "type": "config",
+      "path": "frontend\\package.json",
+      "community": "config"
+    },
+    {
+      "id": "config_frontend_tsconfig_json",
+      "label": "tsconfig.json",
+      "type": "config",
+      "path": "frontend\\tsconfig.json",
+      "community": "config"
     },
     {
       "id": "config_agents_routing_md",
@@ -4505,6 +5208,48 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_adr_0002_model_toolchain_pinning_md",
+      "label": "0002-model-toolchain-pinning",
+      "type": "doc",
+      "path": "docs\\adr\\0002-model-toolchain-pinning.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_design_design_md",
+      "label": "DESIGN",
+      "type": "doc",
+      "path": "docs\\design\\DESIGN.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_harness_eval_interface_md",
+      "label": "eval-interface",
+      "type": "doc",
+      "path": "docs\\harness\\eval-interface.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_harness_governance_md",
+      "label": "governance",
+      "type": "doc",
+      "path": "docs\\harness\\governance.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_harness_middleware_md",
+      "label": "middleware",
+      "type": "doc",
+      "path": "docs\\harness\\middleware.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_harness_tools_md",
+      "label": "tools",
+      "type": "doc",
+      "path": "docs\\harness\\tools.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_memory_agent_handoffs_md",
       "label": "agent-handoffs",
       "type": "doc",
@@ -4575,6 +5320,27 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "label": "2026-08-26-post-command-tasks",
+      "type": "doc",
+      "path": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
+      "label": "2026-08-30-post-command-spec-crosscheck",
+      "type": "doc",
+      "path": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_runbooks_teardown_md",
+      "label": "teardown",
+      "type": "doc",
+      "path": "docs\\runbooks\\teardown.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_skill_outputs_skill_outputs_md",
       "label": "SKILL-OUTPUTS",
       "type": "doc",
@@ -4589,9 +5355,142 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_evidence_a_1_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\A-1\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_a_2_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\A-2\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_a_3_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\A-3\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_a_4_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\A-4\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_a_5_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\A-5\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_b_1_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\B-1\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_b_2_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\B-2\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_g0_verdict_md",
+      "label": "VERDICT",
+      "type": "doc",
+      "path": "docs\\evidence\\G0\\VERDICT.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_g1_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\G1\\README.md",
+      "community": "docs"
+    },
+    {
       "id": "memory_docs_memory_agent_handoffs_md",
       "label": "agent-handoffs",
       "type": "memory",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_01_11_16_b_2_grafana_mcp_live_round_trip_green",
+      "label": "2026-09-01 11:16 - B-2 Grafana MCP live round-trip GREEN",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_30_crosscheck_pass_a6_worker_verdict_a_1_shipped_orchestrator",
+      "label": "2026-08-30 — crosscheck PASS, A6 worker verdict, A-1 shipped (orchestrator)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_project_setup_setup_agent",
+      "label": "2026-08-28 — project-setup (setup agent)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_ux_direction_decided_setup_session_continuation",
+      "label": "2026-08-28 — UX direction decided (setup session, continuation)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_design_v2_product_renamed_same_session",
+      "label": "2026-08-28 — DESIGN v2 + product renamed (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_design_v3_motion_system_same_session",
+      "label": "2026-08-28 — DESIGN v3 motion system (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_frontend_skeleton_committed_same_session",
+      "label": "2026-08-28 — frontend skeleton committed (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_a5_stage_1a_fast_follow_backend_plan_approved_same_session",
+      "label": "2026-08-28 — A5: Stage 1a fast-follow + backend plan approved (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_auth_ruling_sign_in_to_approve_same_session",
+      "label": "2026-08-28 — AUTH RULING: sign-in-to-approve (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_08_28_replit_steps_1_2_reviewed_review_fixes_applied_same_session",
+      "label": "2026-08-28 — Replit Steps 1–2 reviewed; review fixes applied (same session)",
+      "type": "handoff",
       "path": "docs\\memory\\agent-handoffs.md",
       "community": "memory"
     },
@@ -4659,6 +5558,13 @@
       "community": "structure"
     },
     {
+      "id": "directory_attached_assets",
+      "label": "attached_assets",
+      "type": "directory",
+      "path": "attached_assets",
+      "community": "structure"
+    },
+    {
       "id": "directory_backend",
       "label": "backend",
       "type": "directory",
@@ -4712,6 +5618,13 @@
       "label": "tests",
       "type": "directory",
       "path": "tests",
+      "community": "structure"
+    },
+    {
+      "id": "directory_tools",
+      "label": "tools",
+      "type": "directory",
+      "path": "tools",
       "community": "structure"
     }
   ],
@@ -5734,6 +6647,276 @@
       "provenance": "SKILL.md"
     },
     {
+      "source": "module_backend_api_app_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\app.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_api_main_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\main.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_core_firestore_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\core\\firestore.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_core_gcs_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\core\\gcs.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_core_otel_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\core\\otel.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_jobs_handoff_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\jobs\\handoff.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_jobs_queue_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\jobs\\queue.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agent_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agent.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_autonomy_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\autonomy.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_mcp_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\mcp.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_otel_smoke_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\otel_smoke.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_chaos_worker_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\chaos_worker.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_app_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_app.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_config_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_config.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_errors_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_errors.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_firestore_integration_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_firestore_integration.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_gcs_integration_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_gcs_integration.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_handoff_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_handoff.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_handoff_annotation_integration_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_handoff_annotation_integration.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_jobs_models_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_jobs_models.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_lease_queue_chaos_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_lease_queue_chaos.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_lease_queue_integration_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_lease_queue_integration.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_logging_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_logging.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_media_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_media.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_models_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_models.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_otel_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_otel.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_otel_auth_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_otel_auth.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_mcp_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor_mcp.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_mcp_integration_py",
+      "target": "module_backend_core_models_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor_mcp_integration.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "doc_agents_md",
       "target": "skill_brainstorming",
       "relation": "mentions",
@@ -5939,6 +7122,501 @@
       "confidence_score": 0.75,
       "source_file": "AGENTS.md",
       "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_agents_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "AGENTS.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_adr_0002_model_toolchain_pinning_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\adr\\0002-model-toolchain-pinning.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_harness_eval_interface_md",
+      "target": "skill_harness_evolution",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\harness\\eval-interface.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_harness_middleware_md",
+      "target": "skill_memory_startup",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\harness\\middleware.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_backend_supervisor_mcp_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_tests_test_supervisor_mcp_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_tests_test_supervisor_mcp_integration_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_scripts_otel_smoke_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_current_state_md",
+      "target": "module_backend_supervisor_mcp_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\current-state.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_current_state_md",
+      "target": "module_backend_core_config_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\current-state.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_current_state_md",
+      "target": "module_scripts_otel_smoke_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\current-state.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_plan_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_core_gcs_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_core_firestore_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_core_media_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_jobs_handoff_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_supervisor_mcp_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
+      "target": "skill_incremental_implementation",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
+      "target": "skill_test_driven_development",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_skill_outputs_skill_outputs_md",
+      "target": "module_frontend_src_types_api_ts",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\skill-outputs\\SKILL-OUTPUTS.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_08_26_post_command_feature_spec_md",
+      "target": "module_frontend_src_types_api_ts",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-08-26-post-command-feature-spec.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_tests_test_config_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_tests_test_otel_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_backend_api_main_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_backend_core_errors_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_tests_test_errors_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_tests_test_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_a_1_readme_md",
+      "target": "module_backend_core_logging_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\A-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_b_1_readme_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\B-1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_b_2_readme_md",
+      "target": "module_tests_test_supervisor_mcp_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\B-2\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_b_2_readme_md",
+      "target": "module_tests_test_supervisor_mcp_integration_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\B-2\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_b_2_readme_md",
+      "target": "module_scripts_otel_smoke_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\B-2\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_scripts_g0_probe_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_scripts_g0_spike_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_scripts_veo_probe_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_scripts_rego_probe_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g0_verdict_md",
+      "target": "module_scripts_flicker_report_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G0\\VERDICT.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g1_readme_md",
+      "target": "module_scripts_otel_smoke_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g1_readme_md",
+      "target": "module_tests_test_otel_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_g1_readme_md",
+      "target": "module_tests_test_otel_auth_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\G1\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "handoff_2026_09_01_11_16_b_2_grafana_mcp_live_round_trip_green",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_30_crosscheck_pass_a6_worker_verdict_a_1_shipped_orchestrator",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_project_setup_setup_agent",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_ux_direction_decided_setup_session_continuation",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_design_v2_product_renamed_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_design_v3_motion_system_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_frontend_skeleton_committed_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_a5_stage_1a_fast_follow_backend_plan_approved_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_auth_ruling_sign_in_to_approve_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_08_28_replit_steps_1_2_reviewed_review_fixes_applied_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
     }
   ]
 }

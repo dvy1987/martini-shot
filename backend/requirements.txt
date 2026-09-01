@@ -10,6 +10,9 @@ uvicorn[standard]>=0.34,<1
 google-genai==2.20.0
 google-adk==2.8.0
 
+# MCP client (C-2.2 Grafana-via-MCP; ADK MCPToolset extra, plan task B-2)
+mcp>=1.10,<2
+
 # GCP clients (ranges respect ADK 2.8.0 constraints)
 google-cloud-firestore>=2.11,<3
 google-cloud-storage>=2.18,<4

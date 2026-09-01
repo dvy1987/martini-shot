@@ -27,6 +27,7 @@ _ENV_NAMES: dict[str, tuple[str, ...]] = {
     "grafana_otlp_endpoint": ("GRAFANA_OTLP_ENDPOINT",),
     "grafana_otlp_token": ("GRAFANA_OTLP_TOKEN",),
     "mcp_mode": ("MCP_MODE",),
+    "mcp_grafana_bin": ("MCP_GRAFANA_BIN",),
     "grafana_sa_token": ("GRAFANA_SA_TOKEN",),
     "api_key": (
         "POST_COMMAND_API_KEY",
@@ -52,6 +53,7 @@ class Settings:
     grafana_otlp_endpoint: str = ""
     grafana_otlp_token: str = ""
     mcp_mode: str = "hosted"
+    mcp_grafana_bin: str = ""
     grafana_sa_token: str = ""
     api_key: str = ""
     cors_allowed_origins: list[str] = field(default_factory=list)
@@ -103,6 +105,7 @@ def from_env(env: Mapping[str, str], dotenv: Path | None = None) -> Settings:
         grafana_otlp_endpoint=pick("grafana_otlp_endpoint"),
         grafana_otlp_token=pick("grafana_otlp_token"),
         mcp_mode=pick("mcp_mode") or "hosted",
+        mcp_grafana_bin=pick("mcp_grafana_bin"),
         grafana_sa_token=pick("grafana_sa_token"),
         api_key=pick("api_key"),
         cors_allowed_origins=cors,

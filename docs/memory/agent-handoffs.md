@@ -1,5 +1,37 @@
 # Agent Handoffs
 
+## 2026-09-01 11:16 - B-2 Grafana MCP live round-trip GREEN
+
+### Done
+- Plan B-2: `backend/supervisor/mcp.py` OSS stdio connector (mcp-grafana v1.3.0 + SA token) and hosted Streamable HTTP config (OAuth persistence still F-4).
+- Unit tests 12/12 (`tests/test_supervisor_mcp.py`); live integration GREEN (`tests/test_supervisor_mcp_integration.py`).
+- Evidence: `docs/evidence/B-2/roundtrip.json` — PromQL `pc_otel_smoke_total` samples + annotation write/read with `job_id=b2-9a3c13ed` (C-4.3). 80 MCP tools listed.
+- Config: `MCP_GRAFANA_BIN`; `mcp>=1.10,<2`; `tools/` gitignored.
+
+### Debated
+- Instant PromQL vs range: OTLP counters are sparse; Grafana Cloud instant/`now` returns `{data:[]}`. Connector default stays instant; live test uses range `now-1h` step 15s. Fresh `scripts/otel_smoke.py` emit was required to have queryable samples.
+
+### Decisions
+- OSS headless path is the proven B-2 DoD (ADR-0001 fallback). Hosted OAuth token persistence remains F-4.
+- mcp-grafana v1.3.0 `list_datasources` envelope is `{datasources, total, hasMore}` — unwrap before iterating.
+
+### Deferred
+- Hosted MCP OAuth browser flow + token persistence (F-4).
+- Remaining G1 pack: 3 PromQL + Loki line + trace ID from station traffic (annotation JSON now exists under B-2; G1 still wants the full ingest path).
+- C-1 frontend review delta.
+
+### Next Agent Should Know
+- `MCP_MODE=oss` locally; binary at `tools/mcp-grafana/mcp-grafana.exe` (gitignored, v1.3.0). SA token works (`GET /api/datasources` HTTP 200). PowerShell `-c "..."` one-liners wrap and SyntaxError — use a here-string piped to `python -`.
+- Track A (A-1..A-5) and B-1 already on `main` from prior sessions; memory was stale until this handoff.
+- Workers remain research-only.
+
+### Revisit Triggers
+- Empty PromQL on `pc_otel_smoke_total` → re-run `python scripts/otel_smoke.py`, then range query (not instant).
+- mcp-grafana upgrade that changes tool names or datasource JSON shape.
+
+### Working Tree
+- Committing B-2 connector + tests + evidence + env/config wiring (no `.env`).
+
 ## 2026-08-30 — crosscheck PASS, A6 worker verdict, A-1 shipped (orchestrator)
 **Done:** Spec-crosscheck executed (FAIL: C-5.3/C-2.4/C-8.1 unaddressed + tasks artifact missing) → owner approved plan → amendment A7 applied to plan (C-5.3 clause in A-1 DoD, F-3b fresh-source attestation, C-8.1 station-README clause ×7, G1 records AC-S0.2 evidence) → tasks file `docs/plans/2026-08-26-post-command-tasks.md` generated → re-run **PASS** (commit `0f6c412`). Worker review (A6): B-1 (dc7b787f) + Track C (d946c76f) reported complete but wrote ZERO files → reverted to orchestrator; lane 0-for-3 → **workers demoted to read-only research**. A-1 rebuilt orchestrator-led TDD: RED observed (`docs/evidence/A-1/red-pytest.txt`), then GREEN — config/logging/otel/models/errors + app factory + main.py; C-5.3 error envelope tested; API-key gate fail-closed; test_smoke fixed to check git index (local gitignored .env is expected). Commit `d0d866c`, all hooks green, 27/27 tests. Owner rulings recorded: **Stage 1a stays as amended (A5) but this sprint builds Stage 1 only** (Phase 3a behind G3, untouched).
 **Next for executing agent:**
