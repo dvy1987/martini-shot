@@ -1,7 +1,7 @@
 # Project Knowledge Graph Index
 
-Generated: 2026-09-01T08:16:31.812462+00:00
-Mode: **application** | Nodes: 767 | Edges: 236
+Generated: 2026-09-01T08:55:23.642781+00:00
+Mode: **application** | Nodes: 771 | Edges: 242
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).
 
@@ -14,10 +14,10 @@ Mode: **application** | Nodes: 767 | Edges: 236
 - config (.agents/ROUTING.md, tsconfig, pyproject, etc.)
 - top-level directories
 
-EXTRACTED: 165 | INFERRED: 71
+EXTRACTED: 170 | INFERRED: 72
 
 ## Hub nodes
-- __init__.py (module)
+- config.py (module)
 - venture-exploration
 - memory
 - memory-capture
@@ -28,17 +28,18 @@ EXTRACTED: 165 | INFERRED: 71
 
 ## Communities
 
-**agent** (5): agent-launcher, agent-observability, agent-run-retro, agent-system-architecture, runtime-learning-loop
+**agent** (2): agent-launcher, agent-run-retro
 **api** (2): api-and-interface-design, api-deprecation-and-migration
 **app** (1): app-security-hardening
 **browser** (1): browser-testing-with-devtools
 **ci** (1): ci-cd-and-automation
 **code** (2): code-review-crsp, code-simplification
 **context** (1): context-engineering
-**core** (4): inversion, ooda, quickstart, socratic
+**core** (70): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
+  … +60 more
 **create** (1): create-agent-prompt
-**debug** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deep** (1): deep-thinking
+**dependency** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deploy** (1): deploy-anywhere
 **deprecate** (1): deprecate-skill
 **eval** (3): eval-judge, eval-output, eval-rubric-design
@@ -49,12 +50,11 @@ EXTRACTED: 165 | INFERRED: 71
 **incremental** (1): incremental-implementation
 **issue** (1): issue-sync
 **knowledge** (1): knowledge-graph
-**memory** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
-  … +56 more
 **performance** (1): performance-optimization
 **pr** (1): pr-authoring
 **pre** (1): pre-mortem
 **run** (1): run-trace
+**runtime** (3): agent-observability, agent-system-architecture, runtime-learning-loop
 **second** (1): second-order
 **secure** (4): secure-skill, secure-skill-content-sanitization, secure-skill-repo-ingestion, secure-skill-runtime
 **shipping** (1): shipping-and-launch
@@ -69,9 +69,9 @@ EXTRACTED: 165 | INFERRED: 71
 - **config**: 417
 - **directory**: 11
 - **doc**: 37
-- **handoff**: 11
+- **handoff**: 12
 - **memory**: 9
-- **module**: 158
+- **module**: 161
 - **package**: 1
 - **skill**: 123
 

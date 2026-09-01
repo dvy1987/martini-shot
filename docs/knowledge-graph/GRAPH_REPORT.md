@@ -1,12 +1,12 @@
 # Knowledge Graph Report
 
-Generated: 2026-09-01T08:16:31.812462+00:00
-Mode: application | Nodes: 767 | Edges: 236
+Generated: 2026-09-01T08:55:23.642781+00:00
+Mode: application | Nodes: 771 | Edges: 242
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).
 
 ## God nodes (skills + modules)
-- __init__.py (module)
+- config.py (module)
 - venture-exploration
 - memory
 - memory-capture
@@ -31,12 +31,12 @@ Mode: application | Nodes: 767 | Edges: 236
 - How does agent-builder (agent) connect to harness-generation (harness)?
 - How does agent-builder (agent) connect to setup-evaluation (setup)?
 - How does agent-loom-sync (agent) connect to validate-skills (validate)?
-- What depends on __init__.py (module), and what does __init__.py (module) invoke?
+- What depends on config.py (module), and what does config.py (module) invoke?
 - What depends on venture-exploration, and what does venture-exploration invoke?
 - What depends on memory, and what does memory invoke?
 
 ## Provenance
 - Authoritative invokes: 0
-- EXTRACTED: 165 | INFERRED: 71
+- EXTRACTED: 170 | INFERRED: 72
 
 Query: `python3 .agents/skills/knowledge-graph/scripts/query_graph.py path <A> <B>`

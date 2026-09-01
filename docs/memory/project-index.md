@@ -2,7 +2,8 @@
 
 | Date | Type | File | Status | Tags | Summary |
 |---|---|---|---|---|---|
-| 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-13:45 | current | g1, d1, replit, commit | G1 gate GREEN; D-1 core + Replit Steps 3–6 verified & committed; queue: D-1 completion → §7.2 → B-3 → F-4 |
+| 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-14:20 | current | plan, p0, supervisor | Rest-of-sprint: MCP registry next; F-4 deferred; G1/B-2 done |
+| 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-13:45 | superseded | g1, d1, replit, commit | G1 gate GREEN; D-1 core + Replit Steps 3–6 |
 | 2026-09-01 | plan | ../plans/2026-09-01-post-command-handover.md | current | handover, rev2 | Full handover rev 2: state, env facts, remaining queue, gotchas |
 | 2026-09-01 | state | current-state.md | current | g1, d1, replit | Track A + B-1/B-2 on main; G1 run green; all gates green |
 | 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-11:16 | superseded | b2, mcp, grafana | B-2 live MCP round-trip GREEN |

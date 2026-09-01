@@ -1,6 +1,37 @@
 # Agent Handoffs
 
+## 2026-09-01 14:20 - Rest-of-sprint plan locked; P0 hygiene
+
+### Done
+- Critically rejected stale M0–M5 handover: B-2 is `4aaa6d5`, G1 is GREEN (API+worker, not FE “Log a clip”).
+- Owner approved: commit+push checkpoint, then supervisor MCP wiring before stations.
+- G1 README no longer treats a UI intake button as the proof path. Tasks file marks B-2 done.
+
+### Debated
+- One megacommit `d8ee2e7` already bundled G1+UX; did not rewrite history. Hygiene is a follow-up commit.
+
+### Decisions
+- Hosted OAuth (F-4/M3) deferred. OSS MCP remains the Grafana path.
+- Workers remain research-only.
+
+### Deferred
+- Firebase sign-in (spec §7.2) until H-3.
+- Replit static deploy until owner approves the runbook table.
+- Stage 1a.
+
+### Next Agent Should Know
+- After this checkpoint is pushed, execute P1 (`backend/supervisor/tools.py` + autonomy gate on `create_incident`/`add_annotation`) then P1b contract tests, then stations D-1→D-2→D-7.
+- Rotate API keys (G1 SSE `?api_key=` logged).
+
+### Revisit Triggers
+- 401 from Grafana SA token → owner regenerates; do not fake MCP.
+- Instant PromQL empty → range `now-1h`.
+
+### Working Tree
+- Hygiene commit on top of `d8ee2e7`; push to origin/main for Replit sync.
+
 ## 2026-09-01 13:45 - G1 gate + D-1 core + Replit Steps 3–6 verified & committed (orchestrator)
+
 
 ### Done
 - Gate G1 RUN GREEN (real MP4 → ingest → Grafana signals → annotation w/ job_id → SSE; evidence `docs/evidence/G1/gate.json`, `sse.ndjson`).

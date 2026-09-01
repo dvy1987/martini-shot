@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "generated_at": "2026-09-01T08:16:31.812462+00:00",
+  "generated_at": "2026-09-01T08:55:23.642781+00:00",
   "mode": "application",
   "mode_reason": "application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).",
   "scan_layers": [
@@ -14,24 +14,24 @@
   ],
   "root": "C:\\Users\\reall\\Building_Apps\\martini-shot",
   "stats": {
-    "nodes": 767,
-    "edges": 236,
+    "nodes": 771,
+    "edges": 242,
     "authoritative_edges": 0,
-    "extracted_edges": 165,
-    "inferred_edges": 71,
+    "extracted_edges": 170,
+    "inferred_edges": 72,
     "node_types": {
       "config": 417,
       "directory": 11,
       "doc": 37,
-      "handoff": 11,
+      "handoff": 12,
       "memory": 9,
-      "module": 158,
+      "module": 161,
       "package": 1,
       "skill": 123
     }
   },
   "god_nodes": [
-    "__init__.py (module)",
+    "config.py (module)",
     "venture-exploration",
     "memory",
     "memory-capture",
@@ -104,17 +104,12 @@
     "How does agent-builder (agent) connect to harness-generation (harness)?",
     "How does agent-builder (agent) connect to setup-evaluation (setup)?",
     "How does agent-loom-sync (agent) connect to validate-skills (validate)?",
-    "What depends on __init__.py (module), and what does __init__.py (module) invoke?",
+    "What depends on config.py (module), and what does config.py (module) invoke?",
     "What depends on venture-exploration, and what does venture-exploration invoke?",
     "What depends on memory, and what does memory invoke?"
   ],
   "communities": {
-    "eval": [
-      "eval-judge",
-      "eval-output",
-      "eval-rubric-design"
-    ],
-    "memory": [
+    "core": [
       "adversarial-hat",
       "agent-builder",
       "agent-loom-sync",
@@ -143,6 +138,7 @@
       "idea-generation",
       "implementation-plan",
       "improve-skills",
+      "inversion",
       "learn-from",
       "learn-from-article",
       "learn-from-chat",
@@ -160,6 +156,7 @@
       "memory-recall",
       "memory-startup",
       "model-selection",
+      "ooda",
       "prd-writing",
       "problem-to-plan",
       "process-decomposer",
@@ -169,6 +166,7 @@
       "project-setup",
       "prune-skill",
       "publish-skill",
+      "quickstart",
       "reality-check",
       "research-skill",
       "retroactive-project-setup",
@@ -176,36 +174,49 @@
       "skill-deconflict",
       "skill-finder",
       "skill-routing",
+      "socratic",
       "spec-driven-development",
       "split-skill",
       "universal-skill-creator",
       "validate-skills",
       "venture-exploration"
     ],
-    "tool": [
-      "tool-finder"
+    "pr": [
+      "pr-authoring"
     ],
-    "incremental": [
-      "incremental-implementation"
+    "deploy": [
+      "deploy-anywhere"
     ],
-    "debug": [
+    "dependency": [
       "debug-and-fix",
       "dependency-mapping",
       "dynamic-routing",
       "safe-change",
       "structured-planning"
     ],
-    "core": [
-      "inversion",
-      "ooda",
-      "quickstart",
-      "socratic"
+    "secure": [
+      "secure-skill",
+      "secure-skill-content-sanitization",
+      "secure-skill-repo-ingestion",
+      "secure-skill-runtime"
     ],
-    "spec": [
-      "spec-crosscheck"
+    "source": [
+      "source-driven-development"
     ],
-    "pre": [
-      "pre-mortem"
+    "browser": [
+      "browser-testing-with-devtools"
+    ],
+    "deprecate": [
+      "deprecate-skill"
+    ],
+    "tool": [
+      "tool-finder"
+    ],
+    "shipping": [
+      "shipping-and-launch"
+    ],
+    "context": [
+      "context-engineering"
     ],
     "gsap": [
       "design-direction",
@@ -216,89 +227,78 @@
       "motion-animation",
       "svg-creation"
     ],
+    "ci": [
+      "ci-cd-and-automation"
+    ],
     "code": [
       "code-review-crsp",
       "code-simplification"
     ],
-    "agent": [
-      "agent-launcher",
-      "agent-observability",
-      "agent-run-retro",
-      "agent-system-architecture",
-      "runtime-learning-loop"
-    ],
-    "deprecate": [
-      "deprecate-skill"
-    ],
-    "test": [
-      "test-driven-development"
-    ],
-    "git": [
-      "git-workflow-and-versioning"
-    ],
-    "run": [
-      "run-trace"
-    ],
-    "source": [
-      "source-driven-development"
+    "app": [
+      "app-security-hardening"
     ],
     "first": [
       "first-principles"
     ],
+    "eval": [
+      "eval-judge",
+      "eval-output",
+      "eval-rubric-design"
+    ],
+    "test": [
+      "test-driven-development"
+    ],
+    "issue": [
+      "issue-sync"
+    ],
+    "incremental": [
+      "incremental-implementation"
+    ],
+    "create": [
+      "create-agent-prompt"
+    ],
+    "deep": [
+      "deep-thinking"
+    ],
     "knowledge": [
       "knowledge-graph"
+    ],
+    "pre": [
+      "pre-mortem"
+    ],
+    "runtime": [
+      "agent-observability",
+      "agent-system-architecture",
+      "runtime-learning-loop"
+    ],
+    "fault": [
+      "fault-localize"
     ],
     "api": [
       "api-and-interface-design",
       "api-deprecation-and-migration"
     ],
-    "ci": [
-      "ci-cd-and-automation"
+    "agent": [
+      "agent-launcher",
+      "agent-run-retro"
     ],
-    "deep": [
-      "deep-thinking"
-    ],
-    "pr": [
-      "pr-authoring"
-    ],
-    "secure": [
-      "secure-skill",
-      "secure-skill-content-sanitization",
-      "secure-skill-repo-ingestion",
-      "secure-skill-runtime"
-    ],
-    "fault": [
-      "fault-localize"
-    ],
-    "create": [
-      "create-agent-prompt"
-    ],
-    "issue": [
-      "issue-sync"
-    ],
-    "shipping": [
-      "shipping-and-launch"
-    ],
-    "performance": [
-      "performance-optimization"
+    "run": [
+      "run-trace"
     ],
     "technical": [
       "technical-debt-audit"
     ],
-    "browser": [
-      "browser-testing-with-devtools"
+    "git": [
+      "git-workflow-and-versioning"
     ],
-    "context": [
-      "context-engineering"
+    "spec": [
+      "spec-crosscheck"
     ],
-    "deploy": [
-      "deploy-anywhere"
+    "performance": [
+      "performance-optimization"
     ],
     "second": [
       "second-order"
-    ],
-    "app": [
-      "app-security-hardening"
     ]
   },
   "nodes": [
@@ -1807,6 +1807,14 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_tools_py",
+      "label": "tools.py",
+      "type": "module",
+      "path": "backend\\supervisor\\tools.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_conftest_py",
       "label": "conftest.py",
       "type": "module",
@@ -2547,6 +2555,22 @@
       "label": "test_supervisor_mcp_integration.py",
       "type": "module",
       "path": "tests\\test_supervisor_mcp_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_supervisor_tools_py",
+      "label": "test_supervisor_tools.py",
+      "type": "module",
+      "path": "tests\\test_supervisor_tools.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_supervisor_tools_integration_py",
+      "label": "test_supervisor_tools_integration.py",
+      "type": "module",
+      "path": "tests\\test_supervisor_tools_integration.py",
       "community": "code",
       "language": "py"
     },
@@ -5743,6 +5767,13 @@
       "community": "memory"
     },
     {
+      "id": "handoff_2026_09_01_14_20_rest_of_sprint_plan_locked_p0_hygiene",
+      "label": "2026-09-01 14:20 - Rest-of-sprint plan locked; P0 hygiene",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
       "id": "handoff_2026_09_01_13_45_g1_gate_d_1_core_replit_steps_3_6_verified_committed_orchestrator",
       "label": "2026-09-01 13:45 - G1 gate + D-1 core + Replit Steps 3–6 verified & committed (orchestrator)",
       "type": "handoff",
@@ -6973,7 +7004,7 @@
     },
     {
       "source": "module_backend_api_app_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6982,7 +7013,7 @@
     },
     {
       "source": "module_backend_api_events_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6991,7 +7022,7 @@
     },
     {
       "source": "module_backend_api_main_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7000,7 +7031,7 @@
     },
     {
       "source": "module_backend_api_present_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7009,7 +7040,7 @@
     },
     {
       "source": "module_backend_api_spine_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7018,7 +7049,7 @@
     },
     {
       "source": "module_backend_core_firestore_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7027,7 +7058,7 @@
     },
     {
       "source": "module_backend_core_gcs_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7036,7 +7067,7 @@
     },
     {
       "source": "module_backend_core_otel_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7045,7 +7076,7 @@
     },
     {
       "source": "module_backend_jobs_handoff_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7054,7 +7085,7 @@
     },
     {
       "source": "module_backend_jobs_queue_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7063,7 +7094,7 @@
     },
     {
       "source": "module_backend_jobs_worker_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7072,7 +7103,7 @@
     },
     {
       "source": "module_backend_stations_ingest_run_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7081,7 +7112,7 @@
     },
     {
       "source": "module_backend_supervisor_agent_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7090,7 +7121,7 @@
     },
     {
       "source": "module_backend_supervisor_annotate_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7099,7 +7130,7 @@
     },
     {
       "source": "module_backend_supervisor_autonomy_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7108,7 +7139,7 @@
     },
     {
       "source": "module_backend_supervisor_mcp_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7116,8 +7147,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_tools_py",
+      "target": "module_backend_core_config_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\tools.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_scripts_g1_gate_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7126,7 +7166,7 @@
     },
     {
       "source": "module_scripts_g1_make_slate_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7135,7 +7175,7 @@
     },
     {
       "source": "module_scripts_otel_smoke_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7144,7 +7184,7 @@
     },
     {
       "source": "module_tests_chaos_worker_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7153,7 +7193,7 @@
     },
     {
       "source": "module_tests_test_app_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7162,7 +7202,7 @@
     },
     {
       "source": "module_tests_test_config_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7171,7 +7211,7 @@
     },
     {
       "source": "module_tests_test_errors_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7180,7 +7220,7 @@
     },
     {
       "source": "module_tests_test_firestore_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7189,7 +7229,7 @@
     },
     {
       "source": "module_tests_test_g1_ingest_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7198,7 +7238,7 @@
     },
     {
       "source": "module_tests_test_gcs_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7207,7 +7247,7 @@
     },
     {
       "source": "module_tests_test_handoff_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7216,7 +7256,7 @@
     },
     {
       "source": "module_tests_test_handoff_annotation_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7225,7 +7265,7 @@
     },
     {
       "source": "module_tests_test_ingest_checksum_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7234,7 +7274,7 @@
     },
     {
       "source": "module_tests_test_jobs_models_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7243,7 +7283,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_chaos_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7252,7 +7292,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7261,7 +7301,7 @@
     },
     {
       "source": "module_tests_test_logging_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7270,7 +7310,7 @@
     },
     {
       "source": "module_tests_test_media_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7279,7 +7319,7 @@
     },
     {
       "source": "module_tests_test_models_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7288,7 +7328,7 @@
     },
     {
       "source": "module_tests_test_otel_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7297,7 +7337,7 @@
     },
     {
       "source": "module_tests_test_otel_auth_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7306,7 +7346,7 @@
     },
     {
       "source": "module_tests_test_present_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7315,7 +7355,7 @@
     },
     {
       "source": "module_tests_test_supervisor_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7324,7 +7364,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7333,11 +7373,38 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_integration_py",
-      "target": "module_backend_api_init_py",
+      "target": "module_backend_core_config_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests\\test_supervisor_mcp_integration.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_tools_py",
+      "target": "module_backend_core_config_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor_tools.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_tools_py",
+      "target": "module_tests_test_ingest_checksum_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor_tools.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_supervisor_tools_integration_py",
+      "target": "module_backend_core_config_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_supervisor_tools_integration.py",
       "provenance": "python-import"
     },
     {
@@ -7582,6 +7649,15 @@
       "confidence_score": 0.75,
       "source_file": "docs\\harness\\middleware.md",
       "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_backend_supervisor_tools_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
     },
     {
       "source": "doc_docs_memory_agent_handoffs_md",
@@ -7978,6 +8054,15 @@
       "confidence_score": 0.7,
       "source_file": "docs\\evidence\\G1\\README.md",
       "provenance": "doc-path"
+    },
+    {
+      "source": "handoff_2026_09_01_14_20_rest_of_sprint_plan_locked_p0_hygiene",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
     },
     {
       "source": "handoff_2026_09_01_13_45_g1_gate_d_1_core_replit_steps_3_6_verified_committed_orchestrator",

@@ -1,6 +1,6 @@
 # G1 Evidence — spine truth-check (2026-09-01)
 
-Gate G1 is **GREEN**. Real MP4 → ingest API (same contract as the FE “Log a clip” control) → Firestore lease worker → SHA-256 → Grafana traces/metrics/logs via MCP → investigation annotation with `job_id` → SSE `queued → running → pass`.
+Gate G1 is **GREEN**. Real MP4 → ingest API → Firestore lease worker → SHA-256 → Grafana traces/metrics/logs via MCP → investigation annotation with `job_id` → SSE `queued → running → pass`. The proof path is the API + worker, not a UI intake control.
 
 Artifacts: `gate.json`, `sse.ndjson`. Fixture: `fixtures/g1/slate.mp4` (1s labeled INPUT, C-1.3).
 
@@ -27,13 +27,13 @@ Loki note: `|= \`job-12f1bb8f8b98\`` on the line body returned empty — `job_id
 
 ## How to re-run
 
-API on `:8000` (no `--reload`, so the worker and SSE share one process) and FE on `:3000`. Then:
+API on `:8000` (no `--reload`, so the worker and SSE share one process). Then:
 
 ```
 python scripts/g1_gate.py
 ```
 
-Or in the UI: Timeline → **Log a clip** → choose `fixtures/g1/slate.mp4`.
+That script posts `fixtures/g1/slate.mp4` to `/api/v1/projects/g1/ingest` and records SSE + Grafana evidence. The timeline board shows the job after the fact; it does not invent a “Log a clip” control.
 
 ## Pre-flight (2026-08-30)
 
