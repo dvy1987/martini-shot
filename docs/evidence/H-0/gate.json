@@ -54,5 +54,25 @@
     "harness_drift": "clean",
     "tdd_red_first": true
   },
-  "notes": "Real Firestore (dev project), per-run collections it-approvals-*/it-jobs-*. Sweeper and worker hook wiring land in tranche 2 (same design doc)."
+  "notes": "Real Firestore (dev project), per-run collections it-approvals-*/it-jobs-*. Sweeper and worker hook wiring land in tranche 2 (same design doc).",
+  "tranche_2": {
+    "date": "2026-09-02",
+    "production_code": [
+      "backend/jobs/worker.py — on_terminal completion hook threaded through _persist/_finish_claimed/worker_loop/process_* with hook isolation (hook failure never alters the job's terminal write)",
+      "backend/approvals/machine.py — redrive_fast (crashed fast action, fail-closed idempotent premise), fail_stale (15-min needs_human_review backstop), mark_superseded (order-safety)",
+      "backend/approvals/sweeper.py — sweep_once watchdog: reconcile terminal jobs exactly-once, patience for non-terminal jobs, backstop stale acting, capped fast redrive (3), order-safety vs newer decisions on the same intake target (fail-closed when freshness can't be proven)",
+      "backend/api/app.py — machine built once in create_app, shared by spine/worker/sweeper; _run_sweeper 10s lifespan task; worker_loop gets on_terminal",
+      "backend/api/spine.py — install_spine_routes accepts the shared machine",
+      "conftest.py — shared real-Firestore fixtures (env, run_id, per-run collections)"
+    ],
+    "tests": {
+      "worker_hook": "tests/test_worker.py — 4 new tests (hook after terminal write, hook isolation, fail path, worker_loop)",
+      "sweeper": "tests/test_approval_sweeper.py — 6 integration tests (reconcile exactly-once, patience, 15-min backstop never retries the job, redrive once, cap at 3, yields to newer human decision on same target)",
+      "integration": "tests/test_approval_executor.py — worker terminal write resolves slow approval through real queue+machine"
+    },
+    "defects_caught_and_fixed": [
+      "test isolation: pause/resume tests wrote the shared live pc-control/intake doc and left intake paused (caught by G1 ingest rate-limit failures) -> autouse per-run control docs + live doc restored"
+    ],
+    "full_suite": { "passed": 188, "failed": 0, "coverage_percent": 91.85 }
+  }
 }

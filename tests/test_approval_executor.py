@@ -20,35 +20,20 @@ import pytest
 from backend.api.events import EventHub
 from backend.approvals.commands import CommandRegistry
 from backend.approvals.machine import ApprovalConflict, ApprovalStateMachine
-from backend.core.config import get_settings
-from backend.core.firestore import get_firestore
 from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
+from backend.jobs.worker import _persist
 from backend.stations.spend import control as intake_control
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture()
-def env():
-    settings = get_settings()
-    assert settings.gcp_project_id, "real-service law C-6.2: GCP project required"
-    return get_firestore(settings)
-
-
-@pytest.fixture()
-def run_id() -> str:
-    return uuid.uuid4().hex[:10]
-
-
-@pytest.fixture()
-def approvals_col(run_id) -> str:
-    return f"it-approvals-{run_id}"
-
-
-@pytest.fixture()
-def jobs_col(run_id) -> str:
-    return f"it-jobs-{run_id}"
+@pytest.fixture(autouse=True)
+def _isolated_intake_flag(monkeypatch, run_id):
+    """Pause-flag tests use per-run control docs — never the shared live one."""
+    monkeypatch.setattr(intake_control, "CONTROL", f"it-control-{run_id}")
+    monkeypatch.setattr(intake_control, "INTAKE_DOC", "intake")
+    yield
 
 
 class Harness:
@@ -191,6 +176,26 @@ def test_slow_command_creates_deterministic_job(env, approvals_col, jobs_col):
     assert job.status == "queued"
     doc = env.get_doc(approvals_col, approval_id)
     assert doc is not None and doc["acting_since"]
+
+
+def test_worker_terminal_write_resolves_slow_approval(env, approvals_col, jobs_col):
+    """Tranche 2 wiring: the worker's terminal write triggers the completion
+    hook, and the slow-lane approval resolves exactly-once from job truth."""
+    h = Harness(env, approvals_col, jobs_col)
+    project_id = f"it-{uuid.uuid4().hex[:6]}"
+    h.register_slow("make_job", project_id)
+    approval_id = h.put_approval({"name": "make_job", "args": {}})
+    h.machine.dispatch(approval_id, "approve")
+    job_id = f"job-cmd-{approval_id}"
+
+    job = h.queue.lease("test-worker", ["ingest"])
+    assert job is not None and job.id == job_id
+    job.status = "passed"  # pretend the station ran and passed
+    _persist(job, h.queue, on_terminal=h.machine.on_job_terminal)
+
+    doc = env.get_doc(approvals_col, approval_id)
+    assert doc is not None and doc["status"] == "resolved"
+    assert doc["result"]["ok"] is True and doc["result"]["job_id"] == job_id
 
 
 def test_commandless_approval_resolves_as_noop(env, approvals_col, jobs_col):

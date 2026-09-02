@@ -136,3 +136,61 @@ def test_worker_loop_idles_then_fails_unknown_station() -> None:
 
     asyncio.run(run())
     assert any(call[0] == "fail" for call in q.calls)
+
+
+# -- H-0 tranche 2: the completion hook (worker tells the approval machine) --
+
+
+def test_persist_calls_completion_hook_after_terminal_write() -> None:
+    seen: list[Job] = []
+    passed = Job(station="loudness", project_id="p", input_refs=["k"])
+    q = _Queue()
+    _persist(passed, q, on_terminal=seen.append)  # type: ignore[arg-type]
+    assert q.calls[0][0] == "complete", "terminal write must land FIRST"
+    assert seen == [passed], "hook must see the job in its final state"
+
+
+def test_hook_failure_never_breaks_the_terminal_write() -> None:
+    def boom(_job: Job) -> None:
+        raise RuntimeError("hook exploded")
+
+    passed = Job(station="loudness", project_id="p", input_refs=["k"])
+    q = _Queue()
+    _persist(passed, q, on_terminal=boom)  # type: ignore[arg-type]
+    assert q.calls[0][0] == "complete", "hook isolation: write still lands"
+
+
+def test_failed_job_reaches_the_hook_via_fail_path() -> None:
+    seen: list[Job] = []
+    job = Job(station="telepathy", project_id="p", input_refs=[])
+    q = _Queue(job)
+    with pytest.raises(ValueError, match="unknown station"):
+        process_job_id(q, None, None, job.id, on_terminal=seen.append)  # type: ignore[arg-type]
+    assert any(call[0] == "fail" for call in q.calls)
+    assert seen and seen[0].status == "failed"
+
+
+def test_worker_loop_calls_completion_hook_on_fail() -> None:
+    seen: list[Job] = []
+    job = Job(station="telepathy", project_id="p", input_refs=[])
+    q = _Queue()
+    q.lease = lambda _worker_id, _stations: job  # type: ignore[method-assign]
+
+    async def run() -> None:
+        hub = EventHub()
+        task = asyncio.create_task(
+            worker_loop(q, None, None, hub, on_terminal=seen.append)  # type: ignore[arg-type]
+        )
+        for _ in range(40):
+            await asyncio.sleep(0.05)
+            if any(call[0] == "fail" for call in q.calls) and seen:
+                break
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+    asyncio.run(run())
+    assert any(call[0] == "fail" for call in q.calls)
+    assert seen and seen[0].status == "failed"

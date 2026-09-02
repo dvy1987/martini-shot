@@ -81,14 +81,22 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        task = None
+        tasks: list[asyncio.Task] = []
         if getattr(app.state, "worker_enabled", False):
-            task = asyncio.create_task(
-                _run_worker(app, cfg, hub),
-                name="pc-lease-worker",
+            tasks.append(
+                asyncio.create_task(
+                    _run_worker(app, cfg, hub),
+                    name="pc-lease-worker",
+                )
+            )
+            tasks.append(
+                asyncio.create_task(
+                    _run_sweeper(app),
+                    name="pc-approval-sweeper",
+                )
             )
         yield
-        if task is not None:
+        for task in tasks:
             task.cancel()
             with suppress(asyncio.CancelledError):
                 await task
@@ -124,11 +132,24 @@ def create_app(
         store = get_firestore(cfg)
         gcs = get_gcs(cfg)
         queue = FirestoreLeaseQueue(store)
+        from backend.api.spine import _grafana_annotator
+        from backend.approvals.machine import ApprovalStateMachine
+
+        machine = ApprovalStateMachine(
+            store, queue=queue, hub=hub, annotator=_grafana_annotator(cfg)
+        )
         app.state.queue = queue
         app.state.gcs = gcs
         app.state.store = store
+        app.state.machine = machine
         install_spine_routes(
-            app, queue=queue, store=store, gcs=gcs, hub=hub, settings=cfg
+            app,
+            queue=queue,
+            store=store,
+            gcs=gcs,
+            hub=hub,
+            settings=cfg,
+            machine=machine,
         )
         app.state.worker_enabled = worker
 
@@ -138,4 +159,30 @@ def create_app(
 async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
     from backend.jobs.worker import worker_loop
 
-    await worker_loop(app.state.queue, app.state.gcs, cfg, hub)
+    machine = getattr(app.state, "machine", None)
+    await worker_loop(
+        app.state.queue,
+        app.state.gcs,
+        cfg,
+        hub,
+        on_terminal=machine.on_job_terminal if machine is not None else None,
+    )
+
+
+async def _run_sweeper(app: FastAPI) -> None:
+    """Watchdog tick (H-0): every 10s, reconcile crashed actions, enforce the
+    15-minute needs-human backstop and redrive crashed fast actions."""
+    import asyncio as _asyncio
+
+    from backend.approvals.sweeper import sweep_once
+
+    while True:
+        try:
+            await _asyncio.to_thread(
+                sweep_once, app.state.store, app.state.queue, app.state.machine
+            )
+        except Exception:
+            import logging
+
+            logging.getLogger("pc.approvals.sweeper").exception("sweeper tick failed")
+        await _asyncio.sleep(10)

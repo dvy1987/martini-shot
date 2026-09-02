@@ -57,8 +57,11 @@ def install_spine_routes(
     gcs: GCSMedia,
     hub: EventHub,
     settings: Settings | None = None,
+    machine: ApprovalStateMachine | None = None,
 ) -> None:
-    machine = ApprovalStateMachine(
+    # One machine instance serves the HTTP API, the worker hook and the
+    # sweeper; single-writer is the MODULE, instances share its transactions.
+    machine = machine or ApprovalStateMachine(
         store,
         queue=queue,
         hub=hub,

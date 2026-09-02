@@ -196,6 +196,91 @@ class ApprovalStateMachine:
         self._emit(merged, str(merged.get("status") or ""))
         return merged
 
+    # -- sweeper-facing transitions (the watchdog's hands, same single writer) -
+
+    def redrive_fast(self, approval_id: str) -> dict[str, Any]:
+        """Re-drive a fast action whose process died between the two fast
+        transitions (status 'approved', no result). Safe precisely because
+        fast commands are fail-closed idempotent (registry rule)."""
+        doc = self._store.get_doc(self._collection, approval_id)
+        if doc is None:
+            raise ApprovalNotFound(f"no such approval {approval_id}")
+        if doc.get("status") != "approved" or doc.get("result"):
+            raise ApprovalConflict(
+                f"approval {approval_id} is not a crashed fast action"
+            )
+        if doc.get("job_id"):
+            raise ApprovalConflict(
+                f"approval {approval_id} is slow-lane; the job owns the outcome"
+            )
+        command = dict(doc.get("command") or {})
+        cmd = self._lookup(str(command.get("name") or ""))
+        if cmd is None or cmd.lane != "fast":
+            raise ApprovalConflict(
+                f"command {command.get('name')!r} is not fast; refusing redrive"
+            )
+        retries = int(doc.get("sweep_retries") or 0)
+        ctx = DispatchContext(store=self._store, queue=self._queue)
+        try:
+            outcome = cmd.fn(ctx, doc)
+        except Exception as exc:
+            log.exception("redrive of %s failed", cmd.name)
+            self._transition(
+                approval_id,
+                "approved",
+                {
+                    "status": "failed",
+                    "result": {"ok": False, "error": str(exc)[:300]},
+                    "sweep_retries": retries + 1,
+                },
+            )
+            merged = self._store.get_doc(self._collection, approval_id) or {}
+            self._emit(merged, "failed")
+            return merged
+        payload = {"ok": True}
+        if isinstance(outcome, dict):
+            payload.update(outcome)
+        self._transition(
+            approval_id,
+            "approved",
+            {"status": "resolved", "result": payload, "sweep_retries": retries + 1},
+        )
+        merged = self._store.get_doc(self._collection, approval_id) or {}
+        self._emit(merged, "resolved")
+        return merged
+
+    def fail_stale(
+        self, approval_id: str, *, expected_status: str, note: str
+    ) -> dict[str, Any]:
+        """Watchdog backstop: an action stuck past its patience window fails
+        with a human-review flag — never auto-retried, never auto-resumed."""
+        self._transition(
+            approval_id,
+            expected_status,
+            {
+                "status": "failed",
+                "result": {"ok": False, "needs_human_review": True, "error": note},
+            },
+        )
+        merged = self._store.get_doc(self._collection, approval_id) or {}
+        self._emit(merged, "failed")
+        return merged
+
+    def mark_superseded(self, approval_id: str) -> dict[str, Any]:
+        """Order-safety: a stale re-drive yields to a newer decision on the
+        same target — the newer (often human) decision always stands."""
+        self._transition(
+            approval_id,
+            "approved",
+            {
+                "status": "failed",
+                "result": {"ok": False, "superseded": True},
+            },
+        )
+        merged = self._store.get_doc(self._collection, approval_id) or {}
+        self._emit(merged, "failed")
+        return merged
+
     def on_job_terminal(self, job: Any) -> bool:
         """Completion hook (projection, not truth): a job the approval is
         watching turned terminal → flip the approval. Never raises; job truth
