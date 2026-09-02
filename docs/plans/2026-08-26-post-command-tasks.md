@@ -49,7 +49,17 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 | D-6 ✅ done 2026-09-02 | Pickups QC + auto-retry: breach → strengthen anchors → ×2 → needs_human; visible to D-7 | S2 | TDD+EDD | AC-S2.2 | retry tests use real G0 flicker scores |
 | G2 ✅ 2026-09-02 | **Gate G2 run**: deterministic stations through real queue; Spend Control throttles a seeded runaway | — | — | G2 list | **evidence: `docs/evidence/G2/`** (project `g2-6d2d7919`, runaway throttled) |
 
-## SPRINT — Phase 3: hero depth + Dub QC
+## SPRINT — Phase 3a-early: Extend + real approval-action loop (owner ruling 2026-09-02, amendment A8)
+
+**Amendment A8 (owner-approved 2026-09-02):** owner is optimizing to **win** the Grafana track, not only to bank the Stage-1 fallback. The observable, auditable evidence→proposal→approval→action→QC loop is the track differentiator; it is currently fake everywhere except Spend Control (`decide_approval` only flips a status field — nothing executes). Promoting **AL-1 + D-9 (Extend)** and a new **H-0 approval-action executor** ahead of E-2/E-3/G3. This crosses the "Stage 1a starts only after G3" rule from A5 for these two items **only** — Extend is chosen over the spec'd S2 background_swap/outpaint (frame-by-frame Gemini image edit) because G0 already proved Extend cleaner (flicker 0.69× vs 13.97×) and lower-risk for a live demo. Dub QC (E-2/E-3) and G3 move **after** this slice, not cancelled — still required to call Stage 1 complete. Logged: `docs/memory/decision-log.md` (2026-09-02).
+
+| ID | Task | Mode | Refs | DoD |
+|---|---|---|---|---|
+| H-0 | Typed approval→action executor: `proposed→approved→acting→resolved\|failed`; deterministic command/job IDs; reconciler survives crash; `decide_approval` enqueues instead of just flipping status; every station's approvals (not only Spend Control) route through it | TDD | C-6.3, C-6.4, spec §7.2 | unit + integration: approve → real execution observed; crash mid-`acting` → reconciler resumes exactly once; SSE + Grafana annotation on every transition |
+| AL-1 | Alternates model + API: every generated clip = alternate `{shot_id, op, artifact_ref, eval_scores, status}`; add/remove-from-continuity is an approval-tracked action (via H-0) | TDD | spec §5 Stage 1a | alternate lifecycle unit tests; routes through H-0, not a second action path |
+| D-9 | Extend: Veo 3.1 single ≤7s segment first (G0-proven path); async execute, GCS store, meter cost, continuity/flicker QC, signed media, alternates lane in FE | EDD | AC (new, mirrors AC-S2.1 style) | eval on ≥3 fresh shots; draft/master are separate QC'd attempts; proposal→approval→render→QC→annotate observed end-to-end for a judge |
+
+## SPRINT — Phase 3: hero depth + Dub QC (moved after H-0/AL-1/D-9 per A8)
 | ID | Task | Station | Mode | Refs | DoD |
 |---|---|---|---|---|---|
 | E-2 | Dub timing QC: TTS dubs (SSML pacing), duration-delta, envelope cross-correlation sync, Gemini listen-classify | S4 | EDD | AC-S4.1 | eval JSONL; playable dub pair in FE; README |
@@ -61,7 +71,7 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 |---|---|---|---|---|
 | H-1 | Investigation chains: alert→PromQL→LogQL→Tempo playbooks; severity rubric; proposal formatting | EDD (rubric) | AC-A.1, C-4.3 | seeded corrupt-file scenario: annotation w/ correct job_id + root cause ≤120 s, asserted via Grafana query (no mocks) |
 | H-2 | Morning report generator: Gemini summarization over real telemetry excerpts w/ citations; cites Spend Control lines | EDD | AC-A.2 | faithfulness rubric ≥4/5 on 5 seeded scenarios |
-| H-3 | Approvals inbox FE + autonomy toggle enforcement; Spend Control escalations land same inbox | TDD | §7.2, C-4.3 | toggle honored in agent middleware tests; S5b approvals render/resolve |
+| H-3 | Approvals inbox FE + autonomy toggle enforcement; Spend Control escalations land same inbox (executor now shared via H-0) | TDD | §7.2, C-4.3 | toggle honored in agent middleware tests; S5b + generic approvals render/resolve |
 | H-4 | Dashboards + alert rules as code finalized | config | C-4.5 | `infra/grafana/` provisions cleanly via API; screenshots archived |
 
 ## SPRINT — Phase 6: rehearsal + submission (sequential)

@@ -1,5 +1,36 @@
 # Decision Log
 
+## 2026-09-02 - Amendment A8: promote Extend + real approval-executor ahead of Dub QC/G3
+Status: active
+Scope: project
+Confidence: high
+Tags: amendment, stage-1a, extend, approvals, grafana-track, product
+
+### Decision
+Owner is optimizing to **win** the Grafana track, not only to bank Stage 1 as a fallback. Promote **AL-1 (alternates model) + D-9 (Extend, Veo single ≤7s segment)** and a new **H-0 typed approval→action executor** ahead of E-2/E-3 (Dub QC) and Gate G3. This crosses the A5 rule ("Stage 1a starts only after G3") for these two items only. Dub QC and G3 are not cancelled — they move after this slice and are still required to call Stage 1 complete.
+
+### Context
+2026-09-02. An outside agent proposed closing "Stage 1/G3" via a Veo Extend wedge with a typed command state machine, claiming a plan amendment was needed because H-* sits after Stage 1a. That specific claim was false — the tasks file already sequenced Phase 4 (H-1..H-4) before parked Stage 1a per the 2026-08-30 A7 ruling. The proposal's real, correct insight was orthogonal to that false claim: `decide_approval` (`backend/api/spine.py`) only flips a status field; nothing downstream executes anything except Spend Control's own direct act path. `retry_job` is `NotImplementedError`. Pickups is identity-QC only (no generative call). G0 evidence (`docs/evidence/G0/VERDICT.md`) shows Veo Extend cleaner (flicker 0.69×, better than source) than the spec'd S2 background_swap frame-by-frame Gemini image edit (13.97×, still under threshold but noisier) — and Omni video-input editing 400s on this runtime.
+
+### Rationale
+The Grafana track judges an observable, auditable evidence→proposal→approval→action→QC loop, not generative breadth. That loop does not exist yet outside Spend Control. Building one real instance — Extend, chosen for reliability over the spec'd background_swap — end to end, wrapped in a reusable typed executor, is a stronger demo lever than finishing Dub QC first. The executor generalizes the pattern already proven for Spend Control (S5b acts directly) so H-3's "approvals render/resolve" stops being cosmetic everywhere else.
+
+### Alternatives Considered
+- **Keep written order (Dub QC → G3 → Stage 1a):** rejected per owner ruling; undersells the track differentiator by demo day if time runs out.
+- **Adopt the outside agent's "Extend closes Stage 1" framing verbatim:** rejected — Extend is genuinely Stage 1a work per spec §5, not Stage 1's S2. Framed instead as a deliberate, disclosed Stage-1a promotion (this decision), not a silent Stage-1 finish.
+- **Build the executor generically for all stations before choosing an op:** deferred — sequencing D-9 alongside H-0 gives the executor a real caller on day one instead of a speculative contract.
+- **Full Stage 1a build order (AL-1→D-9→D-10→E-1→...) all at once:** rejected for now; only AL-1+D-9 promoted, rest of Stage 1a stays gated behind G3.
+
+### Revisit When
+- H-0 + D-9 + AL-1 land: re-baseline whether Dub QC / G3 still fits the calendar before 7 Sep.
+- If Extend demo reliability regresses on fresh (non-G0) shots, re-open background_swap as the flagship op instead.
+- If time runs out before Dub QC, ship G2 + H-0/D-9 as the fallback story instead of the original G3 Stage-1-only fallback.
+
+### Consequences
+- `docs/plans/2026-08-26-post-command-tasks.md` amended (Phase 3a-early section, A8) — tasks file, not spec, carries this ruling for now; spec §5 Stage-1/Stage-1a boundary text is unchanged (Extend is still labeled Stage 1a there, on purpose).
+- Before writing H-0's command/state-machine code: run the architecture chain per `AGENTS.md` (brainstorming → deep-thinking → api-and-interface-design) since this is a new cross-station module boundary — not skipped, just not done in this planning conversation.
+- Billable: D-9 uses real Veo renders. Cost estimate + Spend Control gate before batches (C-7.2).
+
 ## 2026-09-02 - Hosted MCP OAuth deferred to post-sprint; hackathon ships OSS + SA token
 Status: active
 Scope: project
@@ -54,3 +85,18 @@ A runaway station can re-queue in seconds. The brake has to sit on the same Fire
 - `cost_micros` on jobs remains the system of record for throttle/stop/approve.
 - C-7.1 80% Grafana alert is still owed at H-4; that does not reopen BigQuery as the live brain.
 - ADR: `docs/adr/0003-spend-control-not-bigquery.md`.
+
+## 2026-09-02 - Auth is built LAST; executor ships auth-agnostic (owner ruling)
+Status: active
+Scope: project
+Confidence: high
+Tags: auth, sign-in, f5, h0, deferral, spec-7.2
+
+### Decision
+Owner ruling 2026-09-02: **no sign-in gate now** — Firebase Auth (spec §7.2) is built **last, when the whole product is done**. Rationale: auth in the loop makes every test and demo run harder; it must not gate development velocity. H-0's executor and approval API are therefore built **auth-agnostic**: the approval schema carries a nullable `approver` identity (populated `"dev"` placeholder until Firebase lands), and token verification is a pluggable middleware slot, not inline logic.
+
+### Consequences
+- Spec §7.2 (sign-in-to-approve) stays REQUIRED for the shipped product: it must land before J-5 (demo video) or be disclosed as a limitation in J-4's README. Decision point: J-3 rehearsal.
+- No second action path may grow around the missing auth (H-0 remains the only executor).
+- Demo approvals run as `approver: "dev"` until Firebase lands; the Grafana annotation (C-4.3) records whatever identity exists at act time.
+- Revisit: the moment any real deployment is exposed beyond localhost/dev, auth can no longer wait.
