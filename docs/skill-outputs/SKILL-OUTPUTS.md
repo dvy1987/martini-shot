@@ -36,6 +36,8 @@
 2. `/analyze` — spec-crosscheck readiness gate (required before `/implement`)
 3. `/implement` — incremental-implementation + test-driven-development pairing, red-green per slice, EDD suites per generative capability
 
+| 2026-09-02 | brainstorming | docs/specs/2026-09-02-h0-approval-executor-design.md | Design spec for H-0 typed approval->action executor (Approach C: one dispatcher, two lanes; migrates Spend Control's act path) |
+
 ## Standing context pointers for any executing agent
 - Mission briefing: `ideas/AO-STATION-MAP.md` (read FIRST; Amendments A1–A3 binding)
 - Idea catalog: `ideas/IDEAS.md` · Track notes: `docs/grafana-track-notes.md`
