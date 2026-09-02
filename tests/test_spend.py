@@ -28,6 +28,13 @@ class _Store:
                 out.append({"id": _id, **data})
         return out
 
+    def transactional_update(self, collection: str, doc_id: str, mutate) -> None:
+        # In-memory double: single-threaded unit tests, so read-apply-write is
+        # equivalent; the real transactional guarantee is covered against real
+        # Firestore by tests/test_approval_executor.py.
+        doc = self.get_doc(collection, doc_id) or {}
+        self.set_doc(collection, doc_id, mutate(doc))
+
 
 def test_runaway_40_requeues_trips_policy() -> None:
     policies = load_policies()

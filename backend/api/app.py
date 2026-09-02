@@ -127,7 +127,9 @@ def create_app(
         app.state.queue = queue
         app.state.gcs = gcs
         app.state.store = store
-        install_spine_routes(app, queue=queue, store=store, gcs=gcs, hub=hub)
+        install_spine_routes(
+            app, queue=queue, store=store, gcs=gcs, hub=hub, settings=cfg
+        )
         app.state.worker_enabled = worker
 
     return app

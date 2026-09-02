@@ -13,6 +13,13 @@ from pydantic import BaseModel, Field
 
 from backend.api.events import EventHub
 from backend.api.present import approval_to_api, job_to_api, project_to_api
+from backend.approvals.machine import (
+    APPROVALS,
+    ApprovalConflict,
+    ApprovalNotFound,
+    ApprovalStateMachine,
+)
+from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
 from backend.jobs.models import Job, utc_now_iso
@@ -21,13 +28,25 @@ from backend.stations.ingest.run import STATION
 
 log = logging.getLogger("pc.api")
 PROJECTS = "pc-projects"
-APPROVALS = "pc-approvals"
 REPORTS = "pc-morning-reports"
 
 
 class DecisionIn(BaseModel):
     decision: str
     reason: str | None = Field(default=None)
+
+
+def _grafana_annotator(settings: Settings):
+    """Real MCP annotation per approval transition (C-4.3). Heavy by design:
+    one connector per call, same pattern as the worker's annotate_job."""
+
+    def annotate(text: str, tags: list[str]) -> dict[str, Any]:
+        from backend.supervisor.mcp import GrafanaMcpConnector, build_server_config
+
+        with GrafanaMcpConnector(build_server_config(settings)) as connector:
+            return connector.add_annotation(text, tags=tags)
+
+    return annotate
 
 
 def install_spine_routes(
@@ -37,7 +56,15 @@ def install_spine_routes(
     store: FirestoreStore,
     gcs: GCSMedia,
     hub: EventHub,
+    settings: Settings | None = None,
 ) -> None:
+    machine = ApprovalStateMachine(
+        store,
+        queue=queue,
+        hub=hub,
+        annotator=_grafana_annotator(settings) if settings is not None else None,
+    )
+
     @app.get("/api/v1/projects")
     def list_projects() -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
@@ -137,27 +164,24 @@ def install_spine_routes(
 
     @app.post("/api/v1/approvals/{approval_id}/decision")
     def decide_approval(approval_id: str, body: DecisionIn) -> dict[str, Any]:
+        # Input validation (400) beats resource lookup (404) — contract order.
         if body.decision not in {"approve", "reject"}:
             raise HTTPException(
                 status_code=400, detail="decision must be approve or reject"
             )
-        doc = store.get_doc(APPROVALS, approval_id)
-        if doc is None:
-            raise HTTPException(status_code=404, detail="no such approval")
-        if str(doc.get("status") or "") != "proposed":
-            raise HTTPException(status_code=409, detail="approval is not proposed")
-        next_status = "approved" if body.decision == "approve" else "rejected"
-        store.set_doc(
-            APPROVALS,
-            approval_id,
-            {
-                **doc,
-                "approval_id": approval_id,
-                "status": next_status,
-                "decision_reason": body.reason,
-            },
-        )
-        merged = {**doc, "approval_id": approval_id, "status": next_status}
+        try:
+            merged = machine.dispatch(
+                approval_id,
+                body.decision,
+                approver="dev",
+                reason=body.reason or "",
+            )
+        except ApprovalNotFound:
+            raise HTTPException(status_code=404, detail="no such approval") from None
+        except ApprovalConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from None
         return approval_to_api(merged)
 
     @app.get("/api/v1/projects/{project_id}/reports/morning")

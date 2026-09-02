@@ -4,6 +4,7 @@ the lease queue (A-3) builds on transactions; this module stays thin.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from google.cloud import firestore
@@ -40,6 +41,28 @@ class FirestoreStore:
             data["id"] = snap.id
             out.append(data)
         return out
+
+    def transactional_update(
+        self,
+        collection: str,
+        doc_id: str,
+        mutate: Callable[[dict[str, Any]], dict[str, Any]],
+    ) -> None:
+        """Compare-and-set inside a Firestore transaction: read the doc, apply
+        the pure `mutate` to it, write the result back. If the doc changes
+        between read and write the transaction retries — the last-committed
+        write always wins and stale full-document overwrites are impossible.
+        Used by the lease queue, intake pause flags and the approval machine."""
+        client = self._client
+        ref = client.collection(collection).document(doc_id)
+
+        @firestore.transactional
+        def _tx(tx: firestore.Transaction) -> None:
+            snap = ref.get(transaction=tx)
+            doc = snap.to_dict() or {} if snap.exists else {}
+            tx.set(ref, mutate(doc), merge=True)
+
+        _tx(client.transaction())
 
     @property
     def client(self) -> firestore.Client:

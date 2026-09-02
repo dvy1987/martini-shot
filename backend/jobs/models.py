@@ -48,6 +48,7 @@ class Job:
     lease_owner: str | None = None
     lease_expires_at: str | None = None
     checksum_sha256: str | None = None
+    approval_id: str | None = None
     result: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

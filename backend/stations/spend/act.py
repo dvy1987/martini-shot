@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import uuid
 from typing import Any
 
+from backend.approvals.machine import propose_approval
 from backend.core.firestore import FirestoreStore
-from backend.jobs.models import utc_now_iso
 from backend.stations.spend.control import pause_intake
 from backend.supervisor.mcp import GrafanaMcpConnector
-
-APPROVALS = "pc-approvals"
 
 
 def open_spend_approval(
@@ -21,24 +18,23 @@ def open_spend_approval(
     title: str,
     detail: str,
     cost_delta_micros: int = 0,
+    command: dict[str, Any] | None = None,
 ) -> str:
-    approval_id = f"ap-{uuid.uuid4().hex[:12]}"
-    store.set_doc(
-        APPROVALS,
-        approval_id,
+    """Single-writer rule (H-0): approval creation goes through the executor's
+    propose path, never a direct collection write. Approvals carry their
+    command so approving them actually acts (fixes the G2 no-op resume)."""
+    return propose_approval(
+        store,
         {
-            "approval_id": approval_id,
             "project_id": project_id,
             "job_id": job_id,
             "kind": "spend",
             "title": title,
             "detail": detail,
-            "status": "proposed",
-            "created_at": utc_now_iso(),
             "cost_delta_micros": cost_delta_micros,
+            **({"command": command} if command else {}),
         },
     )
-    return approval_id
 
 
 def throttle_station(
@@ -59,6 +55,7 @@ def throttle_station(
         title=f"Resume {station} after Spend Control hold",
         detail=reason,
         cost_delta_micros=cost_delta_micros,
+        command={"name": "resume_intake", "args": {"station": station}},
     )
     grafana_out: dict[str, Any] = {}
     if grafana is not None:

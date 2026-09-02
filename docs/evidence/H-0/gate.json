@@ -1,0 +1,58 @@
+{
+  "task": "H-0 tranche 1 — typed approval-to-action executor (core)",
+  "date": "2026-09-02T00:00:00Z",
+  "approach": "TDD RED-first: 11 integration tests written and observed failing (ModuleNotFoundError: backend.approvals) before any production code",
+  "production_code": [
+    "backend/approvals/commands.py — CommandRegistry; fail-closed rule (fast lane requires idempotent=True, raised at registration); default_registry: pause_intake / resume_intake / retry_job",
+    "backend/approvals/machine.py — ApprovalStateMachine: transactional compare-and-set transitions, fast lane (sync dispatch -> resolved/failed), slow lane (deterministic job-cmd-{approval_id} on the lease queue, approval_id on Job), on_job_terminal completion hook, commit-first emit-after (SSE + Grafana annotation), propose_approval single creation path",
+    "backend/jobs/models.py — Job.approval_id additive field",
+    "backend/jobs/queue.py — requeue(): terminal-only (failed/throttled/needs_human), attempts reset, transactional",
+    "backend/core/firestore.py — FirestoreStore.transactional_update(): reusable transactional compare-and-set",
+    "backend/stations/spend/control.py — pause/resume routed through transactional_update (H-0 pre-mortem concurrency fix: last-committed write always wins)",
+    "backend/stations/spend/act.py — approvals created only via propose_approval (single-writer); auto-resume approval now carries command resume_intake (fixes the G2 no-op-approve bug)",
+    "backend/api/spine.py — decide_approval delegates to the state machine (400/404/409 contract order preserved); single-writer rule enforced",
+    "backend/api/app.py — passes settings into spine routes (real MCP annotator)"
+  ],
+  "tests": {
+    "executor_suite": {
+      "file": "tests/test_approval_executor.py",
+      "count": 12,
+      "covers": [
+        "fast command without idempotent rejected at registration (fail-closed)",
+        "fast approve dispatches synchronously, resolves, emits one SSE event",
+        "fast handler failure -> failed (never stuck in acting)",
+        "slow command -> deterministic job-cmd-{approval_id} with approval_id on the Job",
+        "double dispatch -> 409-equivalent conflict, handler not re-run (exactly-once)",
+        "reject -> no dispatch",
+        "retry command requeues only terminal jobs",
+        "pause/resume concurrency stress: 25 rounds of racing threads, last-committed write always wins (real Firestore transactions)",
+        "single-writer grep tripwire: no module outside the machine writes approval status",
+        "completion hook resolves approval exactly once when job turns terminal",
+        "commandless approval resolves as a no-op on approve"
+      ]
+    },
+    "full_suite": {
+      "passed": 177,
+      "failed": 0,
+      "coverage_percent": 92.75,
+      "coverage_gate": 90,
+      "command": "python -m pytest tests --cov=backend --cov-fail-under=90 -q",
+      "date": "2026-09-02"
+    }
+  },
+  "defects_caught_and_fixed": [
+    "single-writer tripwire caught spend/act.py writing approvals directly -> rewired through propose_approval",
+    "single-writer tripwire caught api/spine.py writing approval status inline -> decide_approval now delegates to the machine",
+    "Spend Control resume approval was a no-op on approve (G2 bug) -> throttle_station attaches resume_intake command",
+    "pause/resume race (H-0 pre-mortem finding) -> transactional compare-and-set via FirestoreStore.transactional_update",
+    "decision API contract: input validation (400) must beat resource lookup (404); commandless approvals resolve as no-op rather than erroring"
+  ],
+  "gates": {
+    "ruff": "clean",
+    "mypy": "clean (59 source files)",
+    "integrity_c12": "clean",
+    "harness_drift": "clean",
+    "tdd_red_first": true
+  },
+  "notes": "Real Firestore (dev project), per-run collections it-approvals-*/it-jobs-*. Sweeper and worker hook wiring land in tranche 2 (same design doc)."
+}

@@ -183,6 +183,41 @@ class FirestoreLeaseQueue:
             job_id, worker_id, lambda job: job.status == "leased", fields
         )
 
+    def requeue(self, job_id: str) -> bool:
+        """Deliberate retry (H-0): re-queue a TERMINAL job only
+        (failed/throttled/needs_human). Attempts reset to 0 — a fresh lease
+        budget; the prior attempts remain in audit via updated_at history and
+        the driving approval record. Mid-flight jobs are refused: that path
+        belongs to lease-expiry reassignment (pre-mortem finding #1)."""
+        retryable = {"failed", "throttled", "needs_human"}
+
+        @_firestore.transactional
+        def _tx(tx: Any, ref: Any) -> bool:
+            snap = ref.get(transaction=tx)
+            if not snap.exists:
+                return False
+            job = Job.from_dict(snap.to_dict() or {})
+            if job.status not in retryable:
+                return False
+            tx.update(
+                ref,
+                {
+                    "status": "queued",
+                    "attempts": 0,
+                    "error": None,
+                    "lease_owner": None,
+                    "lease_expires_at": None,
+                    "updated_at": utc_now_iso(),
+                },
+            )
+            return True
+
+        ref = self._store.client.collection(self._collection).document(job_id)
+        try:
+            return bool(_tx(self._store.client.transaction(), ref))
+        except Exception:
+            return False
+
     def forget(self, job_id: str) -> None:
         """Test/cleanup helper: remove the job document entirely."""
         self._store.client.collection(self._collection).document(job_id).delete()
