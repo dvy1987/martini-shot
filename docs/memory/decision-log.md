@@ -1,5 +1,34 @@
 # Decision Log
 
+## 2026-09-02 - Budgeted autonomy: supervisor acts freely inside a $20 envelope (owner ruling)
+Status: active
+Scope: project
+Confidence: high
+Tags: autonomy, budget, h0b, spend, continuity, product
+
+### Decision
+The supervisor gets a **spend envelope** (default **$20** = `POST_COMMAND_BUDGET_MICROS=20000000`, adjustable in the UX settings) within which it acts **autonomously**: it collects candidate actions, stack-ranks them by **leverage** (unblocks-delivery × severity ÷ cost, weighted by reversibility), and works down the ranked list until the envelope is spent. The envelope covers renders, retries, drafts **and continuity adds** — the owner explicitly overrode the agent recommendation that continuity stays human-approved. Envelope empty → remaining items become ranked proposals in the morning report (graceful degradation, never failure).
+
+### Context
+2026-09-02, during the H-0 design discussion. Owner: "we need to set a budget within which the supervisor can make whatever changes it sees fit… it will have to stack rank the changes based on leverage. I want the orchestrator to do real thinking." This is the graduated-autonomy end-state: propose-only remains the fallback (autonomy toggle), not the ceiling.
+
+### Mitigations that make full autonomy survivable
+- **Continuity-add is one-click revertible**: every continuity mutation emits a Grafana alert + annotation and lands as an alternates-lane change with a revert action; nothing is destroyed — the locked-cut material is never overwritten, only the continuity pointer moves.
+- Daily house cap (Spend Control) stands **above** the envelope; envelope is a sub-cap.
+- Draft-first is the default reflex: masters only after a QC-passing draft; never propose a master when a draft informs.
+- The ranked deliberation table (candidate, leverage, cost, decision, why) is itself persisted + annotated — the reasoning is auditable, not vibes.
+- Autonomy toggle can demote the whole loop to propose-only at any moment.
+- Deliberation runs as a background job (C-6.5), text-LLM standard, thinking HIGH.
+
+### Alternatives Considered
+- **Continuity stays human-approved regardless of budget:** rejected by owner — full autonomy inside the envelope, with revert+alert as the compensating control.
+- **Fixed per-action approval with no envelope:** rejected — makes the supervisor a pager with extra steps; the leverage-ranked budget is the product differentiator ("an employee with a budget, not an intern with a form").
+
+### Revisit When
+- Any real (non-demo) deployment is exposed — budget autonomy should be reviewed against production risk before then.
+- Envelope burn pattern shows reasoning bugs converting to money (rank eval drift, cost estimates off by >2×).
+- Owner changes the envelope in UX — no code change should be needed, only the settings value.
+
 ## 2026-09-02 - Amendment A8: promote Extend + real approval-executor ahead of Dub QC/G3
 Status: active
 Scope: project
