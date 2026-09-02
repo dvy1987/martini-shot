@@ -77,3 +77,11 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 
 ## PARKED — Phase 3a: Stage 1a (A5; **starts only after G3 passes**)
 AL-1 Alternates model+API (TDD) → D-9 Extend (EDD; Omni-vs-Veo per op decided by eval + ADR — Veo `-001` path already proven at G0, Omni research parked until now) → D-10 Corrections (EDD) → E-1 Relight Studio (EDD) → D-11 Draft-first orchestration (TDD+EDD) → D-12 Coverage (EDD) → D-15 Revision Room (EDD+TDD) → D-16 Camera Language (EDD) → stretch: D-13 Transition Forge, D-14 Versioning. Gate G3a. Post-deadline: I-1..I-4 (Stage 2 remainder), I-5..I-9 (Stages 3–4).
+
+## PARKED — post-sprint backlog (owner-confirmed 2026-09-02)
+
+| ID | Item | Order | Notes |
+|---|---|---|---|
+| F-4 | Hosted Grafana MCP OAuth login + saved token persistence | **LAST** (post-hackathon) | Owner ruling 2026-09-02: hackathon ships **OSS + SA token only** (`MCP_MODE=oss`, proven at B-2/B-2b). Decision point: before J-3 rehearsal, add an honest "OSS-only MCP auth" line to README limitations (J-4). Keep the SA-token-regeneration runbook handy for the demo window (token is a demo SPOF). See ADR-0001; log deferral decision in `docs/memory/decision-log.md`. |
+| M8b | BigQuery billing-export reconcile — **audit report only** | Optional, after G3 when billable Dub/TTS volume exists | Cheap GCP toggle; closes the C-6.4 "did our integer micros match Google's invoice?" honesty loop. **Never the control loop** — Spend Control (S5b/ADR-0003) stays the only brain. Report lands in `docs/evidence/` + README limitations/honesty section. |
+
