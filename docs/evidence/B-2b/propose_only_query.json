@@ -1,0 +1,30 @@
+{
+  "job_id": "job-12f1bb8f8b98",
+  "incident_refused": {
+    "refused": true,
+    "reason": "create_incident is an act-class tool; supervisor runs in propose-only mode \u2014 return a proposal for human approval instead",
+    "proposal": {
+      "tool": "create_incident",
+      "title": "must-not-write",
+      "severity": "pending"
+    }
+  },
+  "promql": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"data\":[{\"metric\":{\"__name__\":\"pc_job_outcome_total\",\"job\":\"martini-shot-backend\",\"outcome\":\"fail\",\"service_name\":\"martini-shot-backend\",\"station\":\"ingest\"},\"value\":[1788310379.189,\"10\"]},{\"metric\":{\"__name__\":\"pc_job_outcome_total\",\"job\":\"martini-shot-backend\",\"outcome\":\"pass\",\"service_name\":\"martini-shot-backend\",\"station\":\"ingest\"},\"value\":[1788310379.189,\"2\"]}]}"
+      }
+    ],
+    "isError": false
+  },
+  "loki": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"data\":[],\"hints\":{\"summary\":\"The Loki query returned no log entries for the specified time range.\",\"possibleCauses\":[\"The stream selector labels may not match any log streams\",\"No logs were ingested during the specified time range\",\"The filter expression may be too restrictive\",\"The label values in the selector may be misspelled or incorrect\",\"Line filter expressions may be filtering out all matching logs\"],\"suggestedActions\":[\"Use list_loki_label_names to verify available labels\",\"Use list_loki_label_values to check values for specific labels\",\"Use query_loki_stats to check if logs exist for the stream selector\",\"Try expanding the time range to see if logs exist in a different period\",\"Try removing pipeline stages to see if the base stream selector matches any logs\"],\"debug\":{\"timeRange\":\"2026-09-02T05:22:59+05:30 to 2026-09-02T06:22:59+05:30\"}},\"metadata\":{\"linesReturned\":0,\"maxLinesAllowed\":5,\"resultsTruncated\":false,\"totalLinesScanned\":0,\"startTime\":\"2026-09-02T05:22:59+05:30\",\"endTime\":\"2026-09-02T06:22:59+05:30\"}}"
+      }
+    ],
+    "isError": false
+  }
+}

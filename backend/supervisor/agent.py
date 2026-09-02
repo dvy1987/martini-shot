@@ -12,7 +12,9 @@ from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore, get_firestore
 from backend.core.models import TEXT_MODEL
 from backend.supervisor.autonomy import Autonomy, AutonomyMode
+from backend.supervisor.mcp import GrafanaMcpConnector
 from backend.supervisor.registry import ToolRegistry
+from backend.supervisor.tools import register_grafana_tools
 
 PERSONA = """You are the Post Supervisor of Martini Shot, an observability-native
 post-production cockpit. You watch 16 instrumented station jobs running over a
@@ -53,7 +55,10 @@ def _make_tools(store: FirestoreStore) -> ToolRegistry:
             for r in rows
         ]
 
-    @registry.tool(description="Retry a failed job (act-class; propose-only blocks)")
+    @registry.tool(
+        description="Retry a failed job (act-class; propose-only blocks)",
+        act=True,
+    )
     def retry_job(job_id: str) -> dict:
         raise NotImplementedError("wired through the lease queue in a later task")
 
@@ -61,15 +66,20 @@ def _make_tools(store: FirestoreStore) -> ToolRegistry:
 
 
 def build_supervisor(
-    settings: Settings, *, autonomy: Autonomy | None = None
+    settings: Settings,
+    *,
+    autonomy: Autonomy | None = None,
+    grafana: GrafanaMcpConnector | None = None,
 ) -> LlmAgent:
     store = get_firestore(settings)
     registry = _make_tools(store)
-    mode = (autonomy or Autonomy.from_env({})).mode
+    policy = autonomy or Autonomy.from_env({})
+    if grafana is not None:
+        register_grafana_tools(registry, connector=grafana, autonomy=policy)
     return LlmAgent(
         name="post_supervisor",
         model=TEXT_MODEL,
         instruction=PERSONA,
         description="Post Supervisor: diagnoses failed station jobs from real telemetry",
-        tools=registry.adk_tools(allow_act=mode is AutonomyMode.ACT),
+        tools=registry.adk_tools(allow_act=policy.mode is AutonomyMode.ACT),
     )
