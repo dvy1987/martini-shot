@@ -2,10 +2,11 @@
 
 | Date | Type | File | Status | Tags | Summary |
 |---|---|---|---|---|---|
-| 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-14:20 | current | plan, p0, supervisor | Rest-of-sprint: MCP registry next; F-4 deferred; G1/B-2 done |
+| 2026-09-02 | handoff | agent-handoffs.md | current | g2, stations, supervisor | G2 GREEN; P1 MCP tools + B-3 + D-1..D-7; push origin/main |
+| 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-14:20 | superseded | plan, p0, supervisor | Rest-of-sprint: MCP registry next; F-4 deferred; G1/B-2 done |
 | 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-13:45 | superseded | g1, d1, replit, commit | G1 gate GREEN; D-1 core + Replit Steps 3–6 |
 | 2026-09-01 | plan | ../plans/2026-09-01-post-command-handover.md | current | handover, rev2 | Full handover rev 2: state, env facts, remaining queue, gotchas |
-| 2026-09-01 | state | current-state.md | current | g1, d1, replit | Track A + B-1/B-2 on main; G1 run green; all gates green |
+| 2026-09-02 | state | current-state.md | current | g2, stations | Stage 1 through G2 GREEN; F-4 and Stage 1a still parked |
 | 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-11:16 | superseded | b2, mcp, grafana | B-2 live MCP round-trip GREEN |
 | 2026-08-30 | state | current-state.md | superseded | sdd, a1, spine, a6 | Crosscheck PASS (A7), tasks file live, A-1 core spine committed d0d866c, workers demoted to research |
 | 2026-08-30 | handoff | agent-handoffs.md#2026-08-30 | superseded | crosscheck, a6, a1 | Next: A-2→A-3→A-4→A-5, B-2 MCP round-trip, G1 evidence |

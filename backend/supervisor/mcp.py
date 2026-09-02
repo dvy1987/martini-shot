@@ -229,7 +229,7 @@ class GrafanaMcpConnector:
                 # SDK streamable_http_client takes headers via httpx client, not kwargs.
                 client = create_mcp_http_client(headers=self.config.headers or None)
                 await stack.enter_async_context(client)
-                read, write = await stack.enter_async_context(
+                read, write, *_rest = await stack.enter_async_context(
                     streamable_http_client(self.config.http_url, http_client=client)
                 )
             session = await stack.enter_async_context(ClientSession(read, write))

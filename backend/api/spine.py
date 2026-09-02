@@ -91,6 +91,13 @@ def install_spine_routes(
                 status_code=400,
                 detail="empty file",
             )
+        from backend.stations.spend.control import is_intake_paused
+
+        if is_intake_paused(store, STATION):
+            raise HTTPException(
+                status_code=429,
+                detail="intake paused by Spend Control",
+            )
         job = Job(station=STATION, project_id=project_id, input_refs=[])
         key = f"projects/{project_id}/ingest/{job.id}/{file.filename}"
         gcs.upload_bytes(key, payload, content_type=file.content_type or "video/mp4")

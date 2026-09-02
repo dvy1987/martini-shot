@@ -44,6 +44,33 @@ def test_project_health_failing_when_any_job_failed() -> None:
     assert body["station_counts"] == {"ingest": 1}
 
 
+def test_throttled_job_uses_throttled_error_code() -> None:
+    job = Job(station="spend", project_id="g1", input_refs=[])
+    job.status = "throttled"
+    job.error = "spend_enforced"
+    body = job_to_api(job)
+    assert body["status"] == "throttled"
+    assert body["error"] == {"code": "throttled", "message": "spend_enforced"}
+    job = Job(station="ingest", project_id="g1", input_refs=["k"])
+    job.status = "quarantined"
+    job.error = "corrupt_decode"
+    body = job_to_api(job)
+    assert body["status"] == "quarantined"
+    assert body["error"] == {"code": "corrupt_decode", "message": "corrupt_decode"}
+
+
+def test_project_health_degraded_when_needs_human() -> None:
+    held = Job(station="pickups", project_id="g1", input_refs=[])
+    held.status = "needs_human"
+    body = project_to_api(
+        project_id="g1",
+        title="Gate G1",
+        created_at="2026-09-01T00:00:00Z",
+        jobs=[held],
+    )
+    assert body["health"] == "degraded"
+
+
 def test_approval_presenter_keeps_kind_and_proposed_status() -> None:
     body = approval_to_api(
         {

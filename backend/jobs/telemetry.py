@@ -15,6 +15,10 @@ meter = metrics.get_meter("pc.stations")
 _duration = meter.create_histogram("pc_job_duration_seconds", unit="s")
 _cost = meter.create_histogram("pc_job_cost_micros", unit="1")
 _outcome = meter.create_counter("pc_job_outcome_total")
+_lufs = meter.create_histogram("pc_loudness_lufs", unit="1")
+_flicker = meter.create_histogram("pc_flicker_score", unit="1")
+_ai_cost = meter.create_histogram("pc_ai_cost_micros", unit="1")
+_ai_tokens = meter.create_counter("pc_ai_tokens_total")
 
 
 @contextmanager
@@ -37,6 +41,20 @@ def record_job(
     _duration.record(duration_s, labels)
     _cost.record(float(cost_micros), labels)
     _outcome.add(1, {"station": station, "outcome": outcome})
+
+
+def record_loudness(station: str, lufs: float) -> None:
+    _lufs.record(lufs, {"station": station})
+
+
+def record_flicker(station: str, score: float) -> None:
+    _flicker.record(score, {"station": station})
+
+
+def record_ai_usage(*, input_tokens: int, output_tokens: int, cost_micros: int) -> None:
+    _ai_cost.record(float(cost_micros), {"station": "supervisor"})
+    _ai_tokens.add(input_tokens, {"direction": "input"})
+    _ai_tokens.add(output_tokens, {"direction": "output"})
 
 
 def timed() -> float:

@@ -1,5 +1,39 @@
 # Agent Handoffs
 
+## 2026-09-02 06:30 - Rest-of-sprint P1-P3 + G2; push pending
+
+### Done
+- P0 local commits `d8ee2e7` + `c2ecb36` were still unpushed vs `origin/main` `4aaa6d5`.
+- P1: Grafana MCP tools on ToolRegistry. Act-class `add_annotation` / `create_incident` check autonomy before MCP dispatch. Evidence `docs/evidence/B-2b/`.
+- P1b: `frontend/src/api/contract.test.ts`. Did not change 401 body.
+- P2/B-3: real Vertex text call; `cost_micros=400`. Evidence `docs/evidence/B-3/`.
+- P3: D-1..D-7 (pickups identity/EDD, no Veo). Gate G2 GREEN project `g2-6d2d7919` — spend throttled 40x runaway. Slate is silent 4:3: loudness `fail_quiet`, delivery AR fail (honest).
+- 165 pytest passed, 93.64% coverage. FE typecheck/test/lint/build green.
+
+### Debated
+- Did not rewrite megacommit `d8ee2e7`. TestClient SSE stream deadlocks on the infinite ping generator.
+- Grafana `create_incident` FK error on this stack; annotation still writes. Do not fake incidents.
+
+### Decisions
+- Pickups stay identity-QC until EDD bars plus `--yes` for billable generate.
+- OSS MCP remains the Grafana path. Hosted OAuth still F-4.
+
+### Deferred
+- Hosted MCP OAuth (F-4). Firebase sign-in (H-3). Replit static deploy. Stage 1a.
+
+### Next Agent Should Know
+- Restart local uvicorn so spine/present match git (G2 listing hit a pre-reload process).
+- Rotate `POST_COMMAND_API_KEY` / `VITE_API_KEY` (G1 SSE query-string leak).
+- Grafana incident org FK may need a Cloud-side fix before Spend incidents stick.
+
+### Revisit Triggers
+- Grafana SA 401 → regenerate; do not fake MCP.
+- Instant PromQL empty → range `now-1h`.
+- `create_incident` FK 1452 → Grafana Cloud, not a local mock.
+
+### Working Tree
+- Logical commits then push `main` (owner approved in rest-of-sprint plan).
+
 ## 2026-09-01 14:20 - Rest-of-sprint plan locked; P0 hygiene
 
 ### Done

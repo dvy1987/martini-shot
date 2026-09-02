@@ -48,6 +48,7 @@ Thumbs.db
 # Large raw media (evidence packs keep screenshots/JSONL; raw video takes stay local)
 docs/evidence/video/raw/
 fixtures/tmp/
+fixtures/pickups/derived/
 
 # Owner-captured console screenshots (local reference only)
 docs/screenshots/

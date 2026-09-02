@@ -9,13 +9,21 @@ _STATUS = {
     "leased": "running",
     "passed": "pass",
     "failed": "fail",
+    "quarantined": "quarantined",
+    "throttled": "throttled",
+    "needs_human": "needs_human",
 }
 
 
 def job_to_api(job: Job) -> dict[str, object]:
     error = None
     if job.error:
-        error = {"code": "job_failed", "message": job.error}
+        code = "job_failed"
+        if job.status == "quarantined":
+            code = str(job.error)
+        elif job.status == "throttled":
+            code = "throttled"
+        error = {"code": code, "message": job.error}
     return {
         "job_id": job.id,
         "station": job.station,
@@ -26,6 +34,7 @@ def job_to_api(job: Job) -> dict[str, object]:
         "cost_micros": job.cost_micros,
         "error": error,
         "checksum_sha256": job.checksum_sha256,
+        "result": dict(job.result) if job.result else {},
     }
 
 
@@ -39,7 +48,13 @@ def project_to_api(
     counts: dict[str, int] = {}
     for job in jobs:
         counts[job.station] = counts.get(job.station, 0) + 1
-    health = "failing" if any(job.status == "failed" for job in jobs) else "healthy"
+    statuses = {job.status for job in jobs}
+    if "failed" in statuses:
+        health = "failing"
+    elif statuses & {"quarantined", "throttled", "needs_human"}:
+        health = "degraded"
+    else:
+        health = "healthy"
     return {
         "project_id": project_id,
         "title": title,

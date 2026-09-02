@@ -1,9 +1,10 @@
-"""Lease worker: ingest station + Grafana annotation (C-6.3)."""
+"""Lease worker: station dispatch + Grafana annotation (C-6.3)."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from backend.api.events import EventHub
 from backend.api.present import job_to_api
@@ -11,7 +12,7 @@ from backend.core.config import Settings
 from backend.core.gcs import GCSMedia
 from backend.jobs.models import Job
 from backend.jobs.queue import FirestoreLeaseQueue
-from backend.stations.ingest.run import STATION, run_ingest
+from backend.stations.run import STATION_NAMES, execute
 from backend.supervisor.annotate import annotate_job
 
 log = logging.getLogger("pc.worker")
@@ -23,8 +24,7 @@ def process_one(
     gcs: GCSMedia,
     settings: Settings,
 ) -> Job | None:
-    """Claim the oldest ingest job, checksum it, complete, annotate. None if idle."""
-    job = queue.lease(WORKER_ID, [STATION])
+    job = queue.lease(WORKER_ID, list(STATION_NAMES))
     if job is None:
         return None
     return _finish_claimed(job, queue, gcs, settings)
@@ -42,6 +42,27 @@ def process_job_id(
     return _finish_claimed(job, queue, gcs, settings)
 
 
+def _persist(job: Job, queue: FirestoreLeaseQueue) -> None:
+    extra: dict[str, Any] = {"result": job.result}
+    if job.checksum_sha256:
+        extra["checksum_sha256"] = job.checksum_sha256
+    if job.status == "quarantined":
+        queue.quarantine(job.id, WORKER_ID, job.error or "quarantined", extra=extra)
+        return
+    if job.status in {"throttled", "needs_human"}:
+        queue.close(
+            job.id,
+            WORKER_ID,
+            job.status,
+            cost_micros=job.cost_micros,
+            error=job.error,
+            extra=extra,
+        )
+        return
+    queue.complete(job.id, WORKER_ID, job.cost_micros, extra=extra)
+    job.status = "passed"
+
+
 def _finish_claimed(
     job: Job,
     queue: FirestoreLeaseQueue,
@@ -49,18 +70,13 @@ def _finish_claimed(
     settings: Settings,
 ) -> Job:
     try:
-        job = run_ingest(job, gcs)
-        queue.complete(
-            job.id,
-            WORKER_ID,
-            job.cost_micros,
-            extra={"checksum_sha256": job.checksum_sha256},
-        )
-        job.status = "passed"
+        job = execute(job, gcs=gcs, settings=settings, store=queue.store)
+        _persist(job, queue)
         try:
-            annotate_job(settings, job, "pass")
+            verdict = "pass" if job.status == "passed" else job.status
+            annotate_job(settings, job, verdict)
             log.info(
-                "g1 annotation written",
+                "annotation written",
                 extra={
                     "job_id": job.id,
                     "station": job.station,
@@ -90,26 +106,21 @@ async def worker_loop(
     settings: Settings,
     hub: EventHub,
 ) -> None:
-    """Poll the lease queue on the API event loop; never blocks HTTP >30s."""
     while True:
-        job = await asyncio.to_thread(queue.lease, WORKER_ID, [STATION])
+        job = await asyncio.to_thread(queue.lease, WORKER_ID, list(STATION_NAMES))
         if job is None:
             await asyncio.sleep(0.4)
             continue
         hub.publish(job.project_id, "job.updated", {"job": job_to_api(job)})
         try:
-            job = await asyncio.to_thread(run_ingest, job, gcs)
-            await asyncio.to_thread(
-                queue.complete,
-                job.id,
-                WORKER_ID,
-                job.cost_micros,
-                {"checksum_sha256": job.checksum_sha256},
+            job = await asyncio.to_thread(
+                execute, job, gcs=gcs, settings=settings, store=queue.store
             )
-            job.status = "passed"
+            await asyncio.to_thread(_persist, job, queue)
             hub.publish(job.project_id, "job.updated", {"job": job_to_api(job)})
             try:
-                await asyncio.to_thread(annotate_job, settings, job, "pass")
+                verdict = "pass" if job.status == "passed" else job.status
+                await asyncio.to_thread(annotate_job, settings, job, verdict)
                 hub.publish(
                     job.project_id,
                     "annotation.created",
@@ -130,7 +141,7 @@ async def worker_loop(
             job.error = str(exc)[:200]
             hub.publish(job.project_id, "job.updated", {"job": job_to_api(job)})
             log.exception(
-                "ingest job failed",
+                "station job failed",
                 extra={
                     "job_id": job.id,
                     "station": job.station,

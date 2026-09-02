@@ -20,7 +20,7 @@ class FirestoreStore:
 
     def get_doc(self, collection: str, doc_id: str) -> dict[str, Any] | None:
         snap = self._client.collection(collection).document(doc_id).get()
-        return snap.to_dict() if snap.exists else None
+        return snap.to_dict() if snap.exists else None  # type: ignore[union-attr]
 
     def delete_doc(self, collection: str, doc_id: str) -> None:
         self._client.collection(collection).document(doc_id).delete()

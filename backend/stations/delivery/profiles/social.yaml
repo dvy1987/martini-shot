@@ -1,0 +1,8 @@
+container: mp4
+codec: h264
+ar: "9:16"
+fps_min: 23.0
+fps_max: 60.0
+bitrate_max_kbps: 12000
+loudness_target_lufs: -16.0
+captions_required: false

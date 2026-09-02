@@ -1,5 +1,6 @@
 """Job model (spec S0, C-6.4). Timestamps are UTC ISO-8601 strings; money is
-integer micro-units; the status vocabulary is closed: queued/leased/passed/failed.
+integer micro-units; status is a closed vocabulary including quarantine and
+spend-control holds.
 """
 
 from __future__ import annotations
@@ -9,7 +10,15 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-STATUSES: tuple[str, ...] = ("queued", "leased", "passed", "failed")
+STATUSES: tuple[str, ...] = (
+    "queued",
+    "leased",
+    "passed",
+    "failed",
+    "quarantined",
+    "throttled",
+    "needs_human",
+)
 
 
 def utc_now_iso() -> str:
@@ -39,6 +48,7 @@ class Job:
     lease_owner: str | None = None
     lease_expires_at: str | None = None
     checksum_sha256: str | None = None
+    result: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -46,4 +56,7 @@ class Job:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Job:
         known = {f for f in cls.__dataclass_fields__}
-        return cls(**{k: v for k, v in data.items() if k in known})
+        payload = {k: v for k, v in data.items() if k in known}
+        if not payload.get("result"):
+            payload["result"] = {}
+        return cls(**payload)

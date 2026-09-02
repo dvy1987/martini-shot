@@ -12,7 +12,7 @@ def annotate_job(settings: Settings, job: Job, verdict: str) -> dict:
     config = build_server_config(settings)
     checksum = job.checksum_sha256 or ""
     text = (
-        f"G1 investigation job_id={job.id} project_id={job.project_id} "
+        f"investigation job_id={job.id} project_id={job.project_id} "
         f"station={job.station} verdict={verdict} checksum={checksum}"
     )
     with GrafanaMcpConnector(config) as connector:

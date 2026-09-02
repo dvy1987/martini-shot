@@ -134,3 +134,16 @@ def test_expired_lease_is_reassigned_to_next_worker(
     assert queue.complete(job.id, worker_id="w-dies", cost_micros=0) is False
     new_id = new_job_id()
     assert new_id.startswith("job-")
+
+
+def test_quarantine_does_not_requeue(queue: FirestoreLeaseQueue) -> None:
+    job = Job(station="ingest", project_id="it-x", input_refs=["k"])
+    queue.submit(job)
+    leased = queue.lease(worker_id="w-1", stations=["ingest"])
+    assert leased is not None
+    assert queue.quarantine(leased.id, "w-1", "corrupt_decode") is True
+    stored = queue.get(job.id)
+    assert stored is not None
+    assert stored.status == "quarantined"
+    assert stored.error == "corrupt_decode"
+    assert queue.lease(worker_id="w-2", stations=["ingest"]) is None

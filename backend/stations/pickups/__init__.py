@@ -1,0 +1,1 @@
+"""Pickups station package."""

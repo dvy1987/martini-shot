@@ -131,6 +131,50 @@ class FirestoreLeaseQueue:
             job_id, worker_id, lambda job: job.status == "leased", fields
         )
 
+    def quarantine(
+        self,
+        job_id: str,
+        worker_id: str,
+        reason: str,
+        extra: dict[str, Any] | None = None,
+    ) -> bool:
+        """Terminal hold: never re-queued (AC-S1.1)."""
+        payload: dict[str, Any] = {
+            "status": "quarantined",
+            "error": reason,
+            "lease_owner": None,
+            "lease_expires_at": None,
+        }
+        if extra:
+            payload.update(extra)
+        return self._transition(
+            job_id, worker_id, lambda job: job.status == "leased", payload
+        )
+
+    def close(
+        self,
+        job_id: str,
+        worker_id: str,
+        status: str,
+        *,
+        cost_micros: int = 0,
+        error: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> bool:
+        """Terminal state other than pass/fail (throttled, needs_human)."""
+        payload: dict[str, Any] = {
+            "status": status,
+            "cost_micros": cost_micros,
+            "error": error,
+            "lease_owner": None,
+            "lease_expires_at": None,
+        }
+        if extra:
+            payload.update(extra)
+        return self._transition(
+            job_id, worker_id, lambda job: job.status == "leased", payload
+        )
+
     def heartbeat(self, job_id: str, worker_id: str) -> bool:
         def fields(job: Job) -> dict[str, Any]:
             return {"lease_expires_at": _iso_plus(self._visibility)}
@@ -147,8 +191,8 @@ class FirestoreLeaseQueue:
 
     def get(self, job_id: str) -> Job | None:
         snap = self._store.client.collection(self._collection).document(job_id).get()
-        raw = snap.to_dict()
-        return Job.from_dict(raw) if snap.exists and raw else None
+        raw = snap.to_dict()  # type: ignore[union-attr]
+        return Job.from_dict(raw) if snap.exists and raw else None  # type: ignore[union-attr]
 
     def list_for_project(self, project_id: str) -> list[Job]:
         jobs = [

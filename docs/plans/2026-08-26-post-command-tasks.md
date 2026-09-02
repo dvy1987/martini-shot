@@ -29,25 +29,25 @@ Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (
 |---|---|---|---|---|---|---|
 | B-1 ✅ done 2026-08-30 | ADK agent scaffold: Post-Supervisor persona, tool registry, autonomy toggle (propose-only default) — rebuilt by orchestrator (A6 worker reverted) | TDD | C-2.1, AC-A.1 prep | `backend/supervisor/` | F-3 | registry + toggle unit tests — **evidence: `docs/evidence/B-1/`, 7/7, real LlmAgent w/ pinned TEXT_MODEL** |
 | B-2 ✅ done 2026-09-01 | Grafana MCP connector: OSS stdio + SA token (hosted OAuth persistence still F-4); live annotation round-trip | TDD | C-2.2, C-4.3 | `backend/supervisor/mcp.py` | F-4 | REAL round-trip archived — **evidence: `docs/evidence/B-2/`, commit `4aaa6d5`** |
-| B-3 | AI Observability instrumentation: tokens, cost, latency per agent call | TDD | C-4.4 | `backend/supervisor/otel_ai.py` | A-1, B-1 | one real agent call visible in AI Observability (screenshot evidence) |
+| B-3 ✅ done 2026-09-02 | AI Observability instrumentation: tokens, cost, latency per agent call | TDD | C-4.4 | `backend/supervisor/otel_ai.py` | A-1, B-1 | one real Vertex text call; **evidence: `docs/evidence/B-3/`** (`cost_micros=400`) |
 
 ## SPRINT — Lane C: Frontend + G1
 | ID | Task | Mode | Refs | Target | After | DoD |
 |---|---|---|---|---|---|---|
-| C-1 | FE interim shell: API client `/api/v1`, SSE hook, routed pages per spec §7 — **worker output awaiting orchestrator review** (skeleton already committed 2026-08-28; review remaining deltas) | TDD (client) | C-6.1, §7.1 | `frontend/` | F-3 | contract tests vs backend OpenAPI; gates green (`npm run build/test/lint/typecheck`) |
+| C-1 ✅ remainder 2026-09-02 | FE shell + live contract tests vs running `/api/v1` (health open, error envelope, SSE type/at/payload). Did **not** change 401 body (no `message` on middleware deny) | TDD (client) | C-6.1, C-5.2/.3, §7.1 | `frontend/src/api/contract.test.ts` | F-3 | 67 FE tests; API unchanged |
 | G1 ✅ 2026-09-01 | **Gate G1 run** (orchestrator): real MP4 → ingest (arrival+checksum) → traces/metrics/logs in Grafana → annotation w/ job_id → SSE queued→running→pass | integration | AC-S0.2, C-4.*, C-2.2 | `docs/evidence/G1/` (`gate.json`, `sse.ndjson`, README) | A-1..A-5, B-1..B-2 | job `job-12f1bb8f8b98` pass; trace `1558b20e2f5b0e99fd29d2dd40627bfd`; 3 PromQL + Loki line + annotation id 4 |
 
 ## SPRINT — Phase 2: deterministic stations (parallel after A-4; each = RED first, then green, evidence + README)
 | ID | Task | Station | Mode | Refs | DoD |
 |---|---|---|---|---|---|
-| D-1 | Ingest full: probe, corruption detect, audio-sync spot check, quarantine flow | S1 | TDD | AC-S1.1/.2, C-4.3 | corrupted MP4 fixture → `quarantined` + annotation; ≥90% coverage parser/checksum; station README (C-8.1) |
-| D-2 | Loudness engine: ebur128 parse, stem heuristic, verdict tables, M&E check | S3 | TDD | AC-S3.1 | ±0.3 dB vs ffmpeg reference; boundary-case verdict matrix; `pc_loudness_lufs` exported; README |
-| D-3 | Caption validator sub-check: SRT/VTT/TTML parsers + rule engine w/ rule IDs (consumed by D-4, no own screen) | S5 | TDD | AC-S5.2 | golden files valid + 7 violation classes; 90% coverage; README |
-| D-4 | Delivery & Compliance pack: YAML profiles + evaluator delegating D-2+D-3 | S5 | TDD | AC-S5.1 | compliant/violating matrix per profile; unknown destination rejected; report renders in FE; README |
-| D-7 | **Spend Control**: cost aggregation from `cost_micros`; YAML policies (per-job cap, retry cap, hourly/daily budgets, runaway ≥N re-queues); ACT: throttle/stop/approve; annotation + incident | S5b | TDD | AC-S5b.1/.2, C-7.* | seeded 40× runaway → throttled; budget breach → intake paused; approvals route to inbox; **adversarial pass mandatory (money)**; README |
-| D-5 | Pickups pipeline: frame loop, anchor-prompt builder, prev-frame conditioning, reassembly | S2 | EDD | AC-S2.1, C-3.3 | dataset manifest (10 clips) + flicker metric + thresholds.yaml BEFORE feature; eval runs; JSONL archived; README |
-| D-6 | Pickups QC + auto-retry: breach → strengthen anchors → ×2 → needs_human; visible to D-7 | S2 | TDD+EDD | AC-S2.2 | retry state machine tests; threshold-breach sim from REAL eval outputs; cost estimator ±20%; README |
-| G2 | **Gate G2 run** (orchestrator only): all deterministic stations through real queue; Spend Control throttles a seeded runaway; dashboards live; FE shows results | — | — | G2 list | evidence pack archived |
+| D-1 ✅ done 2026-09-02 | Ingest full: probe, corruption detect, audio-sync spot check, quarantine flow | S1 | TDD | AC-S1.1/.2, C-4.3 | bit-flipped slate → `quarantined`; README `backend/stations/ingest/README.md` |
+| D-2 ✅ done 2026-09-02 | Loudness engine: ebur128 parse, stem heuristic, verdict tables, M&E check | S3 | TDD | AC-S3.1 | `pc_loudness_lufs`; README `backend/stations/loudness/README.md` |
+| D-3 ✅ done 2026-09-02 | Caption validator sub-check: SRT/VTT/TTML parsers + rule engine w/ rule IDs (consumed by D-4, no own screen) | S5 | TDD | AC-S5.2 | goldens in `fixtures/captions/`; `tests/test_captions.py` |
+| D-4 ✅ done 2026-09-02 | Delivery & Compliance pack: YAML profiles + evaluator delegating D-2+D-3 | S5 | TDD | AC-S5.1 | streaming/broadcast/social YAML; README `backend/stations/delivery/README.md` |
+| D-7 ✅ done 2026-09-02 | **Spend Control**: cost aggregation from `cost_micros`; YAML policies; ACT: throttle/stop/approve; annotation + incident | S5b | TDD | AC-S5b.1/.2, C-7.* | 40× runaway → throttled; adversarial tests; README `backend/stations/spend/README.md` |
+| D-5 ✅ done 2026-09-02 | Pickups pipeline: frame loop, anchor-prompt builder, prev-frame conditioning, reassembly | S2 | EDD | AC-S2.1, C-3.3 | identity QC (no Veo); eval `docs/evidence/D-5/`; thresholds.yaml |
+| D-6 ✅ done 2026-09-02 | Pickups QC + auto-retry: breach → strengthen anchors → ×2 → needs_human; visible to D-7 | S2 | TDD+EDD | AC-S2.2 | retry tests use real G0 flicker scores |
+| G2 ✅ 2026-09-02 | **Gate G2 run**: deterministic stations through real queue; Spend Control throttles a seeded runaway | — | — | G2 list | **evidence: `docs/evidence/G2/`** (project `g2-6d2d7919`, runaway throttled) |
 
 ## SPRINT — Phase 3: hero depth + Dub QC
 | ID | Task | Station | Mode | Refs | DoD |

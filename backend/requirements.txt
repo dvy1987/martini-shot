@@ -19,6 +19,7 @@ google-cloud-storage>=2.18,<4
 google-cloud-secret-manager>=2.22,<3
 google-cloud-texttospeech>=2.37
 firebase-admin>=6.0
+PyYAML>=6.0
 
 # Observability (C-4.* / B-3 AI Observability)
 opentelemetry-sdk>=1.39,<=1.42.1

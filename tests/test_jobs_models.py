@@ -28,5 +28,13 @@ def test_timestamps_are_utc_iso() -> None:
 
 def test_status_vocabulary_is_closed() -> None:
     job = Job(station="s", project_id="p", input_refs=[])
-    for status in ("queued", "leased", "passed", "failed"):
+    for status in (
+        "queued",
+        "leased",
+        "passed",
+        "failed",
+        "quarantined",
+        "throttled",
+        "needs_human",
+    ):
         job.status = status  # must not raise

@@ -1,0 +1,89 @@
+{
+  "suite": "pickups_flicker",
+  "threshold": 0.18,
+  "mean_flicker_score": 0.0046170000000000004,
+  "n": 10,
+  "pass": true,
+  "records": [
+    {
+      "id": "p01",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\spike\\shot-01-meadow.mp4",
+      "ok": true,
+      "flicker_score": 0.00061,
+      "frames_analyzed": 80,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p02",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\spike\\shot-02-grove.mp4",
+      "ok": true,
+      "flicker_score": 0.01009,
+      "frames_analyzed": 80,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p03",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\spike\\shot-03-clearing.mp4",
+      "ok": true,
+      "flicker_score": 0.00796,
+      "frames_analyzed": 80,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p04",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\g1\\slate.mp4",
+      "ok": true,
+      "flicker_score": 0.00027,
+      "frames_analyzed": 8,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p05",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p05.mp4",
+      "ok": true,
+      "flicker_score": 0.00077,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p06",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p06.mp4",
+      "ok": true,
+      "flicker_score": 0.00052,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p07",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p07.mp4",
+      "ok": true,
+      "flicker_score": 0.00973,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p08",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p08.mp4",
+      "ok": true,
+      "flicker_score": 0.00627,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p09",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p09.mp4",
+      "ok": true,
+      "flicker_score": 0.00073,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    },
+    {
+      "id": "p10",
+      "path": "C:\\Users\\reall\\Building_Apps\\martini-shot\\fixtures\\pickups\\derived\\p10.mp4",
+      "ok": true,
+      "flicker_score": 0.00922,
+      "frames_analyzed": 17,
+      "definition": "mean |I_t - median3| grayscale [0,1], ffmpeg raw"
+    }
+  ]
+}

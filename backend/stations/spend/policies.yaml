@@ -1,0 +1,25 @@
+version: 1
+default:
+  max_cost_micros_per_job: 50000000
+  max_retries: 2
+  runaway_requeues: 8
+stations:
+  ingest:
+    max_cost_micros_per_job: 1000000
+    max_retries: 2
+    runaway_requeues: 8
+  pickups:
+    max_cost_micros_per_job: 20000000
+    max_retries: 2
+    runaway_requeues: 8
+  loudness:
+    max_cost_micros_per_job: 1000000
+    max_retries: 2
+    runaway_requeues: 8
+  delivery:
+    max_cost_micros_per_job: 1000000
+    max_retries: 2
+    runaway_requeues: 8
+project:
+  hourly_budget_micros: 200000000
+  daily_budget_micros: 500000000

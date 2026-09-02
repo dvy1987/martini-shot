@@ -28,6 +28,8 @@
 | 2026-09-01 | test-driven-development | frontend/src/lib/{wipe,approvals,slates,palette,lens,dates,errors}*.ts + route/component tests | TDD: Replit UX Steps 3–6 (Screening Room, dailies, slates, ⌘K, Lens). No fabricated API rows. |
 | 2026-09-01 14:20 | memory-handoff | agent-handoffs.md#2026-09-01-14:20 + current-state.md | Rest-of-sprint: skip stale M0–M5; MCP registry next; F-4 deferred |
 | 2026-09-01 14:35 | git-workflow-and-versioning | docs hygiene on main | Checkpoint: G1 honesty + B-2 row + memory rewrite (megacommit d8ee2e7 already landed) |
+| 2026-09-02 | test-driven-development | tests/test_supervisor_tools.py + tests/test_spend.py + tests/test_worker.py | TDD: MCP act-gate, spend, worker persist; G2 evidence archived |
+| 2026-09-02 06:30 | memory-handoff | agent-handoffs.md + current-state.md | G2 GREEN; P1-P3 complete; push origin/main |
 
 ## Next SDD phases for slug `post-command`
 1. `/tasks` — derive agent-pickable task list from the plan (implementation-plan tasks-only mode) when ready to start execution

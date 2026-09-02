@@ -1,0 +1,265 @@
+{
+  "project_id": "g2-6d2d7919",
+  "jobs": [
+    {
+      "station": "ingest",
+      "project_id": "g2-6d2d7919",
+      "input_refs": [
+        "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+      ],
+      "id": "job-d76c97d2c344",
+      "status": "passed",
+      "attempts": 1,
+      "cost_micros": 0,
+      "error": null,
+      "created_at": "2026-09-02T00:56:02.050Z",
+      "updated_at": "2026-09-02T00:56:16.267Z",
+      "lease_owner": "pc-worker-g1",
+      "lease_expires_at": "2026-09-02T01:01:11.291Z",
+      "checksum_sha256": "202459a82f3c557e08563a5a7d7bfbeecbe024ebfc1d23c3fa15160d14636bb2",
+      "result": {
+        "probe": {
+          "has_audio": true,
+          "fps": 24.0,
+          "height": 240,
+          "width": 320,
+          "codec": "h264",
+          "duration_s": 1.0
+        }
+      }
+    },
+    {
+      "station": "loudness",
+      "project_id": "g2-6d2d7919",
+      "input_refs": [
+        "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+      ],
+      "id": "job-7551c06f5a99",
+      "status": "needs_human",
+      "attempts": 1,
+      "cost_micros": 0,
+      "error": "fail_quiet",
+      "created_at": "2026-09-02T00:56:18.397Z",
+      "updated_at": "2026-09-02T00:56:24.472Z",
+      "lease_owner": null,
+      "lease_expires_at": null,
+      "checksum_sha256": null,
+      "result": {
+        "target_lufs": -16.0,
+        "lra": 0.0,
+        "me_present": false,
+        "stems": "balanced",
+        "lufs": -70.0,
+        "verdict": "fail_quiet",
+        "true_peak_dbtp": -Infinity
+      }
+    },
+    {
+      "station": "delivery",
+      "project_id": "g2-6d2d7919",
+      "input_refs": [
+        "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4",
+        "projects/g2-6d2d7919/captions/valid.srt"
+      ],
+      "id": "job-270330a4fb06",
+      "status": "needs_human",
+      "attempts": 1,
+      "cost_micros": 0,
+      "error": "delivery_fail",
+      "created_at": "2026-09-02T00:56:26.279Z",
+      "updated_at": "2026-09-02T00:56:35.506Z",
+      "lease_owner": null,
+      "lease_expires_at": null,
+      "checksum_sha256": null,
+      "result": {
+        "delivery": {
+          "violations": [
+            {
+              "rule_id": "DEL-003",
+              "message": "ar 4:3 vs 16:9"
+            },
+            {
+              "rule_id": "DEL-006",
+              "message": "loudness -70.0 (fail_quiet)"
+            }
+          ],
+          "destination": "streaming",
+          "verdict": "fail",
+          "profile": {
+            "container": "mp4",
+            "captions_required": true,
+            "bitrate_max_kbps": 20000,
+            "fps_max": 30.0,
+            "ar": "16:9",
+            "codec": "h264",
+            "fps_min": 23.0,
+            "loudness_target_lufs": -16.0
+          }
+        },
+        "destination": "streaming",
+        "lufs": -70.0
+      }
+    },
+    {
+      "station": "pickups",
+      "project_id": "g2-6d2d7919",
+      "input_refs": [
+        "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+      ],
+      "id": "job-5e1b4afe3b23",
+      "status": "passed",
+      "attempts": 40,
+      "cost_micros": 0,
+      "error": null,
+      "created_at": "2026-09-02T00:56:37.234Z",
+      "updated_at": "2026-09-02T00:56:37.234Z",
+      "lease_owner": null,
+      "lease_expires_at": null,
+      "checksum_sha256": null,
+      "result": {}
+    },
+    {
+      "station": "spend",
+      "project_id": "g2-6d2d7919",
+      "input_refs": [],
+      "id": "job-1703e6658447",
+      "status": "throttled",
+      "attempts": 1,
+      "cost_micros": 0,
+      "error": "spend_enforced",
+      "created_at": "2026-09-02T00:56:37.677Z",
+      "updated_at": "2026-09-02T00:56:47.663Z",
+      "lease_owner": null,
+      "lease_expires_at": null,
+      "checksum_sha256": null,
+      "result": {
+        "actions": [
+          {
+            "grafana": {
+              "incident": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "create incident: calculateIncidentID: doCalculateIncidentID: Counter.Insert: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`grafana_incident`.`Counters`, CONSTRAINT `Counters_orgID_fk` FOREIGN KEY (`orgID`) REFERENCES `Org` (`orgID`) ON DELETE CASCADE ON UPDATE RESTRICT)"
+                  }
+                ],
+                "isError": true
+              },
+              "annotation": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\"Payload\":{\"id\":35,\"message\":\"Annotation added\"}}"
+                  }
+                ],
+                "isError": false
+              }
+            },
+            "action": "throttle",
+            "station": "pickups",
+            "approval_id": "ap-515ed80b091c"
+          }
+        ],
+        "jobs_scanned": 5
+      }
+    }
+  ],
+  "project": {
+    "project_id": "g2-6d2d7919",
+    "title": "g2-6d2d7919",
+    "created_at": "2026-09-02T00:56:06.518Z",
+    "station_counts": {
+      "ingest": 1,
+      "loudness": 1,
+      "delivery": 1,
+      "pickups": 1,
+      "spend": 1
+    },
+    "health": "healthy",
+    "jobs": [
+      {
+        "job_id": "job-d76c97d2c344",
+        "station": "ingest",
+        "project_id": "g2-6d2d7919",
+        "input_refs": [
+          "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+        ],
+        "status": "pass",
+        "attempts": 1,
+        "cost_micros": 0,
+        "error": null,
+        "checksum_sha256": "202459a82f3c557e08563a5a7d7bfbeecbe024ebfc1d23c3fa15160d14636bb2"
+      },
+      {
+        "job_id": "job-7551c06f5a99",
+        "station": "loudness",
+        "project_id": "g2-6d2d7919",
+        "input_refs": [
+          "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+        ],
+        "status": "needs_human",
+        "attempts": 1,
+        "cost_micros": 0,
+        "error": {
+          "code": "job_failed",
+          "message": "fail_quiet"
+        },
+        "checksum_sha256": null
+      },
+      {
+        "job_id": "job-270330a4fb06",
+        "station": "delivery",
+        "project_id": "g2-6d2d7919",
+        "input_refs": [
+          "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4",
+          "projects/g2-6d2d7919/captions/valid.srt"
+        ],
+        "status": "needs_human",
+        "attempts": 1,
+        "cost_micros": 0,
+        "error": {
+          "code": "job_failed",
+          "message": "delivery_fail"
+        },
+        "checksum_sha256": null
+      },
+      {
+        "job_id": "job-5e1b4afe3b23",
+        "station": "pickups",
+        "project_id": "g2-6d2d7919",
+        "input_refs": [
+          "projects/g2-6d2d7919/ingest/job-d76c97d2c344/slate.mp4"
+        ],
+        "status": "pass",
+        "attempts": 40,
+        "cost_micros": 0,
+        "error": null,
+        "checksum_sha256": null
+      },
+      {
+        "job_id": "job-1703e6658447",
+        "station": "spend",
+        "project_id": "g2-6d2d7919",
+        "input_refs": [],
+        "status": "throttled",
+        "attempts": 1,
+        "cost_micros": 0,
+        "error": {
+          "code": "job_failed",
+          "message": "spend_enforced"
+        },
+        "checksum_sha256": null
+      }
+    ]
+  },
+  "approvals": "{\"detail\":\"Not Found\"}",
+  "intake": {
+    "paused_stations": [
+      "pickups"
+    ],
+    "updated_at": "2026-09-02T00:56:43.576Z",
+    "reason": "runaway retries attempts=40"
+  },
+  "runaway_throttled": true,
+  "at": "2026-09-02T00:57:00.920Z"
+}

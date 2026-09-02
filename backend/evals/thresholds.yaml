@@ -1,0 +1,13 @@
+suites:
+  - name: pickups_flicker
+    metric: mean_flicker_score
+    threshold: 0.18
+    comparison: "<"
+  - name: pickups_vision_judge
+    metric: mean_vision_judge
+    threshold: 4.0
+    comparison: ">="
+  - name: pickups_artifact_rate
+    metric: artifact_rate
+    threshold: 0.08
+    comparison: "<"

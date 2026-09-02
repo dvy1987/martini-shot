@@ -1,0 +1,10 @@
+{"id":"p01","path":"fixtures/spike/shot-01-meadow.mp4","op":"background_swap","note":"G0 meadow INPUT"}
+{"id":"p02","path":"fixtures/spike/shot-02-grove.mp4","op":"background_swap","note":"G0 grove INPUT"}
+{"id":"p03","path":"fixtures/spike/shot-03-clearing.mp4","op":"outpaint_reframe","note":"G0 clearing INPUT"}
+{"id":"p04","path":"fixtures/g1/slate.mp4","op":"identity_qc","note":"G1 slate INPUT"}
+{"id":"p05","source":"fixtures/spike/shot-01-meadow.mp4","start_s":1,"duration_s":2,"op":"background_swap"}
+{"id":"p06","source":"fixtures/spike/shot-01-meadow.mp4","start_s":4,"duration_s":2,"op":"background_swap"}
+{"id":"p07","source":"fixtures/spike/shot-02-grove.mp4","start_s":1,"duration_s":2,"op":"outpaint_reframe"}
+{"id":"p08","source":"fixtures/spike/shot-02-grove.mp4","start_s":4,"duration_s":2,"op":"outpaint_reframe"}
+{"id":"p09","source":"fixtures/spike/shot-03-clearing.mp4","start_s":1,"duration_s":2,"op":"relight"}
+{"id":"p10","source":"fixtures/spike/shot-03-clearing.mp4","start_s":4,"duration_s":2,"op":"relight"}
