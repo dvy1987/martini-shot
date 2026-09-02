@@ -38,6 +38,8 @@
 
 | 2026-09-02 | brainstorming | docs/specs/2026-09-02-h0-approval-executor-design.md | Design spec for H-0 typed approval->action executor (Approach C: one dispatcher, two lanes; migrates Spend Control's act path) |
 
+| 2026-09-02 | implementation-plan | docs/plans/2026-09-02-h0b-budgeted-supervisor-plan.md | Engineering plan for H-0b budgeted autonomy loop (owner ruling in decision-log); flags 2 open engineering decisions (continuity remove-autonomy, per-night action-count cap) not covered by the ruling |
+
 ## Standing context pointers for any executing agent
 - Mission briefing: `ideas/AO-STATION-MAP.md` (read FIRST; Amendments A1–A3 binding)
 - Idea catalog: `ideas/IDEAS.md` · Track notes: `docs/grafana-track-notes.md`

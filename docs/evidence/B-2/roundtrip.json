@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-02T06:52:37Z",
+  "date": "2026-09-02T10:38:39Z",
   "mode": "oss",
   "server": "mcp-grafana v1.3.0 (stdio, SA token)",
   "tools_available": [
@@ -85,7 +85,7 @@
     "validate_provisioning_file"
   ],
   "search_dashboards_count": 43,
-  "promql_response": "{\"data\":[],\"hints\":{\"summary\":\"The Prometheus query returned no data for the specified time range.\",\"possibleCauses\":[\"The metric may not exist in this Prometheus instance\",\"The label selectors may not match any time series\",\"The time range may be outside when the metric was being scraped\",\"The scrape target may be down or not configured\"],\"suggestedActions\":[\"Use list_prometheus_metric_names to verify the metric exists\",\"Use list_prometheus_label_values to check available label values\",\"Try expanding the time range to see if data exists in a different period\",\"Verify the scrape configuration and target health in Prometheus\"],\"debug\":{\"timeRange\":\"2026-09-02T05:52:37Z to 2026-09-02T06:52:37Z\"}}}",
-  "annotation_created": "{\"Payload\":{\"id\":42,\"message\":\"Annotation added\"}}",
-  "annotation_readback_contains_job_id": "job_id=b2-f31454bd"
+  "promql_response": "{\"data\":[],\"hints\":{\"summary\":\"The Prometheus query returned no data for the specified time range.\",\"possibleCauses\":[\"The metric may not exist in this Prometheus instance\",\"The label selectors may not match any time series\",\"The time range may be outside when the metric was being scraped\",\"The scrape target may be down or not configured\"],\"suggestedActions\":[\"Use list_prometheus_metric_names to verify the metric exists\",\"Use list_prometheus_label_values to check available label values\",\"Try expanding the time range to see if data exists in a different period\",\"Verify the scrape configuration and target health in Prometheus\"],\"debug\":{\"timeRange\":\"2026-09-02T09:38:39Z to 2026-09-02T10:38:39Z\"}}}",
+  "annotation_created": "{\"Payload\":{\"id\":70,\"message\":\"Annotation added\"}}",
+  "annotation_readback_contains_job_id": "job_id=b2-eab5de1c"
 }

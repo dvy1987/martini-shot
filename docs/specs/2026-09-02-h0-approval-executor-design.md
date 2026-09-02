@@ -1,5 +1,5 @@
 # Design: H-0 Typed Approval→Action Executor
-Date: 2026-09-02 | Status: Approved (owner + agent, brainstorming chain) · Pre-mortem + adversarial review applied 2026-09-02 — findings folded into the contract below (see §Pre-mortem)
+Date: 2026-09-02 | Status: Approved (owner + agent, brainstorming chain) · Pre-mortem + adversarial review applied 2026-09-02 — findings folded into the contract below (see §Pre-mortem) · Amended 2026-09-02 for H-0b compatibility (general order-safety, locked-target guard — see inline "H-0b amendment" notes)
 
 ## Summary
 Today, approving anything in Martini Shot just flips a status label — nothing downstream executes. This design makes "approve" trigger a real action for every station, including Spend Control, through one shared, auditable dispatcher, so the Grafana-track demo has one genuine evidence→proposal→approval→action→QC loop instead of several half-finished ones.
@@ -26,7 +26,8 @@ command: {name: str, args: dict}   # what to do; args are command-specific
 lane: derived at dispatch time from the registry, NOT stored (avoids drift if a command's lane changes)
 acting_since: str | None           # ISO timestamp when status becomes "acting" (sweeper staleness check)
 result: dict                       # terminal outcome, same shape convention as Job.result
-approver: str | None               # reserved for H-3 Firebase identity; null until then
+approver: str | None               # human uid (H-3, Firebase) OR a system actor string (e.g. "system:supervisor_budget"); populating with a system actor is NOT blocked on H-3 — only verified human identity is
+decided_at: str                    # ISO timestamp of the proposed→approved (or →rejected) transition; the ordering key for the general order-safety guard below (H-0b amendment)
 ```
 
 `pc-jobs` (`backend/jobs/models.py`) gains one additive field:
@@ -51,8 +52,10 @@ def _generate_alternate(store, gcs, approval) -> Job: ...
 
 **Fail-closed registration rule:** registering `lane="fast"` without `idempotent=True` raises at import time. This operationalizes guardrail #1 as code, not a comment.
 
+**Locked-target guard (H-0b amendment, fail-closed):** any command whose target resolves to a `locked` resource (a shot/cut AL-1 marks locked) is refused **at dispatch time**, centrally, regardless of caller — human, Spend Control, or the H-0b deliberation loop. This is not left to each caller to "remember" to respect; the dispatcher checks it once, for everyone, the same way the fail-closed idempotency rule above is enforced once for everyone. AL-1 must expose a `locked: bool` (or equivalent) the dispatcher can read before it builds or submits any command.
+
 ### Dispatch flow
-1. `POST /api/v1/approvals/{id}/decision` (existing endpoint, `backend/api/spine.py`) calls one new `ApprovalStateMachine` module instead of writing status inline.
+1. `POST /api/v1/approvals/{id}/decision` (existing endpoint, `backend/api/spine.py`) calls one new `ApprovalStateMachine` module instead of writing status inline. The same module is directly callable from Python by non-HTTP callers (e.g. H-0b's deliberation job) — the HTTP endpoint is one caller of it, not the only one.
 2. **`reject`** → transactional `proposed→rejected` transition. No dispatch.
 3. **`approve`, fast command** → transactional `proposed→approved` transition (guard prevents double-dispatch on retried HTTP requests) → handler runs synchronously → transactional `approved→resolved|failed` with `result` → SSE + Grafana annotation.
 4. **`approve`, slow command** → transactional `proposed→approved` → handler builds and submits a `Job` with a **deterministic id** (`job_id = f"job-cmd-{approval_id}"`, so the existing `queue.submit()` idempotent-create-swallow logic — already in `backend/jobs/queue.py` — makes an accidental double-dispatch a no-op) → `approval.job_id` set, `status="acting"`, `acting_since=now` → SSE + Grafana annotation (proposal accepted, render started).
@@ -60,7 +63,9 @@ def _generate_alternate(store, gcs, approval) -> Job: ...
 6. **Sweeper:** one periodic task (same lifespan pattern as `_run_worker` in `backend/api/app.py`), tick ~10s. For every approval in `acting`:
    - Has `job_id` and that job is **terminal** (`passed`/`failed`/`quarantined`) but the approval wasn't updated (crash between job finishing and the hook running) → reconcile now, exactly once.
    - Has `job_id` and the job is **non-terminal** (`queued`/`leased` — including a worker that died mid-flight and the lease-expiry reassignment that follows) → **do nothing. Patience is the contract:** the approval follows the job's lifecycle and never shortcuts it. Auto-retrying a render is forbidden. Backstop: `acting` older than 15 minutes with the job still non-terminal → `failed` with `needs_human_review` (never auto-resume, never auto-retry).
-   - Has no `job_id` (fast lane) and `acting_since` older than ~30s → the fast action didn't finish (process died mid-call). Re-drive at most once per staleness window, capped at 3 sweep-retries, then `failed` with a note for human review. **Order-safety:** a re-drive yields to any newer decision on the same target resource — handlers receive the approval's `decided_at` and compare-and-skip when a newer decision already touched the target, marking the approval `failed: superseded` instead of replaying stale state. Never left silently stuck.
+   - Has no `job_id` (fast lane) and `acting_since` older than ~30s → the fast action didn't finish (process died mid-call). Re-drive at most once per staleness window, capped at 3 sweep-retries, then `failed` with a note for human review. Never left silently stuck.
+
+**Order-safety (H-0b amendment — generalized from "sweeper redrive" to a standing dispatch rule):** originally written for the sweeper's own re-drives, this is now a general guard because H-0b adds a second, continuously-running, real-time decision-maker — not just a single-threaded crash-recovery process. **Any** dispatch (sweeper redrive, or the deliberation loop about to act on a candidate) compares the target resource's most recent `decided_at` against its own approval's; if a newer decision has already touched the same target since this one was approved, this dispatch is skipped and the approval resolves `failed: superseded` instead of replaying stale state. **A human's decision is always the newest that matters:** the deliberation loop must never overrule a human's revert or decision on the same target within the same run — not because the loop is capped, but because a stale automated replay overruling a human on stage is exactly the failure this guard exists to prevent.
 
 `ApprovalStateMachine._transition` mirrors `FirestoreLeaseQueue._transition` (`@firestore.transactional`, guard-checked) — same proven pattern, new collection. One function is the only writer of approval status, `result`, SSE publish, and Grafana annotation, for **both** lanes — this is what keeps "one path everywhere" true instead of becoming two paths with extra steps.
 
@@ -102,6 +107,8 @@ TDD, RED-first, per project convention (`.agents/skills/test-driven-development/
 - Hook isolation: completion hook raises (approval doc deleted mid-flight) → the job's terminal write still lands; worker logs and continues.
 - Sweeper patience: watched job goes `leased` → worker killed (real subprocess) → lease expiry reassigns → approval remains `acting` throughout; resolves exactly once when the job turns terminal.
 - Order-safety: stale crashed `resume` re-drive with a newer `pause` decision on the same target → skipped, approval `failed: superseded`, intake stays paused.
+- Order-safety, general (H-0b amendment): a non-human (system-approved) decision on a target, followed by a human decision on the same target, followed by a late/stale dispatch of the earlier system decision → the stale one is skipped, the human's decision stands. Not just a sweeper-redrive scenario — a live second decision-maker racing a human in real time.
+- Locked-target guard (H-0b amendment): a command whose target resolves to `locked` → refused at dispatch, for every caller (human, Spend Control, or a system actor) — one central check, not per-caller discipline.
 - Emission outage: annotation/SSE raises after `approved` → transition still lands; sweeper reconciles without duplicate terminal annotations (exactly one per transition).
 - Single-writer enforcement: grep-test asserts no module outside `ApprovalStateMachine` writes `pc-approvals` status (same spirit as the C-1.2 integrity check).
 - Spend Control integration: seeded runaway → auto-throttle still uses the shared dispatcher; approving the resulting "resume" approval actually calls `resume_intake` (fixes today's no-op bug) — must not regress Gate G2's `test_run_spend_throttles_seeded_40x_runaway`.
@@ -119,7 +126,7 @@ Scene: Sep 8, demo day, the approval loop broke on stage. Ranked by impact × bl
 **One thing to do before code:** the retry source-state rule — it is the only finding that can silently violate exactly-once, the project's proudest guarantee.
 
 ## Non-Goals
-- Approver identity / Firebase sign-in (`decide_approval` still has no identity check) — stays deferred to H-3 / spec §7.2, unchanged by this design.
+- **Verified** human approver identity / Firebase sign-in (`decide_approval` still has no identity check) — stays deferred to H-3 / spec §7.2. This does **not** block populating `approver` with a system-actor string (e.g. H-0b's `"system:supervisor_budget"`) now — that's a plain string, not an identity-verification concern.
 - A serialization/locking layer across different approvals touching the same resource beyond making the underlying write atomic — explicit V1 limitation, not silently dropped (see Concurrency).
 - Migrating the supervisor's existing Grafana MCP autonomy-gated tools onto this executor.
 - Building the full future command catalogue (Corrections, Relight, Camera Language, Revision Room commands) now — only what D-9/AL-1/retry/pause/resume need ships in V1; new stations register new commands later without touching this module's core.
