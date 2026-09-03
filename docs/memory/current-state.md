@@ -8,8 +8,11 @@ evidence `docs/evidence/B-3/`), D-1 quarantine, loudness, delivery+captions, **S
 **G2 highlights:** Spend Control throttled a seeded 40× pickups runaway (intake paused, Spend
 approval opened, annotation id 35). Honest pack results (needs_human on silent/wrong-AR fixture —
 truthful, not faked). All gates green at each commit.
-**Known wart:** `create_incident` returns Grafana Cloud FK error (`Counters_orgID_fk`) — the
-throttle hold still landed; needs investigation before H-* (incident-driven) work.
+**Known wart:** `create_incident` FK error (`Counters_orgID_fk`) diagnosed 2026-09-02: the Incidents
+plugin IS installed and `list_incidents` works (empty) — its per-org DB was never initialized, so
+writes fail server-side. Fix = one-time init by opening Grafana Incidents in the browser (owner
+action). Code hardened meanwhile: Grafana emission is now best-effort in `spend/act.py`
+(commit-first/emit-after) and `list_incidents`/`get_incident` are wired in the MCP tool map.
 **Next queue:** G3 (generative gates: Veo/Omni quality bars), demo batch seed (E-3, 3 langs, billable),
 H-* supervisor chains, J-3 Replit hosting rehearsal, J-4/J-5 README + video, J-6 submission ≥24 h early.
 **Full handover:** `docs/plans/2026-09-01-post-command-handover.md` (rev 2) + latest `agent-handoffs.md` entry.

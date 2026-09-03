@@ -45,6 +45,8 @@ _TOOL_PREFERENCES: dict[str, tuple[str, ...]] = {
     "get_annotations": ("get_annotations",),
     "add_annotation": ("create_annotation", "add_annotation"),
     "create_incident": ("create_incident",),
+    "list_incidents": ("list_incidents",),
+    "get_incident": ("get_incident",),
 }
 
 

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from backend.approvals.machine import propose_approval
 from backend.core.firestore import FirestoreStore
 from backend.stations.spend.control import pause_intake
 from backend.supervisor.mcp import GrafanaMcpConnector
+
+log = logging.getLogger("pc.spend.act")
 
 
 def open_spend_approval(
@@ -59,17 +62,31 @@ def throttle_station(
     )
     grafana_out: dict[str, Any] = {}
     if grafana is not None:
+        # Commit-first, emit-after (pre-mortem): the hold and the approval are
+        # already committed; observability is best-effort and an outage must
+        # never fail the protective action or leave it half-reported.
         text = (
             f"spend throttle job_id={job_id or ''} project_id={project_id} "
             f"station={station} approval_id={approval_id} {reason}"
         )
-        grafana_out["annotation"] = grafana.add_annotation(
-            text, tags=["martini-shot", "spend", station]
-        )
-        grafana_out["incident"] = grafana.create_incident(
-            title=f"Spend Control throttled {station}",
-            severity="pending",
-        )
+        try:
+            grafana_out["annotation"] = grafana.add_annotation(
+                text, tags=["martini-shot", "spend", station]
+            )
+            grafana_out["incident"] = grafana.create_incident(
+                title=f"Spend Control throttled {station}",
+                severity="pending",
+            )
+        except Exception as exc:
+            log.exception(
+                "grafana emission failed after spend throttle",
+                extra={
+                    "approval_id": approval_id,
+                    "station": station,
+                    "project_id": project_id,
+                },
+            )
+            grafana_out["error"] = str(exc)[:200]
     return {
         "action": "throttle",
         "station": station,

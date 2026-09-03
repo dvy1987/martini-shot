@@ -86,6 +86,40 @@ def test_throttle_writes_approval_and_grafana() -> None:
     assert "create_incident" in names
 
 
+def test_throttle_survives_grafana_outage() -> None:
+    """Commit-first, emit-after (pre-mortem): a Grafana outage must never
+    fail the protective action — the hold and the approval are committed,
+    the observability writes are best-effort."""
+    store = _Store()
+    session = RecordingSession(
+        ["create_annotation", "create_incident", "list_datasources"]
+    )
+    original_call = session.call_tool
+
+    async def exploding(name: str, args: dict) -> dict:
+        if name in {"create_annotation", "add_annotation", "create_incident"}:
+            raise RuntimeError("grafana unavailable")
+        return await original_call(name, args)
+
+    session.call_tool = exploding  # type: ignore[method-assign]
+    connector = GrafanaMcpConnector._for_session(session)
+    result = throttle_station(
+        store,  # type: ignore[arg-type]
+        station="pickups",
+        project_id="g2-outage",
+        job_id="job-outage",
+        reason="runaway retries attempts=40",
+        grafana=connector,
+        cost_delta_micros=12,
+    )
+    assert result["action"] == "throttle"
+    approval = store.get_doc("pc-approvals", result["approval_id"])
+    assert approval is not None and approval["status"] == "proposed"
+    intake = store.get_doc("pc-control", "intake")
+    assert intake is not None and "pickups" in intake["paused_stations"]
+    assert result["grafana"].get("error"), "the outage must be recorded, not hidden"
+
+
 def test_run_spend_throttles_seeded_40x_runaway() -> None:
     from backend.core.config import Settings
     from backend.jobs.models import Job
