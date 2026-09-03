@@ -186,9 +186,10 @@ class FirestoreLeaseQueue:
     def requeue(self, job_id: str) -> bool:
         """Deliberate retry (H-0): re-queue a TERMINAL job only
         (failed/throttled/needs_human). Attempts reset to 0 — a fresh lease
-        budget; the prior attempts remain in audit via updated_at history and
-        the driving approval record. Mid-flight jobs are refused: that path
-        belongs to lease-expiry reassignment (pre-mortem finding #1)."""
+        budget — but the prior state lands in `retry_history` first
+        (peer-review fix: retries never erase their own evidence). Mid-flight
+        jobs are refused: that path belongs to lease-expiry reassignment
+        (pre-mortem finding #1)."""
         retryable = {"failed", "throttled", "needs_human"}
 
         @_firestore.transactional
@@ -199,6 +200,14 @@ class FirestoreLeaseQueue:
             job = Job.from_dict(snap.to_dict() or {})
             if job.status not in retryable:
                 return False
+            history = list(job.retry_history or [])
+            history.append(
+                {
+                    "from_status": job.status,
+                    "had_attempts": job.attempts,
+                    "at": utc_now_iso(),
+                }
+            )
             tx.update(
                 ref,
                 {
@@ -207,6 +216,7 @@ class FirestoreLeaseQueue:
                     "error": None,
                     "lease_owner": None,
                     "lease_expires_at": None,
+                    "retry_history": history,
                     "updated_at": utc_now_iso(),
                 },
             )

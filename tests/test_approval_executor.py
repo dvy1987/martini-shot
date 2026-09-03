@@ -14,6 +14,7 @@ import re
 import threading
 import uuid
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -22,7 +23,7 @@ from backend.approvals.commands import CommandRegistry
 from backend.approvals.machine import ApprovalConflict, ApprovalStateMachine
 from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
-from backend.jobs.worker import _persist
+from backend.jobs.worker import WORKER_ID, _persist
 from backend.stations.spend import control as intake_control
 
 pytestmark = pytest.mark.integration
@@ -178,6 +179,31 @@ def test_slow_command_creates_deterministic_job(env, approvals_col, jobs_col):
     assert doc is not None and doc["acting_since"]
 
 
+def test_slow_job_submitted_only_after_approval_is_acting(env, approvals_col, jobs_col):
+    """Peer-review fix: the job must never exist while the approval is still
+    'proposed' — a crash between the two writes would orphan a running render
+    with no approval watching it. Order: acting FIRST, then submit."""
+    h = Harness(env, approvals_col, jobs_col)
+    project_id = f"it-{uuid.uuid4().hex[:6]}"
+    status_at_submit: list[str] = []
+    real_submit = h.queue.submit
+
+    def spy_submit(job: Job) -> Any:
+        doc = env.get_doc(approvals_col, str(job.approval_id))
+        status_at_submit.append(str((doc or {}).get("status")))
+        return real_submit(job)
+
+    h.queue.submit = spy_submit  # type: ignore[method-assign]
+    h.register_slow("make_job", project_id)
+    approval_id = h.put_approval({"name": "make_job", "args": {}})
+
+    h.machine.dispatch(approval_id, "approve")
+
+    assert status_at_submit == ["acting"], (
+        f"job submitted while approval was {status_at_submit}"
+    )
+
+
 def test_worker_terminal_write_resolves_slow_approval(env, approvals_col, jobs_col):
     """Tranche 2 wiring: the worker's terminal write triggers the completion
     hook, and the slow-lane approval resolves exactly-once from job truth."""
@@ -188,7 +214,7 @@ def test_worker_terminal_write_resolves_slow_approval(env, approvals_col, jobs_c
     h.machine.dispatch(approval_id, "approve")
     job_id = f"job-cmd-{approval_id}"
 
-    job = h.queue.lease("test-worker", ["ingest"])
+    job = h.queue.lease(WORKER_ID, ["ingest"])  # same worker _persist completes as
     assert job is not None and job.id == job_id
     job.status = "passed"  # pretend the station ran and passed
     _persist(job, h.queue, on_terminal=h.machine.on_job_terminal)

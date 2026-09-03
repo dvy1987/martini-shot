@@ -4,11 +4,15 @@ Dispatch doubles record Grafana calls; they do not fake Grafana answers.
 Live queries live in tests/test_supervisor_tools_integration.py.
 """
 
+import pytest
+
 from backend.supervisor.autonomy import Autonomy
 from backend.supervisor.mcp import GrafanaMcpConnector
 from backend.supervisor.registry import ToolRegistry
 from backend.supervisor.tools import register_grafana_tools
 from tests.test_supervisor_mcp import RecordingSession
+
+pytestmark_integration = pytest.mark.integration
 
 
 def _wired(autonomy: Autonomy | None = None) -> tuple[ToolRegistry, RecordingSession]:
@@ -98,6 +102,39 @@ def test_act_mode_dispatches_annotation() -> None:
     assert result.get("refused") is not True
     names = [name for name, _ in session.calls]
     assert "create_annotation" in names
+
+
+def test_retry_job_tool_requeues_terminal_job() -> None:
+    """Peer-review fix: the supervisor's retry tool is REAL — it requeues a
+    terminal job through the lease queue (terminal-only, history kept)."""
+    import uuid
+
+    from backend.core.config import get_settings
+    from backend.core.firestore import get_firestore
+    from backend.jobs.models import Job
+    from backend.jobs.queue import FirestoreLeaseQueue
+    from backend.supervisor.agent import _make_tools
+
+    settings = get_settings()
+    assert settings.gcp_project_id, "real-service law C-6.2: GCP project required"
+    store = get_firestore(settings)
+    queue = FirestoreLeaseQueue(store, collection=f"it-jobs-{uuid.uuid4().hex[:10]}")
+    job = Job(station="ingest", project_id="it-x", input_refs=[])
+    queue.submit(job)
+    assert queue.lease("w-1", ["ingest"]) is not None
+    queue.fail(job.id, worker_id="w-1", error="boom")  # attempt 1 → auto-requeued
+    assert queue.lease("w-2", ["ingest"]) is not None
+    assert queue.fail(job.id, worker_id="w-2", error="boom") is True  # → terminal
+
+    registry = _make_tools(store, queue=queue)
+    out = registry.get("retry_job").fn(job_id=job.id)
+
+    assert out.get("requeued") is True
+    stored = queue.get(job.id)
+    assert stored is not None and stored.status == "queued"
+    assert queue.lease("w-3", ["ingest"]) is not None  # mid-flight now
+    refused = registry.get("retry_job").fn(job_id=job.id)
+    assert refused.get("error"), "mid-flight requeue must be refused"
 
 
 def test_build_supervisor_registers_injected_grafana_tools() -> None:

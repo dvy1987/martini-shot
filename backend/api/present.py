@@ -78,4 +78,11 @@ def approval_to_api(doc: dict[str, object]) -> dict[str, object]:
         "cost_delta_micros": doc.get("cost_delta_micros"),
         "created_at": str(doc.get("created_at") or ""),
         "status": str(doc.get("status") or "proposed"),
+        # Watchdog/decision outcome (peer-review fix): the UI renders WHY an
+        # approval ended, including sweeper redrive and human-review flags.
+        "result": doc.get("result"),
+        "approver": doc.get("approver"),
+        "decided_at": doc.get("decided_at"),
+        "decision_reason": doc.get("decision_reason"),
+        "sweep_retries": doc.get("sweep_retries"),
     }

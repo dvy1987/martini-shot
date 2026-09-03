@@ -6,6 +6,17 @@ status (same proven pattern as FirestoreLeaseQueue._transition). Emission
 commits: a Grafana outage can strand nothing (pre-mortem clause: commit-first,
 emit-after). The completion hook is a projection, not truth — job state is the
 source of truth and a hook failure can never alter a job's own outcome.
+
+Delivery guarantees, stated precisely (peer-review 2026-09-03):
+- SLOW lane: exactly-once. Deterministic job id makes submit idempotent; the
+  guarded proposed→acting transition admits one owner; the completion hook and
+  the sweeper reconcile from job truth only.
+- FAST lane: at-least-once with mandatory idempotency (fail-closed registry
+  rule). The handler runs after the guarded proposed→approved transition, but
+  a crash between handler and resolve — or a redrive — can run the handler
+  again; doing so twice must be harmless by construction. The redrive claims
+  via guarded approved→acting so concurrent sweepers cannot double-dispatch,
+  and targeted commands re-check order-safety at execution time.
 """
 
 from __future__ import annotations
@@ -50,6 +61,13 @@ class ApprovalNotFound(RuntimeError):
     """No such approval document."""
 
 
+# Order-safety lives in its own module (no import cycle with commands.py);
+# re-exported here for the machine's and callers' convenience.
+from backend.approvals.orders import (  # noqa: E402
+    SupersededError,
+)
+
+
 @dataclass
 class DispatchContext:
     """What a command handler may touch. Nothing else."""
@@ -57,6 +75,7 @@ class DispatchContext:
     store: Any
     queue: Any
     settings: Any = None
+    collection: str | None = None  # approvals collection, for order-safety checks
 
 
 class ApprovalStateMachine:
@@ -155,9 +174,24 @@ class ApprovalStateMachine:
                 "decided_at": utc_now_iso(),
             },
         )
-        ctx = DispatchContext(store=self._store, queue=self._queue)
+        # Re-fetch: the handler (and its order-safety check) must see the
+        # COMMITTED doc — including the decided_at the transition just wrote.
+        doc = self._store.get_doc(self._collection, approval_id) or doc
+        ctx = DispatchContext(
+            store=self._store, queue=self._queue, collection=self._collection
+        )
         try:
             outcome = cmd.fn(ctx, doc)
+        except SupersededError as exc:
+            log.warning("command %s superseded: %s", cmd.name, exc)
+            self._transition(
+                approval_id,
+                "approved",
+                {"status": "failed", "result": {"ok": False, "superseded": True}},
+            )
+            merged = self._store.get_doc(self._collection, approval_id) or {}
+            self._emit(merged, "failed")
+            return merged
         except Exception as exc:  # handler failure is a terminal state
             log.exception("command %s failed", cmd.name)
             self._transition(
@@ -182,7 +216,12 @@ class ApprovalStateMachine:
             job = outcome
             job.id = f"job-cmd-{approval_id}"
             job.approval_id = approval_id
-            self._queue.submit(job)  # idempotent per deterministic id
+            # Acting FIRST, submit second (peer-review fix): the job must
+            # never exist while the approval is still 'proposed' — a crash
+            # between the writes would orphan a running render. If we crash
+            # after the transition instead, the approval is 'acting' with a
+            # deterministic job id and the sweeper backstops or resubmits
+            # from the job_spec snapshot (submit is idempotent per id).
             self._transition(
                 approval_id,
                 "approved",
@@ -190,8 +229,14 @@ class ApprovalStateMachine:
                     "status": "acting",
                     "job_id": job.id,
                     "acting_since": utc_now_iso(),
+                    "job_spec": {
+                        "station": job.station,
+                        "project_id": job.project_id,
+                        "input_refs": list(job.input_refs),
+                    },
                 },
             )
+            self._queue.submit(job)  # idempotent per deterministic id
         merged = self._store.get_doc(self._collection, approval_id) or {}
         self._emit(merged, str(merged.get("status") or ""))
         return merged
@@ -220,18 +265,41 @@ class ApprovalStateMachine:
                 f"command {command.get('name')!r} is not fast; refusing redrive"
             )
         retries = int(doc.get("sweep_retries") or 0)
-        ctx = DispatchContext(store=self._store, queue=self._queue)
+        # Claim transition (peer-review fix): approved→acting is guarded, so
+        # two concurrent sweepers cannot both run the handler; a crash after
+        # the claim leaves an 'acting' approval the 15-min backstop catches.
+        self._transition(
+            approval_id,
+            "approved",
+            {
+                "status": "acting",
+                "acting_since": utc_now_iso(),
+                "sweep_retries": retries + 1,
+            },
+        )
+        ctx = DispatchContext(
+            store=self._store, queue=self._queue, collection=self._collection
+        )
         try:
             outcome = cmd.fn(ctx, doc)
+        except SupersededError as exc:
+            log.warning("redrive of %s superseded: %s", cmd.name, exc)
+            self._transition(
+                approval_id,
+                "acting",
+                {"status": "failed", "result": {"ok": False, "superseded": True}},
+            )
+            merged = self._store.get_doc(self._collection, approval_id) or {}
+            self._emit(merged, "failed")
+            return merged
         except Exception as exc:
             log.exception("redrive of %s failed", cmd.name)
             self._transition(
                 approval_id,
-                "approved",
+                "acting",
                 {
                     "status": "failed",
                     "result": {"ok": False, "error": str(exc)[:300]},
-                    "sweep_retries": retries + 1,
                 },
             )
             merged = self._store.get_doc(self._collection, approval_id) or {}
@@ -242,8 +310,8 @@ class ApprovalStateMachine:
             payload.update(outcome)
         self._transition(
             approval_id,
-            "approved",
-            {"status": "resolved", "result": payload, "sweep_retries": retries + 1},
+            "acting",
+            {"status": "resolved", "result": payload},
         )
         merged = self._store.get_doc(self._collection, approval_id) or {}
         self._emit(merged, "resolved")

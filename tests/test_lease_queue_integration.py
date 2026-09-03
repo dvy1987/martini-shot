@@ -105,6 +105,27 @@ def test_fail_requeues_then_goes_dead(queue: FirestoreLeaseQueue) -> None:
     assert stored.error == "boom"
 
 
+def test_requeue_keeps_retry_audit_history(queue: FirestoreLeaseQueue) -> None:
+    """Peer-review fix: a deliberate retry must not erase the evidence —
+    every prior lease budget lands in retry_history on the job document."""
+    job = Job(station="ingest", project_id="it-x", input_refs=[])
+    queue.submit(job)
+    assert queue.lease(worker_id="w-1", stations=["ingest"]) is not None
+    queue.fail(job.id, worker_id="w-1", error="boom")  # attempt 1 → auto-requeued
+    assert queue.lease(worker_id="w-2", stations=["ingest"]) is not None
+    assert queue.fail(job.id, worker_id="w-2", error="boom") is True  # → terminal
+
+    assert queue.requeue(job.id) is True
+    stored = queue.get(job.id)
+    assert stored is not None and stored.status == "queued"
+    assert stored.attempts == 0, "fresh lease budget"
+    history = stored.retry_history or []
+    assert len(history) == 1
+    assert history[0]["from_status"] == "failed"
+    assert history[0]["had_attempts"] >= 1
+    assert history[0]["at"]
+
+
 def test_heartbeat_extends_lease_only_for_owner(
     queue: FirestoreLeaseQueue,
 ) -> None:

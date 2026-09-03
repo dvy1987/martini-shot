@@ -34,6 +34,7 @@ export interface Job {
 
 export type SseEvent =
   | { type: "job.updated"; payload: { job: Job }; at: string }
+  | { type: "approval.updated"; payload: Partial<Approval>; at: string }
   | {
       type: "incident.opened";
       payload: { incident_id: string; job_id?: string; severity: string; title: string };
@@ -43,7 +44,13 @@ export type SseEvent =
   | { type: string; payload: unknown; at: string };
 
 export type ApprovalKind = "fix" | "spend";
-export type ApprovalStatus = "proposed" | "approved" | "rejected" | "acting" | "resolved";
+export type ApprovalStatus =
+  | "proposed"
+  | "approved"
+  | "rejected"
+  | "acting"
+  | "resolved"
+  | "failed";
 
 export interface Approval {
   approval_id: string;
@@ -57,6 +64,11 @@ export interface Approval {
   cost_delta_micros?: number;
   created_at: string;
   status: ApprovalStatus;
+  result?: Record<string, unknown> | null;
+  approver?: string | null;
+  decided_at?: string | null;
+  decision_reason?: string | null;
+  sweep_retries?: number | null;
 }
 
 export interface ReportVerdict {

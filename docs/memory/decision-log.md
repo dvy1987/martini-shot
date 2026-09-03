@@ -1,5 +1,95 @@
 # Decision Log
 
+## 2026-09-03 - Peer-review hardening pass on the approval executor (H-0)
+Status: active
+Scope: project
+Confidence: high
+
+A second agent reviewed the executor implementation; every finding was verified against the code before acting.
+
+**Real, fixed (TDD, each with a failing-test-first):**
+1. Slow-lane orphan: job was submitted before the approval moved to acting → a crash between the writes
+   strands a running render with no watcher. Now: acting FIRST (with deterministic job_id + job_spec
+   snapshot), submit second (idempotent); the sweeper resubmits a missing job from the snapshot.
+2. Retryable failures reported as terminal: queue.fail auto-requeues while attempts remain, but the
+   worker's hook reported the local stale copy to the approval. Now the hook fires only from the
+   queue's authoritative state (re-fetch after every terminal write); requeued jobs stay silent.
+3. Lost-lease writes ignored: a stale worker could resolve an approval from rejected writes. Same fix
+   as (2): authoritative re-fetch; lost-lease → no hook.
+4. Fast-lane "exactly once" overstated: redrive had a check-then-act window. Now the redrive claims
+   via guarded approved→acting transition (concurrent sweepers conflict), AND the intake commands
+   re-check order-safety at execution time (`backend/approvals/orders.py`, fail-closed when freshness
+   is unprovable). Language corrected: fast lane is at-least-once with mandatory idempotency; slow
+   lane is exactly-once.
+5. Watchdog invisible in UX: approval presenter now exposes result/approver/decided_at/decision_reason/
+   sweep_retries; TS union includes "failed"; App.tsx handles approval.updated SSE events.
+6. Retry history erased: requeue now appends retry_history {from_status, had_attempts, at} before the
+   attempts reset.
+7. Supervisor retry tool was `NotImplementedError` in production: now genuinely wired through the
+   terminal-only requeue (mid-flight refused), with an integration test.
+
+**Recorded, not code:**
+8. D-5 relabeled "identity/detector baseline eval": pickups_eval.py runs the flicker detector on
+   labeled inputs with no model call ($0). thresholds.yaml's pickups_vision_judge/artifact_rate bars
+   stay DECLARED but are not yet executable — they activate when real generative outputs exist.
+   Generative pickups eval remains owed; do not present D-5 as a generative evaluation.
+9. SSE is in-process (single Cloud Run instance). Deployment must pin max-instances=1 until/unless a
+   Firestore-backed fanout replaces EventHub. Acceptable for demo scale; revisit if multi-instance.
+10. `approver` records "dev" on the API path until H-3 (sign-in LAST, owner ruling); acceptable while
+    the product is private/local only.
+
+## 2026-09-03 - Supervisor becomes a hierarchical multi-agent specialist team (Amendment A9)
+Status: active
+Scope: project
+Confidence: high
+Tags: architecture, multi-agent, adk, supervisor, h0b, h1
+
+### Decision
+The Post Supervisor is no longer one monolithic `LlmAgent`. It becomes a team: Post Supervisor
+(routes + synthesizes) delegates to parallel specialists — Reliability Investigator, Delivery QC
+Agent, Spend Guardian (Localization Agent deferred until E-2 ships) — each returning typed findings
+(claims + evidence citations + proposed actions) with **zero act-class tools**; a Verification Agent
+hard-filters unsupported/stale/resolved claims before synthesis; only H-0 executes anything. Stage
+1a adds Continuity, Creative Finishing, and Visual QC agents once AL-1+D-9 land. Full design:
+`docs/plans/2026-09-03-multiagent-supervisor-plan.md`. Amends (does not rewrite) H-0b's plan of
+record: only step 2 ("collect candidates") changes source — H-0b's owner rulings (no action-count
+cap, envelope covers continuity, self-correction can't re-fight a human) stand verbatim.
+
+### Context
+Owner: "the current martini-shot is not a multiagent flow but the hackathon agent needs multi-agent
+flow" — a second agent's proposal (hierarchical specialist team, 8-step build order) was reviewed
+critically rather than adopted verbatim, per the owner's explicit instruction not to follow it
+blindly. The shape (specialists as professional-judgment domains, not one-per-station; typed
+findings; only H-0 acts; visible disagreement in the FE) was validated as sound and kept.
+
+### What I changed from the source proposal, and why
+1. **Localization Agent deferred to E-2** — no dubbed artifact exists yet; an agent with nothing
+   real to judge is an empty shell, not a stubbed capability, but still a wasted build slot.
+2. **No ADK `Runner`/`sub_agents` transfer of control** — grep-verified nothing in this repo has ever
+   invoked an ADK `Runner`; `build_supervisor()`'s `LlmAgent` has zero callers today. The one proven
+   live-call pattern is `otel_ai.py::run_supervisor_text` (direct `genai.Client`, proven in B-3
+   evidence). `google-genai==2.20.0` (installed, version-checked) already supports plain-callable
+   tools + `responseSchema` structured output — extending the proven pattern is lower-risk than a new
+   ADK Runner/session integration under a 5-day runway.
+3. **Parallelism is real `asyncio.gather`**, not dependent on Gemini emitting parallel tool calls —
+   makes specialist routing TDD-testable (deterministic table), not an LLM decision.
+4. **Verification's rejection is a hard filter** (excluded, not down-weighted) — mirrors the
+   reversibility rule the owner already set in H-0b.
+5. **H-0b's document is amended in place** (one addendum section), not rewritten.
+
+### Alternatives considered
+- Adopt the proposal verbatim, including ADK `sub_agents`/`AgentTool` control transfer — rejected:
+  bigger, riskier lift with zero prior art in this codebase, and full conversational control-transfer
+  is harder to force back to the supervisor for synthesis than a deterministic Python fan-out/fan-in.
+- Build Localization Agent now as a placeholder — rejected: nothing real for it to specialize in
+  until E-2; ships in the same slice as Dub QC instead.
+
+### Revisit triggers
+- If a live interactive agent-chat surface is scoped later, revisit ADK `Runner`+`sub_agents` (real,
+  available, just unused here).
+- If E-2 (Dub QC) timeline slips past the multi-agent slice, re-confirm Localization Agent still
+  waits rather than shipping early with fabricated dub-quality signals.
+
 ## 2026-09-02 - Budgeted autonomy: supervisor acts freely inside a $20 envelope (owner ruling)
 Status: active
 Scope: project

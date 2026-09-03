@@ -50,6 +50,9 @@ class Job:
     checksum_sha256: str | None = None
     approval_id: str | None = None
     result: dict[str, Any] = field(default_factory=dict)
+    # Audit trail of deliberate retries (H-0 peer-review fix): each requeue
+    # appends {from_status, had_attempts, at} BEFORE the attempts reset.
+    retry_history: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

@@ -22,6 +22,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from backend.approvals.machine import APPROVALS, ApprovalStateMachine
+from backend.approvals.orders import newer_decision_exists
+from backend.jobs.models import Job
 from backend.jobs.queue import FirestoreLeaseQueue
 
 log = logging.getLogger("pc.approvals.sweeper")
@@ -30,9 +32,6 @@ FAST_REDRIVE_AFTER = timedelta(seconds=30)
 STALE_ACTING_AFTER = timedelta(minutes=15)
 MAX_SWEEP_RETRIES = 3
 JOB_TERMINAL = {"passed", "failed", "quarantined"}
-# Commands that target a shared mutable resource the order-safety guard
-# understands today (intake pause flags). New target types extend this.
-TARGETED_COMMANDS = {"pause_intake", "resume_intake"}
 
 
 def _parse_iso(value: object) -> datetime | None:
@@ -52,32 +51,30 @@ def _age_past(value: object, limit: timedelta, now: datetime) -> bool:
 
 
 def _superseded(store: Any, collection: str, doc: dict[str, Any]) -> bool:
-    """True when a NEWER decision already touched the same target."""
-    command = doc.get("command") or {}
-    if command.get("name") not in TARGETED_COMMANDS:
+    """True when a NEWER decision already touched the same target.
+    Delegates to the shared helper the command handlers also use
+    (execution-time re-check closes the check-then-act window)."""
+    return newer_decision_exists(store, collection, doc)
+
+
+def _resubmit_missing_job(
+    queue: FirestoreLeaseQueue, doc: dict[str, Any], job_id: str
+) -> bool:
+    """Acting-with-missing-job recovery (peer-review fix): the approval moved
+    to acting before the submit landed. The deterministic id makes resubmit
+    idempotent; the job_spec snapshot on the approval carries the payload."""
+    spec = doc.get("job_spec") or {}
+    if not spec.get("station"):
         return False
-    station = (command.get("args") or {}).get("station")
-    if station is None:
-        return False
-    mine = str(doc.get("decided_at") or "")
-    try:
-        rows = store.list_where(collection, "project_id", doc.get("project_id"))
-    except Exception:
-        log.exception("superseded check failed; refusing to redrive")
-        return True  # fail-closed: can't prove freshness -> don't act
-    for row in rows:
-        if row.get("approval_id") == doc.get("approval_id"):
-            continue
-        other = row.get("command") or {}
-        if other.get("name") not in TARGETED_COMMANDS:
-            continue
-        if (other.get("args") or {}).get("station") != station:
-            continue
-        if row.get("status") == "proposed":
-            continue
-        if str(row.get("decided_at") or "") > mine:
-            return True
-    return False
+    job = Job(
+        id=job_id,
+        station=str(spec["station"]),
+        project_id=str(spec.get("project_id") or doc.get("project_id") or ""),
+        input_refs=list(spec.get("input_refs") or []),
+        approval_id=job_id.removeprefix("job-cmd-"),
+    )
+    queue.submit(job)
+    return True
 
 
 def sweep_once(
@@ -104,6 +101,11 @@ def sweep_once(
         if status == "acting":
             job_id = str(doc.get("job_id") or "")
             job = queue.get(job_id) if job_id else None
+            if job is None and job_id and doc.get("job_spec"):
+                # Crash between acting-transition and submit: recover.
+                if _resubmit_missing_job(queue, doc, job_id):
+                    job = queue.get(job_id)
+                    summary["redriven"] += 1
             if job is not None and job.status in JOB_TERMINAL:
                 # Crash between the job's terminal write and the hook.
                 if machine.on_job_terminal(job):

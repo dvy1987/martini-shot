@@ -11,6 +11,7 @@ from google.adk.agents import LlmAgent
 from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore, get_firestore
 from backend.core.models import TEXT_MODEL
+from backend.jobs.queue import FirestoreLeaseQueue
 from backend.supervisor.autonomy import Autonomy, AutonomyMode
 from backend.supervisor.mcp import GrafanaMcpConnector
 from backend.supervisor.registry import ToolRegistry
@@ -33,8 +34,11 @@ Rules you never break:
 """
 
 
-def _make_tools(store: FirestoreStore) -> ToolRegistry:
+def _make_tools(
+    store: FirestoreStore, queue: FirestoreLeaseQueue | None = None
+) -> ToolRegistry:
     registry = ToolRegistry()
+    queue = queue or FirestoreLeaseQueue(store)
 
     @registry.tool(description="Read a job document by job_id from the lease queue")
     def read_job(job_id: str) -> dict:
@@ -60,7 +64,21 @@ def _make_tools(store: FirestoreStore) -> ToolRegistry:
         act=True,
     )
     def retry_job(job_id: str) -> dict:
-        raise NotImplementedError("wired through the lease queue in a later task")
+        """Deliberate retry through the lease queue's terminal-only requeue
+        (H-0): mid-flight jobs are refused, history is kept."""
+        if not queue.requeue(job_id):
+            return {
+                "error": (
+                    f"job {job_id} not retryable (missing, mid-flight, or "
+                    "not in failed/throttled/needs_human)"
+                )
+            }
+        stored = queue.get(job_id)
+        return {
+            "requeued": True,
+            "job_id": job_id,
+            "status": stored.status if stored is not None else "queued",
+        }
 
     return registry
 

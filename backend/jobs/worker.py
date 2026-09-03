@@ -76,7 +76,7 @@ def _persist(
         extra["checksum_sha256"] = job.checksum_sha256
     if job.status == "quarantined":
         queue.quarantine(job.id, WORKER_ID, job.error or "quarantined", extra=extra)
-        _notify_terminal(on_terminal, job)
+        _authoritative(queue, job, on_terminal)
         return
     if job.status in {"throttled", "needs_human"}:
         queue.close(
@@ -87,11 +87,25 @@ def _persist(
             error=job.error,
             extra=extra,
         )
-        _notify_terminal(on_terminal, job)
+        _authoritative(queue, job, on_terminal)
         return
     queue.complete(job.id, WORKER_ID, job.cost_micros, extra=extra)
     job.status = "passed"
-    _notify_terminal(on_terminal, job)
+    _authoritative(queue, job, on_terminal)
+
+
+def _authoritative(
+    queue: FirestoreLeaseQueue, job: Job, on_terminal: OnTerminal | None
+) -> None:
+    """Peer-review fix: the hook fires only from the QUEUE's truth. A stale
+    worker that lost its lease, or whose fail was converted into an automatic
+    requeue, must never report a terminal state from its local copy."""
+    if on_terminal is None:
+        return
+    stored = queue.get(job.id)
+    state = stored if stored is not None else job
+    if state.status in {"passed", "failed", "quarantined"}:
+        _notify_terminal(on_terminal, state)
 
 
 def _finish_claimed(
@@ -129,7 +143,9 @@ def _finish_claimed(
         queue.fail(job.id, WORKER_ID, str(exc)[:200])
         job.status = "failed"
         job.error = str(exc)[:200]
-        _notify_terminal(on_terminal, job)
+        # queue.fail may have REQUEUED the job (attempts remaining) — only
+        # report terminal when the queue's authoritative state is terminal.
+        _authoritative(queue, job, on_terminal)
         raise
 
 

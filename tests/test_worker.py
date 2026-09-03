@@ -16,6 +16,10 @@ class _Queue:
         self.job = job
         self.store = object()
         self.calls: list[tuple[object, ...]] = []
+        self.authoritative: Job | None = None  # what queue.get() returns
+
+    def get(self, job_id: str) -> Job | None:
+        return self.authoritative
 
     def lease(self, worker_id: str, stations: list[str]) -> Job | None:
         self.calls.append(("lease", worker_id, tuple(stations)))
@@ -194,3 +198,50 @@ def test_worker_loop_calls_completion_hook_on_fail() -> None:
     asyncio.run(run())
     assert any(call[0] == "fail" for call in q.calls)
     assert seen and seen[0].status == "failed"
+
+
+# -- Peer-review fixes: the hook reports the QUEUE's truth, not local copies --
+
+
+def test_requeued_job_never_reports_terminal_to_hook(monkeypatch) -> None:
+    """queue.fail requeues when attempts remain: the hook must see the real
+    state (queued), not the worker's stale local 'failed' copy."""
+    import backend.jobs.worker as worker_mod
+
+    seen: list[Job] = []
+    job = Job(station="loudness", project_id="p", input_refs=["k"])
+    q = _Queue(job)
+    q.authoritative = Job(station="loudness", project_id="p", input_refs=["k"])
+    q.authoritative.status = "queued"  # queue.fail requeued it
+
+    def boom_execute(*args: object, **kwargs: object) -> Job:
+        raise RuntimeError("station exploded")
+
+    monkeypatch.setattr(worker_mod, "execute", boom_execute)
+    with pytest.raises(RuntimeError):
+        process_job_id(q, None, None, job.id, on_terminal=seen.append)  # type: ignore[arg-type]
+    assert any(call[0] == "fail" for call in q.calls)
+    assert seen == [], "a requeued job is NOT terminal — the hook must stay silent"
+
+
+def test_hook_uses_authoritative_job_when_terminal_write_wins() -> None:
+    seen: list[Job] = []
+    job = Job(station="loudness", project_id="p", input_refs=["k"])
+    q = _Queue(job)
+    q.authoritative = Job(station="loudness", project_id="p", input_refs=["k"])
+    q.authoritative.status = "passed"
+    _persist(job, q, on_terminal=seen.append)  # type: ignore[arg-type]
+    assert seen and seen[0].status == "passed"
+
+
+def test_hook_silent_when_terminal_write_loses_the_lease() -> None:
+    """A stale worker whose completion write was rejected must not resolve
+    the approval from its stale copy."""
+    seen: list[Job] = []
+    job = Job(station="loudness", project_id="p", input_refs=["k"])
+    q = _Queue(job)
+    q.complete = lambda *a, **kw: False  # type: ignore[method-assign]
+    q.authoritative = Job(station="loudness", project_id="p", input_refs=["k"])
+    q.authoritative.status = "leased"  # another worker owns it now
+    _persist(job, q, on_terminal=seen.append)  # type: ignore[arg-type]
+    assert seen == [], "lost lease: no hook from stale state"

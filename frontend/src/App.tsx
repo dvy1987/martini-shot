@@ -14,7 +14,7 @@ import { jobFromSseEvent, upsertJob } from "@/lib/timeline";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
-import type { BackendReach, Project, SseEvent } from "@/types/api";
+import type { Approval, BackendReach, Project, SseEvent } from "@/types/api";
 
 function backendReach(health: { isPending: boolean; isSuccess: boolean }): BackendReach {
   if (health.isPending) return "checking";
@@ -60,6 +60,19 @@ export default function App() {
 
   const handleSseEvent = useCallback(
     (event: SseEvent) => {
+      if (event.type === "approval.updated") {
+        const approval = event.payload as Partial<Approval> & { approval_id?: string };
+        if (!approval.approval_id) return;
+        queryClient.setQueryData<Approval[]>(["approvals"], (rows) => {
+          const current = rows ?? [];
+          const existing = current.find((row) => row.approval_id === approval.approval_id);
+          if (!existing) return current;
+          return current.map((row) =>
+            row.approval_id === approval.approval_id ? { ...row, ...approval } : row,
+          );
+        });
+        return;
+      }
       const job = jobFromSseEvent(event);
       if (!job || !selectedProjectId || job.project_id !== selectedProjectId) return;
 

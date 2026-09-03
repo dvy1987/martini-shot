@@ -164,6 +164,63 @@ def test_sweeper_caps_redrive_at_three_then_fails(env, approvals_col, jobs_col):
     assert summary["redriven"] == 0 and summary["failed_stale"] == 1
 
 
+def test_sweeper_resubmits_missing_job_from_snapshot(env, approvals_col, jobs_col):
+    """Crash between the acting-transition and the submit: the deterministic
+    id + job_spec snapshot make recovery an idempotent resubmit."""
+    h = Harness(env, approvals_col, jobs_col)
+    project_id = f"it-{uuid.uuid4().hex[:6]}"
+    h.register_slow("make_job", project_id)
+    approval_id = h.put_approval({"name": "make_job", "args": {}})
+    h.machine.dispatch(approval_id, "approve")
+    job_id = f"job-cmd-{approval_id}"
+    env.delete_doc(jobs_col, job_id)  # simulate the submit never landing
+
+    summary = sweep_once(env, h.queue, h.machine, collection=approvals_col)
+
+    job = h.queue.get(job_id)
+    assert job is not None, "sweeper must resubmit the missing job from job_spec"
+    assert job.approval_id == approval_id
+    assert summary["redriven"] == 1
+    doc = env.get_doc(approvals_col, approval_id)
+    assert doc is not None and doc["status"] == "acting", "still watching the job"
+
+
+def test_stale_resume_handler_refuses_to_replay_over_newer_pause(
+    env, approvals_col, jobs_col
+):
+    """Even a direct redrive (no sweeper check) must not replay a stale
+    resume over a newer pause: the COMMAND itself checks at execution time,
+    closing the check-then-act window."""
+    h = Harness(env, approvals_col, jobs_col)
+    pid = f"it-{uuid.uuid4().hex[:6]}"
+    stale_resume = _fast_crash(
+        h,
+        {"name": "resume_intake", "args": {"station": "ingest"}},
+        decided_at=_iso_minus(5),
+        project_id=pid,
+    )
+    newer_pause = propose_approval(
+        h.store,
+        {
+            "project_id": pid,
+            "kind": "fix",
+            "title": "t",
+            "command": {"name": "pause_intake", "args": {"station": "ingest"}},
+        },
+        collection=h.approvals_col,
+    )
+    h.machine.dispatch(newer_pause, "approve", approver="human-1")
+    assert intake_control.is_intake_paused(env, "ingest") is True
+
+    out = h.machine.redrive_fast(stale_resume)
+
+    assert out["status"] == "failed"
+    assert out["result"].get("superseded") is True
+    assert intake_control.is_intake_paused(env, "ingest") is True, (
+        "execution-time order-safety: the newer human pause stands"
+    )
+
+
 def test_sweeper_redrive_yields_to_newer_decision_on_same_target(
     env, approvals_col, jobs_col
 ):

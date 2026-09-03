@@ -18,6 +18,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from backend.approvals.orders import SupersededError, newer_decision_exists
 from backend.stations.spend import control as intake_control
 
 RETRYABLE_STATUSES = {"failed", "throttled", "needs_human"}
@@ -58,7 +59,20 @@ class CommandRegistry:
         return self._commands.get(name)
 
 
+def _require_fresh(ctx, approval: dict) -> None:
+    """Execution-time order-safety (peer-review fix): the sweeper's pre-check
+    leaves a check-then-act window; the handler re-checks at the moment it
+    acts, so a stale replay can never clobber a newer decision."""
+    if ctx.collection is None:
+        return
+    if newer_decision_exists(ctx.store, ctx.collection, approval):
+        raise SupersededError(
+            "a newer decision already touched this target; refusing stale replay"
+        )
+
+
 def _pause_intake(ctx, approval: dict) -> dict:
+    _require_fresh(ctx, approval)
     args = approval.get("command", {}).get("args", {}) or {}
     station = str(args.get("station") or "ingest")
     reason = str(args.get("reason") or f"approved {approval.get('approval_id')}")
@@ -67,6 +81,7 @@ def _pause_intake(ctx, approval: dict) -> dict:
 
 
 def _resume_intake(ctx, approval: dict) -> dict:
+    _require_fresh(ctx, approval)
     args = approval.get("command", {}).get("args", {}) or {}
     station = str(args.get("station") or "ingest")
     intake_control.resume_intake(ctx.store, station)

@@ -87,3 +87,28 @@ def test_approval_presenter_keeps_kind_and_proposed_status() -> None:
     assert body["kind"] == "spend"
     assert body["status"] == "proposed"
     assert body["cost_delta_micros"] == 4000
+
+
+def test_approval_presenter_exposes_watchdog_outcome() -> None:
+    """Peer-review fix: the UI must see WHY an approval ended — result,
+    decided_at, decision_reason and sweep retries travel on the wire."""
+    body = approval_to_api(
+        {
+            "approval_id": "ap-2",
+            "project_id": "g1",
+            "kind": "spend",
+            "title": "Resume ingest",
+            "created_at": "2026-09-02T00:00:00Z",
+            "status": "failed",
+            "result": {"ok": False, "needs_human_review": True, "error": "stuck"},
+            "decided_at": "2026-09-02T01:00:00Z",
+            "decision_reason": "approved on stage",
+            "approver": "dev",
+            "sweep_retries": 2,
+        }
+    )
+    assert body["status"] == "failed"
+    assert body["result"]["needs_human_review"] is True
+    assert body["decided_at"] == "2026-09-02T01:00:00Z"
+    assert body["decision_reason"] == "approved on stage"
+    assert body["sweep_retries"] == 2
