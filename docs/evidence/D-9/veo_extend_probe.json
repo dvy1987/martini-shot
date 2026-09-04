@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-04T16:18:55.133337+00:00",
+  "purpose": "Veo extend fallback: does the pinned Veo model accept video input?",
+  "source": "gs://martini-shot-media/probes720/shot-03-clearing-720p.mp4",
+  "combos": [
+    {
+      "model": "veo-3.1-fast-generate-001",
+      "location": "global",
+      "status": "accepted",
+      "operation": "projects/martini-shot/locations/global/publishers/google/models/veo-3.1-fast-generate-001/operations/5461bbcb-cf8f-44ff-b316-a5d905ab8382"
+    }
+  ],
+  "poll_error": "operation finished without a video URI"
+}

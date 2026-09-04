@@ -1,0 +1,10 @@
+{
+  "suite": "extend_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 0.00465,
+  "n": 3,
+  "renders_completed": 3,
+  "all_annotated": true,
+  "pass": true
+}

@@ -68,6 +68,45 @@ def test_extend_draft_qc_gate() -> None:
     assert draft_qc_decision(0.5) == "needs_human"
 
 
+def test_veo_payload_extraction() -> None:
+    """Veo's fetchPredictOperation returns either inline base64 video bytes
+    or a GCS URI; an LRO error (e.g. unsupported duration) must surface as a
+    readable exception, never a silent empty render."""
+    import base64
+
+    from backend.core.generative import extract_veo_video
+
+    b64 = base64.b64encode(b"mp4-bytes").decode()
+    done = {
+        "done": True,
+        "response": {"videos": [{"bytesBase64Encoded": b64}]},
+    }
+    assert extract_veo_video(done) == b"mp4-bytes"
+
+    done_gcs = {
+        "done": True,
+        "response": {"videos": [{"gcsUri": "gs://b/out.mp4"}]},
+    }
+    assert extract_veo_video(done_gcs) == "gs://b/out.mp4"
+
+    errored = {
+        "done": True,
+        "error": {"code": 3, "message": "Unsupported output video duration 8 seconds"},
+    }
+    try:
+        extract_veo_video(errored)
+        raise AssertionError("LRO error must raise")
+    except RuntimeError as exc:
+        assert "Unsupported output video duration" in str(exc)
+
+    filtered = {"done": True, "response": {"raiMediaFilteredCount": 1}}
+    try:
+        extract_veo_video(filtered)
+        raise AssertionError("filtered response must raise")
+    except RuntimeError:
+        pass
+
+
 def test_extend_proposal_approve_enqueues_real_job(env, run_id, monkeypatch) -> None:
     """D-9 chain, propose→approve→enqueue (real Firestore, spine API): an
     approved extend proposal enqueues a deterministic-id `extend` job whose

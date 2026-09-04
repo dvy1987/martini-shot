@@ -19,7 +19,9 @@ from backend.core.generative import (
     build_extend_prompt,
     estimate_extend_cost_micros,
     omni_extend,
+    veo_extend,
 )
+from backend.core.models import OMNI_MODEL, VEO_MODEL
 from backend.jobs.models import Job
 from backend.jobs.telemetry import job_span, log, record_job, timed
 from backend.shots import lifecycle as shots
@@ -59,7 +61,23 @@ def run_extend(
                 or build_extend_prompt(str(job.result.get("shot_title") or shot_id))
             )
 
-            render = omni_extend(settings, input_uri=source_uri, prompt=prompt)
+            # Omni primary, Veo fallback (decision log 2026-09-04): a
+            # service-side refusal on Omni (e.g. the 2026-09-04 recitation
+            # wave) degrades to a real Veo render rather than failing the
+            # job. Which model rendered is recorded on the job and the
+            # alternate's evidence trail.
+            try:
+                render = omni_extend(settings, input_uri=source_uri, prompt=prompt)
+                render_model = str(render.get("model") or OMNI_MODEL)
+            except Exception as omni_error:
+                log.warning(
+                    "omni extend unavailable (%s: %s); falling back to Veo",
+                    type(omni_error).__name__,
+                    str(omni_error)[:160],
+                    extra={"job_id": job.id, "station": STATION},
+                )
+                render = veo_extend(settings, input_uri=source_uri, prompt=prompt)
+                render_model = str(render.get("model") or VEO_MODEL)
             destination_key = str(
                 job.result.get("destination_key")
                 or f"projects/{job.project_id}/extends/{job.id}.mp4"
@@ -99,6 +117,7 @@ def run_extend(
                 **job.result,
                 "alternate_id": alternate_id,
                 "artifact_ref": artifact_ref,
+                "render_model": render_model,
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
                 "qc_decision": decision,
