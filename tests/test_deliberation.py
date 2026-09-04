@@ -257,6 +257,7 @@ def test_orchestrator_persists_deliberation_doc(env, run_id) -> None:
     assert doc["verdict"]["approved_specialists"]
     ranked = doc["recommendation"]["ranked_actions"]
     assert ranked and ranked[0]["command_name"] == "retry_job"
+    assert ranked[0]["reversible"] is True, "rank rows carry the FE's reversible flag"
     assert doc["status"] == "proposed"
 
 

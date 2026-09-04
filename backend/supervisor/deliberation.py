@@ -77,6 +77,21 @@ def _default_verifier(case: Case, findings: list[Finding]) -> Verdict:
     )
 
 
+def _verdict_to_doc(verdict: Verdict) -> dict[str, Any]:
+    """Firestore-safe verdict serialization: `rejected` must not be a list of
+    tuples (asdict -> nested arrays are invalid Firestore entities — found
+    live by the H-1g shadow run). Stored as {claim_ref, reason} dicts, which
+    is also the frontend's documented shape."""
+    return {
+        "case_id": verdict.case_id,
+        "rejected": [
+            {"claim_ref": ref, "reason": reason} for ref, reason in verdict.rejected
+        ],
+        "approved_specialists": list(verdict.approved_specialists),
+        "overall_confidence": verdict.overall_confidence,
+    }
+
+
 def rank_actions(case: Case, findings: list[Finding]) -> list[dict[str, Any]]:
     """H-0b step 3 leverage formula, unchanged: unblocks-weight per micro,
     reversibility as a hard exclusion, negative/garbage cost excluded."""
@@ -93,6 +108,9 @@ def rank_actions(case: Case, findings: list[Finding]) -> list[dict[str, Any]]:
                     "command_name": action.command_name,
                     "args": dict(action.args),
                     "cost_estimate_micros": cost,
+                    # FE contract (H-1f RankedAction): the flag rides on the
+                    # row so the agent panel renders reversibility truthfully.
+                    "reversible": action.reversible,
                     "specialist": finding.specialist,
                     "evidence_refs": [c.evidence_ref for c in finding.claims],
                     "leverage": leverage,
@@ -172,7 +190,7 @@ async def run_deliberation_cycle(
         "trigger": route_trigger,
         "specialists": names,
         "findings": [asdict(f) for f in findings],
-        "verdict": asdict(verdict),
+        "verdict": _verdict_to_doc(verdict),
         "recommendation": recommendation,
         "status": "proposed" if propose else "recorded",
     }
