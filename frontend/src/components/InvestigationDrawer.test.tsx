@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import InvestigationDrawer from "@/components/InvestigationDrawer";
-import type { Job } from "@/types/api";
+import type { Deliberation, Job } from "@/types/api";
 
 afterEach(cleanup);
 
@@ -149,5 +149,54 @@ describe("InvestigationDrawer", () => {
 
     expect(screen.getByText("Unrecognized")).toBeInTheDocument();
     expect(screen.getByText(/cancelled/)).toBeInTheDocument();
+  });
+
+  it("renders the agent deliberation panel when a deliberation is provided, and stays silent without one", () => {
+    const deliberation: Deliberation = {
+      cycle_id: "cyc-1",
+      case_id: "case-1",
+      created_at: "2026-09-04T00:00:00Z",
+      trigger: { kind: "job_failed", job_id: "job-1", project_id: "project-1" },
+      specialists: ["reliability_investigator"],
+      verdict: { rejected: [], approved_specialists: ["reliability_investigator"] },
+      recommendation: {
+        ranked_actions: [
+          {
+            command_name: "retry_job",
+            args: { job_id: "job-1" },
+            cost_estimate_micros: 500,
+            reversible: true,
+          },
+        ],
+        dissent: [],
+      },
+      status: "proposed",
+    };
+    const { rerender } = render(
+      <InvestigationDrawer
+        open
+        job={inspectedJob}
+        isLoading={false}
+        error={null}
+        deliberation={deliberation}
+        returnFocusRef={{ current: null }}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Agent deliberation/i)).toBeInTheDocument();
+    expect(screen.getByText(/retry_job/)).toBeInTheDocument();
+
+    rerender(
+      <InvestigationDrawer
+        open
+        job={inspectedJob}
+        isLoading={false}
+        error={null}
+        deliberation={null}
+        returnFocusRef={{ current: null }}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/Agent deliberation/i)).not.toBeInTheDocument();
   });
 });

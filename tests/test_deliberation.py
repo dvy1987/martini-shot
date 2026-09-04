@@ -258,3 +258,102 @@ def test_orchestrator_persists_deliberation_doc(env, run_id) -> None:
     ranked = doc["recommendation"]["ranked_actions"]
     assert ranked and ranked[0]["command_name"] == "retry_job"
     assert doc["status"] == "proposed"
+
+
+def test_cycle_notifies_on_complete_for_sse(env, run_id) -> None:
+    """H-1f contract: after persisting, the cycle hands the record to an
+    injected `on_complete` callback (app.py publishes `deliberation.completed`
+    SSE with it). Failures in the callback never fail the cycle."""
+    import asyncio
+
+    jobs_col = f"it-jobs-h1a-{run_id}"
+    job_id = _seed_job(env, jobs_col, status="failed", station="loudness")
+    seen: list[dict] = []
+    failing_calls: list[dict] = []
+
+    record = asyncio.run(
+        run_deliberation_cycle(
+            {"kind": "job_failed", "job_id": job_id, "project_id": "proj-x"},
+            get_settings(),
+            store=env,
+            jobs_collection=jobs_col,
+            deliberation_col=f"it-deliberations-{run_id}",
+            on_complete=seen.append,
+        )
+    )
+    assert len(seen) == 1
+    assert seen[0]["cycle_id"] == record["cycle_id"]
+    assert seen[0]["trigger"]["job_id"] == job_id
+
+    def _boom(rec: dict) -> None:
+        failing_calls.append(rec)
+        raise RuntimeError("hub down")
+
+    survived = asyncio.run(
+        run_deliberation_cycle(
+            {"kind": "job_failed", "job_id": job_id},
+            get_settings(),
+            store=env,
+            jobs_collection=jobs_col,
+            deliberation_col=f"it-deliberations-{run_id}",
+            on_complete=_boom,
+        )
+    )
+    assert len(failing_calls) == 1
+    assert survived["cycle_id"] != record["cycle_id"]
+
+
+def test_spine_lists_deliberations_for_job(env, run_id, monkeypatch) -> None:
+    """H-1f contract: GET /projects/{id}/deliberations?job_id= returns the
+    real pc-deliberations docs for that job, newest first."""
+    import uuid
+
+    from backend.api import spine
+    from backend.api.app import create_app
+    from backend.core.config import get_settings, reset_settings
+
+    monkeypatch.setattr(spine, "DELIBERATIONS", f"it-deliberations-{run_id}")
+
+    jobs_col = f"it-jobs-h1a-{run_id}"
+    project_id = f"it-{uuid.uuid4().hex[:6]}"
+    other_project = f"it-{uuid.uuid4().hex[:6]}"
+    job_id = _seed_job(
+        env, jobs_col, status="failed", station="loudness", project_id=project_id
+    )
+    other_job = _seed_job(
+        env, jobs_col, status="failed", station="loudness", project_id=other_project
+    )
+    for target in (job_id, other_job):
+        env.set_doc(
+            f"it-deliberations-{run_id}",
+            f"cyc-{target}",
+            {
+                "cycle_id": f"cyc-{target}",
+                "case_id": f"case-{target}",
+                "created_at": "2026-09-04T00:00:00.000Z",
+                "project_id": project_id if target == job_id else other_project,
+                "trigger": {"kind": "job_failed", "job_id": target},
+                "specialists": ["reliability_investigator"],
+                "findings": [],
+                "verdict": {"rejected": [], "approved_specialists": []},
+                "recommendation": {"ranked_actions": [], "dissent": []},
+                "status": "proposed",
+            },
+        )
+
+    reset_settings()
+    settings = get_settings()
+    app = create_app(settings, telemetry=False, worker=False)
+    from fastapi.testclient import TestClient
+
+    headers = {"X-API-Key": settings.api_key}
+    with TestClient(app) as client:
+        response = client.get(
+            f"/api/v1/projects/{project_id}/deliberations",
+            params={"job_id": job_id},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        rows = response.json()
+        assert [row["cycle_id"] for row in rows] == [f"cyc-{job_id}"]
+        assert rows[0]["trigger"]["job_id"] == job_id

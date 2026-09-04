@@ -41,7 +41,32 @@ export type SseEvent =
       at: string;
     }
   | { type: "annotation.created"; payload: { annotation_id: string; job_id?: string }; at: string }
+  | { type: "deliberation.completed"; payload: Deliberation; at: string }
   | { type: string; payload: unknown; at: string };
+
+/** H-1f: one multi-agent deliberation cycle (real pc-deliberations doc). */
+export interface RankedAction {
+  command_name: string;
+  args: Record<string, unknown>;
+  cost_estimate_micros: number;
+  reversible: boolean;
+  leverage?: number;
+}
+
+export interface Deliberation {
+  cycle_id: string;
+  case_id: string;
+  created_at: string;
+  trigger: { kind?: string; job_id?: string; station?: string; project_id?: string };
+  specialists: string[];
+  verdict: {
+    rejected?: { claim_ref: string; reason: string }[];
+    approved_specialists?: string[];
+    overall_confidence?: string;
+  };
+  recommendation: { ranked_actions?: RankedAction[]; dissent?: string[] };
+  status: string;
+}
 
 export type ApprovalKind = "fix" | "spend";
 export type ApprovalStatus =

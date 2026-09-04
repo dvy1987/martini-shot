@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
-import { listApprovals } from "@/api/endpoints";
+import { listApprovals, listDeliberations } from "@/api/endpoints";
 import BeforeAfterWipe from "@/components/BeforeAfterWipe";
 import CaseNote from "@/components/CaseNote";
 import EmptyState from "@/components/EmptyState";
 import { useApproveMutation, useRejectMutation } from "@/hooks/useApprovalMutations";
 import { canDecide, spendSlate } from "@/lib/approvals";
+import { dissentForJob } from "@/lib/deliberations";
 import { asApiError } from "@/lib/errors";
 import { cost } from "@/lib/formatters";
 import { staggerChild, staggerParent } from "@/lib/motion";
@@ -24,6 +25,14 @@ function ApprovalCard({ item }: { item: Approval }) {
   const showWipe = Boolean(item.before_url && item.after_url);
   const allow = canDecide(item.status);
   const slate = spendSlate(item.kind);
+  const deliberationQuery = useQuery({
+    queryKey: ["deliberations", item.project_id, item.job_id ?? null],
+    queryFn: () => listDeliberations(item.project_id, item.job_id),
+    enabled: Boolean(item.job_id),
+  });
+  const dissent = item.job_id
+    ? dissentForJob(deliberationQuery.data ?? [], item.job_id)
+    : [];
 
   return (
     <motion.article
@@ -45,6 +54,15 @@ function ApprovalCard({ item }: { item: Approval }) {
         </p>
       </div>
       {item.detail ? <p className="mt-3 text-sm text-ink-muted">{item.detail}</p> : null}
+      {dissent.length > 0 ? (
+        <div className="mt-3 rounded-sm border border-danger/40 px-3 py-2">
+          {dissent.map((line, index) => (
+            <p key={index} className="text-xs leading-relaxed text-danger">
+              Agents disagree: {line}
+            </p>
+          ))}
+        </div>
+      ) : null}
       {showWipe && item.before_url && item.after_url ? (
         <BeforeAfterWipe beforeUrl={item.before_url} afterUrl={item.after_url} />
       ) : null}

@@ -131,6 +131,7 @@ async def run_deliberation_cycle(
     verifier: Callable[[Case, list[Finding]], Verdict] | None = None,
     synthesizer: Callable[[Case, list[Finding], Verdict], dict[str, Any]] | None = None,
     annotator: Callable[[str, list[str]], Any] | None = None,
+    on_complete: Callable[[dict[str, Any]], None] | None = None,
     propose: bool = True,
 ) -> dict[str, Any]:
     """One full cycle. `specialists` maps routed name → finding factory;
@@ -166,6 +167,8 @@ async def run_deliberation_cycle(
         "case_id": case.case_id,
         "case_version": case.version,
         "created_at": utc_now_iso(),
+        # H-1f: denormalized for the spine list query (project-scoped lookup).
+        "project_id": str(route_trigger.get("project_id") or ""),
         "trigger": route_trigger,
         "specialists": names,
         "findings": [asdict(f) for f in findings],
@@ -174,6 +177,13 @@ async def run_deliberation_cycle(
         "status": "proposed" if propose else "recorded",
     }
     store.set_doc(deliberation_col, record["cycle_id"], record)
+    if on_complete is not None:
+        try:
+            # H-1f: app.py publishes this as `deliberation.completed` SSE.
+            # Best-effort: a hub failure never fails the persisted cycle.
+            on_complete(record)
+        except Exception:
+            log.exception("deliberation on_complete callback failed (cycle persisted)")
     if annotator is not None:
         try:
             annotator(

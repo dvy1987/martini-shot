@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getJob, getProject, listProjects } from "@/api/endpoints";
+import { getJob, getProject, listDeliberations, listProjects } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
@@ -99,6 +99,11 @@ export default function TimelineRoute({
     queryKey: ["job", inspectedJobId],
     queryFn: () => getJob(inspectedJobId ?? ""),
     enabled: inspectedJobId !== null,
+  });
+  const deliberationQuery = useQuery({
+    queryKey: ["deliberations", selectedProjectId, inspectedJobId],
+    queryFn: () => listDeliberations(selectedProjectId ?? "", inspectedJobId ?? ""),
+    enabled: inspectedJobId !== null && selectedProjectId !== null,
   });
 
   const handleJobSelection = useCallback(
@@ -294,6 +299,7 @@ export default function TimelineRoute({
         open={inspectedJobId !== null}
         job={jobQuery.data ?? null}
         isLoading={jobQuery.isPending}
+        deliberation={deliberationQuery.data?.[0] ?? null}
         error={
           jobQuery.error instanceof ApiError
             ? jobQuery.error

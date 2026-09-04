@@ -27,6 +27,7 @@ from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
 from backend.shots import lifecycle as shots
 from backend.stations.ingest.run import STATION
+from backend.supervisor.deliberation import DELIBERATIONS
 
 log = logging.getLogger("pc.api")
 PROJECTS = "pc-projects"
@@ -211,6 +212,33 @@ def install_spine_routes(
             "generated_at": str(doc.get("generated_at") or utc_now_iso()),
             "verdicts": list(doc.get("verdicts") or []),
         }
+
+    # -- H-1f: agent deliberations (real pc-deliberations docs) ----------------
+    @app.get("/api/v1/projects/{project_id}/deliberations")
+    def list_project_deliberations(
+        project_id: str, job_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        rows = store.list_where(DELIBERATIONS, "project_id", project_id)
+        if job_id:
+            rows = [
+                row
+                for row in rows
+                if str((row.get("trigger") or {}).get("job_id") or "") == job_id
+            ]
+        rows.sort(key=lambda row: str(row.get("created_at") or ""), reverse=True)
+        return [
+            {
+                "cycle_id": str(row.get("cycle_id") or ""),
+                "case_id": str(row.get("case_id") or ""),
+                "created_at": str(row.get("created_at") or ""),
+                "trigger": dict(row.get("trigger") or {}),
+                "specialists": list(row.get("specialists") or []),
+                "verdict": dict(row.get("verdict") or {}),
+                "recommendation": dict(row.get("recommendation") or {}),
+                "status": str(row.get("status") or ""),
+            }
+            for row in rows
+        ]
 
     # -- AL-1: shots, alternates, locks ---------------------------------------
 

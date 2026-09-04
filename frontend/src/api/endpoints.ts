@@ -1,7 +1,7 @@
 /** Typed endpoint functions — the working contract until the backend OpenAPI lands. */
 
 import { apiFetch, eventsUrl } from "@/api/client";
-import type { Approval, Job, MorningReport, Project, Settings } from "@/types/api";
+import type { Approval, Deliberation, Job, MorningReport, Project, Settings } from "@/types/api";
 
 export function projectEventsUrl(projectId: string): string {
   return eventsUrl(`/api/v1/projects/${encodeURIComponent(projectId)}/events`);
@@ -26,6 +26,13 @@ export function ingestClip(projectId: string, file: File): Promise<Job> {
 
 export function getJob(jobId: string): Promise<Job> {
   return apiFetch<Job>(`/api/v1/jobs/${encodeURIComponent(jobId)}`);
+}
+
+export function listDeliberations(projectId: string, jobId?: string): Promise<Deliberation[]> {
+  const query = jobId ? `?job_id=${encodeURIComponent(jobId)}` : "";
+  return apiFetch<Deliberation[]>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/deliberations${query}`,
+  );
 }
 
 export function listApprovals(): Promise<Approval[]> {

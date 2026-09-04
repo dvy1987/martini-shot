@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import AgentPanel from "@/components/AgentPanel";
 import { cost } from "@/lib/formatters";
 import { chromeTween, drawerVariants } from "@/lib/motion";
 import { statusMetaOrUnknown } from "@/lib/status";
-import type { Job } from "@/types/api";
+import type { Deliberation, Job } from "@/types/api";
 
 export interface InvestigationDrawerError {
   code: string;
@@ -16,6 +17,7 @@ interface InvestigationDrawerProps {
   job: Job | null;
   isLoading: boolean;
   error: InvestigationDrawerError | null;
+  deliberation?: Deliberation | null;
   returnFocusRef: RefObject<HTMLElement | null>;
   onRetry?: () => void;
   onClose: () => void;
@@ -33,8 +35,12 @@ function DrawerBody({
   job,
   isLoading,
   error,
+  deliberation,
   onRetry,
-}: Pick<InvestigationDrawerProps, "job" | "isLoading" | "error" | "onRetry">) {
+}: Pick<
+  InvestigationDrawerProps,
+  "job" | "isLoading" | "error" | "deliberation" | "onRetry"
+>) {
   const [showEvidence, setShowEvidence] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
 
@@ -149,6 +155,8 @@ function DrawerBody({
         </div>
       </section>
 
+      {deliberation ? <AgentPanel deliberation={deliberation} /> : null}
+
       <section className="border-t border-line pt-5">
         <button
           type="button"
@@ -208,6 +216,7 @@ export default function InvestigationDrawer({
   job,
   isLoading,
   error,
+  deliberation = null,
   returnFocusRef,
   onRetry,
   onClose,
@@ -326,7 +335,13 @@ export default function InvestigationDrawer({
               </button>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-              <DrawerBody job={job} isLoading={isLoading} error={error} onRetry={onRetry} />
+              <DrawerBody
+                job={job}
+                isLoading={isLoading}
+                error={error}
+                deliberation={deliberation}
+                onRetry={onRetry}
+              />
             </div>
           </motion.aside>
         </motion.div>

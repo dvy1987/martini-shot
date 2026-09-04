@@ -10,11 +10,12 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSSE } from "@/hooks/useSSE";
 import { allCommands, pathForRouteCommand, type PaletteCommand } from "@/lib/palette";
 import { slateForRoute } from "@/lib/slates";
+import { deliberationFromSseEvent, upsertDeliberation } from "@/lib/deliberations";
 import { jobFromSseEvent, upsertJob } from "@/lib/timeline";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
-import type { Approval, BackendReach, Project, SseEvent } from "@/types/api";
+import type { Approval, BackendReach, Deliberation, Project, SseEvent } from "@/types/api";
 
 function backendReach(health: { isPending: boolean; isSuccess: boolean }): BackendReach {
   if (health.isPending) return "checking";
@@ -71,6 +72,14 @@ export default function App() {
             row.approval_id === approval.approval_id ? { ...row, ...approval } : row,
           );
         });
+        return;
+      }
+      const deliberation = deliberationFromSseEvent(event);
+      if (deliberation && selectedProjectId) {
+        queryClient.setQueryData<Deliberation[]>(
+          ["deliberations", selectedProjectId],
+          (rows) => upsertDeliberation(rows ?? [], deliberation),
+        );
         return;
       }
       const job = jobFromSseEvent(event);
