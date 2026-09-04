@@ -13,3 +13,81 @@ def test_flash_cost_micros_uses_published_rates() -> None:
 def test_instrument_genai_is_idempotent() -> None:
     instrument_genai()
     instrument_genai()
+
+
+def test_run_supervisor_text_delegates_to_run_agent_call(monkeypatch) -> None:
+    """H-1a: every specialist/verifier/synthesis call goes through ONE
+    instrumented call site; the B-3 supervisor call is now a thin wrapper."""
+    from backend.core.config import get_settings
+    from backend.supervisor import otel_ai
+
+    captured: dict = {}
+
+    def fake_agent_call(settings, prompt, *, span_name, persona, **kwargs):
+        captured["prompt"] = prompt
+        captured["span_name"] = span_name
+        captured["persona"] = persona
+        return {
+            "model": "m",
+            "text": "ok",
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cost_micros": 0,
+            "latency_ms": 0.0,
+        }
+
+    monkeypatch.setattr(otel_ai, "run_agent_call", fake_agent_call)
+    out = otel_ai.run_supervisor_text(get_settings(), "diagnose job job-1")
+
+    assert out["text"] == "ok"
+    assert captured["prompt"] == "diagnose job job-1"
+    assert captured["span_name"] == "supervisor.generate_content"
+    assert captured["persona"] == "post_supervisor"
+
+
+def test_run_agent_call_builds_typed_config(monkeypatch) -> None:
+    """tools/response_schema flow into GenerateContentConfig; persona lands
+    on the span (gen_ai.agent.name) so Grafana can filter per-specialist."""
+    from backend.core.config import get_settings
+    from backend.supervisor import otel_ai
+
+    captured: dict = {}
+
+    class FakeModels:
+        def generate_content(self, *, model, contents, config):
+            captured["model"] = model
+            captured["contents"] = contents
+            captured["config"] = config
+            usage = type(
+                "U",
+                (),
+                {
+                    "prompt_token_count": 10,
+                    "candidates_token_count": 5,
+                    "thoughts_token_count": 0,
+                },
+            )()
+            return type("R", (), {"usage_metadata": usage, "text": '{"claim": "ok"}'})()
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            captured["client_kwargs"] = kwargs
+            self.models = FakeModels()
+
+    monkeypatch.setattr("google.genai.Client", FakeClient)
+    result = otel_ai.run_agent_call(
+        get_settings(),
+        span_name="specialist.reliability",
+        persona="reliability_investigator",
+        prompt="root-cause this",
+        response_schema={"type": "object"},
+    )
+
+    assert result["text"] == '{"claim": "ok"}'
+    assert captured["model"] == otel_ai.TEXT_MODEL
+    config = captured["config"]
+    assert config.response_mime_type == "application/json"
+    assert config.response_schema == {"type": "object"}
+    # No tools passed → the SDK normalizes to None (empty list equally
+    # valid); the contract is "no tools kwarg", not "an empty tool list".
+    assert config.tools in (None, [])

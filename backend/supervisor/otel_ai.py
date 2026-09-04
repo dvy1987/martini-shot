@@ -1,8 +1,11 @@
-"""B-3: Grafana Cloud AI Observability for supervisor Gemini calls (C-4.4, C-6.4)."""
+"""B-3: Grafana Cloud AI Observability for supervisor Gemini calls (C-4.4, C-6.4).
+H-1a: `run_agent_call` is the single instrumented call site for every agent
+in the deliberation pipeline; `run_supervisor_text` is a thin wrapper."""
 
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from typing import Any
 
 from opentelemetry import trace
@@ -44,33 +47,53 @@ def instrument_genai() -> None:
     _instrumented = True
 
 
-def run_supervisor_text(
-    settings: Settings, prompt: str, *, instrument: bool = True
+def run_agent_call(
+    settings: Settings,
+    prompt: str,
+    *,
+    span_name: str,
+    persona: str,
+    tools: tuple[Callable[..., Any], ...] = (),
+    response_schema: dict[str, Any] | None = None,
+    instrument: bool = True,
 ) -> dict[str, Any]:
-    """One real Gemini text call with token/cost/latency (B-3). Not an HTTP path."""
+    """H-1a: THE one instrumented Gemini call site (generalizes B-3's
+    run_supervisor_text). Every specialist, the verifier and the synthesis
+    step go through here — no agent can skip cost/token/latency metering by
+    construction (C-4.4). `persona` lands on the span as gen_ai.agent.name
+    so Grafana filters per-specialist cost ("child spans per agent").
+    tools = plain Python callables (google-genai automatic function calling);
+    response_schema enables typed JSON output (responseMimeType application/json)."""
     if instrument:
         instrument_genai()
     from google import genai
     from google.genai import types
 
     started = time.perf_counter()
-    with tracer.start_as_current_span("supervisor.generate_content") as span:
+    with tracer.start_as_current_span(span_name) as span:
         span.set_attribute("gen_ai.system", "gcp.vertex")
         span.set_attribute("gen_ai.request.model", TEXT_MODEL)
+        span.set_attribute("gen_ai.agent.name", persona)
         client = genai.Client(
             vertexai=True,
             project=settings.gcp_project_id,
             location="global",
         )
+        config_kwargs: dict[str, Any] = {
+            "thinking_config": types.ThinkingConfig(
+                thinking_level=THINKING_LEVEL.lower(),  # type: ignore[arg-type]
+                include_thoughts=THROUGH_THOUGHTS,
+            )
+        }
+        if tools:
+            config_kwargs["tools"] = list(tools)
+        if response_schema is not None:
+            config_kwargs["response_mime_type"] = "application/json"
+            config_kwargs["response_schema"] = response_schema
         response = client.models.generate_content(
             model=TEXT_MODEL,
             contents=prompt,
-            config=types.GenerateContentConfig(
-                thinking_config=types.ThinkingConfig(
-                    thinking_level=THINKING_LEVEL.lower(),  # type: ignore[arg-type]
-                    include_thoughts=THROUGH_THOUGHTS,
-                )
-            ),
+            config=types.GenerateContentConfig(**config_kwargs),
         )
         usage = getattr(response, "usage_metadata", None)
         input_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)
@@ -97,3 +120,17 @@ def run_supervisor_text(
             "cost_micros": micros,
             "latency_ms": round(latency_ms, 1),
         }
+
+
+def run_supervisor_text(
+    settings: Settings, prompt: str, *, instrument: bool = True
+) -> dict[str, Any]:
+    """One real Gemini text call with token/cost/latency (B-3). Not an HTTP path.
+    H-1a: a thin wrapper over the single instrumented call site."""
+    return run_agent_call(
+        settings,
+        prompt,
+        span_name="supervisor.generate_content",
+        persona="post_supervisor",
+        instrument=instrument,
+    )
