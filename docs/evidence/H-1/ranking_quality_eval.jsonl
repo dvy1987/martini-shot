@@ -1,0 +1,7 @@
+{"id": "drq-del-01", "dimension": "delegation", "ok": true, "score": 1.0, "routed": ["reliability_investigator", "delivery_qc"], "expected": ["reliability_investigator", "delivery_qc"]}
+{"id": "drq-del-02", "dimension": "delegation", "ok": true, "score": 1.0, "routed": ["spend_guardian", "reliability_investigator"], "expected": ["spend_guardian", "reliability_investigator"]}
+{"id": "drq-del-03", "dimension": "delegation", "ok": true, "score": 1.0, "routed": ["delivery_qc", "reliability_investigator"], "expected": ["delivery_qc", "reliability_investigator"]}
+{"id": "drq-conflict-01", "dimension": "conflict", "ok": true, "score": 1.0, "vetoed": ["case://asserted-transient"], "expected_vetoed": ["case://asserted-transient"], "top_command": "pause_intake", "expected_top": "pause_intake", "ranked": ["pause_intake"]}
+{"id": "drq-stale-01", "dimension": "stale_evidence", "ok": true, "score": 1.0, "vetoed": ["log://stale-trace-20260901-429"], "expected_vetoed": ["log://stale-trace-20260901-429"], "stale_action_ranks": false, "sound_claim_survived": true}
+{"id": "drq-abstain-01", "dimension": "abstention", "ok": true, "score": 1.0, "commands": [], "claims": [{"text": "Job job-drq-abstain-01 failed with an unknown error without any recorded telemetry, logs, or metrics, providing insufficient evidence to determine root cause.", "confidence": "low"}], "abstained": true}
+{"id": "drq-cost-01", "dimension": "cost_realism", "ok": true, "score": 0.0, "actions": [], "cap_micros": 412000.0}

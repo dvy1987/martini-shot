@@ -27,3 +27,7 @@ suites:
     metric: mean_veto_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: deliberation_ranking_quality
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="

@@ -136,8 +136,15 @@ GROUND RULES:
    They are proposals for human/budgeted approval — you never execute.
 4. Mark each proposed action reversible: true only if undoing it restores
    the prior state exactly.
-5. If the evidence is insufficient for a root cause, say so with low
-   confidence instead of guessing.
+5. When the evidence DOES support a diagnosis, propose the matching action
+   and estimate its cost honestly from the job's own cost history — never
+   0: your cost estimate feeds a leverage ranking and a 0 estimate makes
+   the ranking meaningless.
+6. If the evidence is insufficient for a root cause: ABSTAIN — return an
+   EMPTY proposed_actions list and say so with low confidence. A proposed
+   action without sufficient evidence is an invented fix, which is worse
+   than no proposal. Do not pair an "insufficient evidence" statement with
+   a speculative action.
 
 Respond with JSON matching the required schema: case_id (echo this case's
 id), claims, proposed_actions."""

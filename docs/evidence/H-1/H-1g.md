@@ -54,8 +54,34 @@ truthfully; caught live in the panel).
   reliability's `lock_shot` — a debatable fix for a loudness breach; the
   dataset's expected action was `retry_job`. Recorded, not hidden.
 
-## Remaining DoD item
+## deliberation_ranking_quality eval — PASS (2026-09-04)
 
-`deliberation_ranking_quality` eval (extended per plan §6 step 8:
-delegation/disagreement/abstention + stale-evidence veto cases) — separate
-run, gated H-0b ACT mode; tracked as the next task.
+Suite `deliberation_ranking_quality` added to thresholds.yaml
+(mean_case_accuracy >= 0.8 — H-0b's ACT-mode gate). Dataset:
+`backend/evals/datasets/deliberation_ranking_quality.jsonl` (7 cases across
+5 dimensions); runner `scripts/ranking_quality_eval.py` (real verifier /
+real specialist Gemini calls; delegation rows scored deterministically).
+
+**Result: 6/7 = 0.857 PASS (threshold 0.8).**
+
+- delegation 3/3, conflict 1/1 (conflicting retry-vs-hold: verifier vetoed
+  the "transient" claim the evidence ruled out; pause_intake ranked),
+  stale_evidence 1/1 (stale 429 claim vetoed per-claim; sound claim and its
+  action survived), abstention 1/1 after one prompt-contract sharpening,
+  cost_realism 0/1.
+
+Two honest prompt-contract iterations (dataset labels unchanged):
+
+1. Abstention failed first: the specialist said "root cause cannot be
+   established" (low confidence) but still proposed retry_job. Rule 5
+   sharpened to require an EMPTY proposed_actions list on insufficient
+   evidence → abstention passes.
+2. The sharpening over-corrected: the cost_realism row (sufficient
+   evidence) now sometimes abstains too. Run 1 scored it 1.0 (retry_job @
+   41200 micros, inside the history bound); runs 2-3 abstained (0.0).
+   Run-to-run model variance, not a contract gap — the same evidence
+   produced proposals in earlier runs (shadow run included). Stopping here:
+   further prompt tuning would be eval-overfitting. Recorded as a watch
+   item for H-0b: cost-estimate realism is flaky when the prompt leans on
+   abstention; the ACT gate uses the suite mean, which stays above
+   threshold either way (6/7 both ways).

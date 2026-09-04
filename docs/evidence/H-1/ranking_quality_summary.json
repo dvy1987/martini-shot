@@ -1,0 +1,8 @@
+{
+  "suite": "deliberation_ranking_quality",
+  "metric": "mean_case_accuracy",
+  "threshold": 0.8,
+  "mean_case_accuracy": 0.8571428571428571,
+  "n": 7,
+  "pass": true
+}
