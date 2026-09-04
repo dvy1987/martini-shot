@@ -263,6 +263,7 @@ def test_api_lock_route_proposes_through_h0_never_flips_directly(env) -> None:
 
     project_id = f"it-{uuid.uuid4().hex[:6]}"
     shot_id = shots.ensure_shot(env, project_id=project_id, title="Lock route test")
+    alternate_id = _record(env, shot_id, project_id)
     reset_settings()
     settings = get_settings()
     assert settings.gcp_project_id and settings.api_key
@@ -272,7 +273,19 @@ def test_api_lock_route_proposes_through_h0_never_flips_directly(env) -> None:
         with TestClient(app) as client:
             listed = client.get(f"/api/v1/projects/{project_id}/shots", headers=headers)
             assert listed.status_code == 200
-            assert any(row["shot_id"] == shot_id for row in listed.json())
+            row = next(row for row in listed.json() if row["shot_id"] == shot_id)
+            # FE alternates lane contract: the list route embeds the same
+            # shaped alternates as the detail route (no N+1 from the UI).
+            assert row["alternates"] == [
+                {
+                    "alternate_id": alternate_id,
+                    "op": "extend",
+                    "artifact_ref": "gs://b/alt-a.mp4",
+                    "eval_scores": {"flicker": 0.11, "judge": 4.4},
+                    "status": "draft",
+                    "created_at": row["alternates"][0]["created_at"],
+                }
+            ]
 
             proposed = client.post(
                 f"/api/v1/shots/{shot_id}/lock",
@@ -286,7 +299,7 @@ def test_api_lock_route_proposes_through_h0_never_flips_directly(env) -> None:
             assert detail.status_code == 200
             body = detail.json()
             assert body["locked"] is False, "flag must not move before approval"
-            assert body["alternates"] == []
+            assert len(body["alternates"]) == 1
 
             missing = client.post(
                 "/api/v1/shots/shot-nothing/lock", headers=headers, json={}

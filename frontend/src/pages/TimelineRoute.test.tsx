@@ -2,13 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getJob, getProject, listProjects } from "@/api/endpoints";
+import { getJob, getProject, listProjectShots, listProjects } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
 
 vi.mock("@/api/endpoints", () => ({
   getJob: vi.fn(),
   getProject: vi.fn(),
+  listProjectShots: vi.fn(),
   listProjects: vi.fn(),
 }));
 
@@ -54,6 +55,7 @@ describe("TimelineRoute investigation flow", () => {
     vi.mocked(listProjects).mockResolvedValue([observedProject]);
     vi.mocked(getProject).mockResolvedValue(observedProject);
     vi.mocked(getJob).mockResolvedValue(observedJob);
+    vi.mocked(listProjectShots).mockResolvedValue([]);
     renderRoute();
 
     const clip = await screen.findByRole("button", { name: /in the lab: job-1/i });
@@ -66,5 +68,34 @@ describe("TimelineRoute investigation flow", () => {
     expect(
       await screen.findByRole("dialog", { name: /investigation card job-1/i }),
     ).toBeInTheDocument();
+  });
+
+  it("renders the alternates lane from the real project shots endpoint", async () => {
+    vi.mocked(listProjects).mockResolvedValue([observedProject]);
+    vi.mocked(getProject).mockResolvedValue(observedProject);
+    vi.mocked(listProjectShots).mockResolvedValue([
+      {
+        shot_id: "shot-1",
+        title: "Scene 12 — chaser",
+        locked: true,
+        current_alternate_id: null,
+        created_at: "2026-09-04T10:00:00Z",
+        alternates: [
+          {
+            alternate_id: "alt-1",
+            op: "extend",
+            artifact_ref: "gs://bucket/alt-1.mp4",
+            eval_scores: { flicker: 0.00465 },
+            status: "draft",
+            created_at: "2026-09-04T10:05:00Z",
+          },
+        ],
+      },
+    ]);
+    renderRoute();
+
+    expect(await screen.findByText(/Scene 12 — chaser/)).toBeInTheDocument();
+    expect(await screen.findByText("DRAFT")).toBeInTheDocument();
+    expect(listProjectShots).toHaveBeenCalledWith("project-1");
   });
 });

@@ -1,7 +1,16 @@
 /** Typed endpoint functions — the working contract until the backend OpenAPI lands. */
 
 import { apiFetch, eventsUrl } from "@/api/client";
-import type { Approval, Deliberation, Job, MorningReport, Project, Settings } from "@/types/api";
+import type {
+  AlternateMedia,
+  Approval,
+  Deliberation,
+  Job,
+  MorningReport,
+  Project,
+  Settings,
+  ShotRow,
+} from "@/types/api";
 
 export function projectEventsUrl(projectId: string): string {
   return eventsUrl(`/api/v1/projects/${encodeURIComponent(projectId)}/events`);
@@ -37,6 +46,20 @@ export function listDeliberations(projectId: string, jobId?: string): Promise<De
 
 export function listApprovals(): Promise<Approval[]> {
   return apiFetch<Approval[]>("/api/v1/approvals");
+}
+
+/** Stage 1a alternates lane: shots with their alternates embedded (one call). */
+export function listProjectShots(projectId: string): Promise<ShotRow[]> {
+  return apiFetch<ShotRow[]>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/shots`,
+  );
+}
+
+/** Signed media URL (60 min) — fetched on demand, never eagerly. */
+export function getAlternateMedia(alternateId: string): Promise<AlternateMedia> {
+  return apiFetch<AlternateMedia>(
+    `/api/v1/alternates/${encodeURIComponent(alternateId)}/media`,
+  );
 }
 
 export function decideApproval(

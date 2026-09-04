@@ -121,3 +121,31 @@ export type BackendReach = "checking" | "up" | "down";
 export interface ApiErrorBody {
   error: { code: string; message: string };
 }
+
+/** AL-1 / Stage 1a: every generated clip is an ALTERNATE on its shot. */
+export interface Alternate {
+  alternate_id: string;
+  op?: string | null;
+  artifact_ref?: string | null;
+  eval_scores?: Record<string, number> | null;
+  status?: "draft" | "continuity" | "retired" | (string & {}) | null;
+  created_at?: string | null;
+}
+
+/** Row of GET /api/v1/projects/{id}/shots (alternates embedded). */
+export interface ShotRow {
+  shot_id: string;
+  title?: string | null;
+  locked: boolean;
+  locked_by?: string | null;
+  current_alternate_id?: string | null;
+  created_at?: string | null;
+  alternates: Alternate[];
+}
+
+/** GET /api/v1/alternates/{id}/media — real GCS V4 signed URL. */
+export interface AlternateMedia {
+  alternate_id: string;
+  url: string;
+  expires_in_minutes: number;
+}

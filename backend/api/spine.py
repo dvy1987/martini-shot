@@ -251,10 +251,26 @@ def install_spine_routes(
 
     # -- AL-1: shots, alternates, locks ---------------------------------------
 
+    def _alternate_rows(shot_id: str) -> list[dict[str, Any]]:
+        rows = shots.list_alternates(store, shot_id)
+        rows.sort(key=lambda row: str(row.get("created_at") or ""))
+        return [
+            {
+                "alternate_id": str(row.get("alternate_id") or row.get("id")),
+                "op": row.get("op"),
+                "artifact_ref": row.get("artifact_ref"),
+                "eval_scores": row.get("eval_scores"),
+                "status": row.get("status"),
+                "created_at": row.get("created_at"),
+            }
+            for row in rows
+        ]
+
     @app.get("/api/v1/projects/{project_id}/shots")
     def list_project_shots(project_id: str) -> list[dict[str, Any]]:
         rows = store.list_where(shots.SHOTS, "project_id", project_id)
         rows.sort(key=lambda row: str(row.get("created_at") or ""))
+        # Alternates are embedded so the FE lane needs one call, not N+1.
         return [
             {
                 "shot_id": str(row.get("shot_id") or row.get("id")),
@@ -263,6 +279,7 @@ def install_spine_routes(
                 "locked_by": row.get("locked_by"),
                 "current_alternate_id": row.get("current_alternate_id"),
                 "created_at": row.get("created_at"),
+                "alternates": _alternate_rows(str(row.get("shot_id") or row.get("id"))),
             }
             for row in rows
         ]
@@ -272,8 +289,6 @@ def install_spine_routes(
         doc = shots.get_shot(store, shot_id)
         if doc is None:
             raise HTTPException(status_code=404, detail="no such shot")
-        alternates = shots.list_alternates(store, shot_id)
-        alternates.sort(key=lambda row: str(row.get("created_at") or ""))
         return {
             "shot_id": shot_id,
             "project_id": doc.get("project_id"),
@@ -281,17 +296,7 @@ def install_spine_routes(
             "locked": bool(doc.get("locked")),
             "locked_by": doc.get("locked_by"),
             "current_alternate_id": doc.get("current_alternate_id"),
-            "alternates": [
-                {
-                    "alternate_id": str(row.get("alternate_id") or row.get("id")),
-                    "op": row.get("op"),
-                    "artifact_ref": row.get("artifact_ref"),
-                    "eval_scores": row.get("eval_scores"),
-                    "status": row.get("status"),
-                    "created_at": row.get("created_at"),
-                }
-                for row in alternates
-            ],
+            "alternates": _alternate_rows(shot_id),
         }
 
     @app.post("/api/v1/shots/{shot_id}/lock")

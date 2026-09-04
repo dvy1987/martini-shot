@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getJob, getProject, listDeliberations, listProjects } from "@/api/endpoints";
+import { getJob, getProject, listDeliberations, listProjectShots, listProjects } from "@/api/endpoints";
+import AlternatesLane from "@/components/AlternatesLane";
 import EmptyState from "@/components/EmptyState";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
@@ -104,6 +105,11 @@ export default function TimelineRoute({
     queryKey: ["deliberations", selectedProjectId, inspectedJobId],
     queryFn: () => listDeliberations(selectedProjectId ?? "", inspectedJobId ?? ""),
     enabled: inspectedJobId !== null && selectedProjectId !== null,
+  });
+  const shotsQuery = useQuery({
+    queryKey: ["shots", selectedProjectId],
+    queryFn: () => listProjectShots(selectedProjectId ?? ""),
+    enabled: selectedProjectId !== null,
   });
 
   const handleJobSelection = useCallback(
@@ -291,6 +297,10 @@ export default function TimelineRoute({
         <p className="mt-3 font-mono text-xs text-ink-muted">
           Selected clip <span className="text-ink">{selectedJobId}</span>
         </p>
+      ) : null}
+
+      {projectQuery.isSuccess && selectedProjectId ? (
+        <AlternatesLane shots={shotsQuery.data ?? []} />
       ) : null}
 
       {lensOpen || jobs.length === 0 ? <StatusLegend /> : null}
