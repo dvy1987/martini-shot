@@ -18,12 +18,14 @@ from backend.approvals.machine import (
     ApprovalConflict,
     ApprovalNotFound,
     ApprovalStateMachine,
+    propose_approval,
 )
 from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
 from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
+from backend.shots import lifecycle as shots
 from backend.stations.ingest.run import STATION
 
 log = logging.getLogger("pc.api")
@@ -34,6 +36,18 @@ REPORTS = "pc-morning-reports"
 class DecisionIn(BaseModel):
     decision: str
     reason: str | None = Field(default=None)
+
+
+class ShotActionIn(BaseModel):
+    """Optional body for lock/unlock proposals — only a reason, no decision
+    (the decision happens when the approval is approved)."""
+
+    reason: str | None = Field(default=None)
+
+
+def _shot_project(store: FirestoreStore, shot_id: str) -> str:
+    doc = shots.get_shot(store, shot_id) or {}
+    return str(doc.get("project_id") or "")
 
 
 def _grafana_annotator(settings: Settings):
@@ -197,6 +211,87 @@ def install_spine_routes(
             "generated_at": str(doc.get("generated_at") or utc_now_iso()),
             "verdicts": list(doc.get("verdicts") or []),
         }
+
+    # -- AL-1: shots, alternates, locks ---------------------------------------
+
+    @app.get("/api/v1/projects/{project_id}/shots")
+    def list_project_shots(project_id: str) -> list[dict[str, Any]]:
+        rows = store.list_where(shots.SHOTS, "project_id", project_id)
+        rows.sort(key=lambda row: str(row.get("created_at") or ""))
+        return [
+            {
+                "shot_id": str(row.get("shot_id") or row.get("id")),
+                "title": row.get("title"),
+                "locked": bool(row.get("locked")),
+                "locked_by": row.get("locked_by"),
+                "current_alternate_id": row.get("current_alternate_id"),
+                "created_at": row.get("created_at"),
+            }
+            for row in rows
+        ]
+
+    @app.get("/api/v1/shots/{shot_id}")
+    def get_shot_detail(shot_id: str) -> dict[str, Any]:
+        doc = shots.get_shot(store, shot_id)
+        if doc is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        alternates = shots.list_alternates(store, shot_id)
+        alternates.sort(key=lambda row: str(row.get("created_at") or ""))
+        return {
+            "shot_id": shot_id,
+            "project_id": doc.get("project_id"),
+            "title": doc.get("title"),
+            "locked": bool(doc.get("locked")),
+            "locked_by": doc.get("locked_by"),
+            "current_alternate_id": doc.get("current_alternate_id"),
+            "alternates": [
+                {
+                    "alternate_id": str(row.get("alternate_id") or row.get("id")),
+                    "op": row.get("op"),
+                    "artifact_ref": row.get("artifact_ref"),
+                    "eval_scores": row.get("eval_scores"),
+                    "status": row.get("status"),
+                    "created_at": row.get("created_at"),
+                }
+                for row in alternates
+            ],
+        }
+
+    @app.post("/api/v1/shots/{shot_id}/lock")
+    def propose_lock(shot_id: str, body: ShotActionIn | None = None) -> dict[str, Any]:
+        """Locking is approval-tracked through H-0 — the API proposes, the
+        executor acts (single-writer)."""
+        if shots.get_shot(store, shot_id) is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        approval_id = propose_approval(
+            store,
+            {
+                "project_id": _shot_project(store, shot_id),
+                "kind": "fix",
+                "title": f"Lock shot {shot_id}",
+                "detail": (body.reason if body else "") or "",
+                "command": {"name": "lock_shot", "args": {"shot_id": shot_id}},
+            },
+        )
+        return {"approval_id": approval_id, "status": "proposed"}
+
+    @app.post("/api/v1/shots/{shot_id}/unlock")
+    def propose_unlock(
+        shot_id: str, body: ShotActionIn | None = None
+    ) -> dict[str, Any]:
+        if shots.get_shot(store, shot_id) is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        approval_id = propose_approval(
+            store,
+            {
+                "project_id": _shot_project(store, shot_id),
+                "kind": "fix",
+                "title": f"Unlock shot {shot_id}",
+                "detail": (body.reason if body else "") or "",
+                "command": {"name": "unlock_shot", "args": {"shot_id": shot_id}},
+            },
+        )
+        return {"approval_id": approval_id, "status": "proposed"}
 
     @app.get("/api/v1/projects/{project_id}/events")
     async def project_events(project_id: str, request: Request) -> StreamingResponse:

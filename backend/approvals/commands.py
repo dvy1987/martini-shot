@@ -19,6 +19,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from backend.approvals.orders import SupersededError, newer_decision_exists
+from backend.shots import lifecycle as shots
 from backend.stations.spend import control as intake_control
 
 RETRYABLE_STATUSES = {"failed", "throttled", "needs_human"}
@@ -107,7 +108,57 @@ def _retry_job(ctx, approval: dict) -> dict:
     return {"job_id": job_id, "requeued": True}
 
 
+# -- AL-1 shot locking + alternates (all approval-tracked through here) -----
+
+
+def _lock_shot(ctx, approval: dict) -> dict:
+    args = approval.get("command", {}).get("args", {}) or {}
+    shot_id = str(args.get("shot_id") or "")
+    if not shot_id:
+        raise ValueError("lock_shot requires args.shot_id")
+    shots.lock_shot(ctx.store, shot_id, locked_by=str(approval.get("approver") or ""))
+    return {"shot_id": shot_id, "locked": True}
+
+
+def _unlock_shot(ctx, approval: dict) -> dict:
+    args = approval.get("command", {}).get("args", {}) or {}
+    shot_id = str(args.get("shot_id") or "")
+    if not shot_id:
+        raise ValueError("unlock_shot requires args.shot_id")
+    shots.unlock_shot(ctx.store, shot_id)
+    return {"shot_id": shot_id, "locked": False}
+
+
+def _add_to_continuity(ctx, approval: dict) -> dict:
+    args = approval.get("command", {}).get("args", {}) or {}
+    shot_id = str(args.get("shot_id") or "")
+    alternate_id = str(args.get("alternate_id") or "")
+    if not shot_id or not alternate_id:
+        raise ValueError(
+            "add_to_continuity requires args.shot_id and args.alternate_id"
+        )
+    shots.promote_to_continuity(ctx.store, shot_id, alternate_id)
+    return {"shot_id": shot_id, "alternate_id": alternate_id, "in_continuity": True}
+
+
+def _remove_from_continuity(ctx, approval: dict) -> dict:
+    args = approval.get("command", {}).get("args", {}) or {}
+    alternate_id = str(args.get("alternate_id") or "")
+    if not alternate_id:
+        raise ValueError("remove_from_continuity requires args.alternate_id")
+    shots.retire_alternate(ctx.store, alternate_id)
+    return {"alternate_id": alternate_id, "in_continuity": False}
+
+
 default_registry = CommandRegistry()
 default_registry.command("pause_intake", lane="fast", idempotent=True)(_pause_intake)
 default_registry.command("resume_intake", lane="fast", idempotent=True)(_resume_intake)
 default_registry.command("retry_job", lane="fast", idempotent=True)(_retry_job)
+default_registry.command("lock_shot", lane="fast", idempotent=True)(_lock_shot)
+default_registry.command("unlock_shot", lane="fast", idempotent=True)(_unlock_shot)
+default_registry.command("add_to_continuity", lane="fast", idempotent=True)(
+    _add_to_continuity
+)
+default_registry.command("remove_from_continuity", lane="fast", idempotent=True)(
+    _remove_from_continuity
+)

@@ -30,6 +30,7 @@ from google.cloud import firestore as _firestore
 
 from backend.approvals.commands import CommandRegistry, default_registry
 from backend.jobs.models import utc_now_iso
+from backend.shots import lifecycle as shots
 
 log = logging.getLogger("pc.approvals")
 
@@ -177,6 +178,18 @@ class ApprovalStateMachine:
         # Re-fetch: the handler (and its order-safety check) must see the
         # COMMITTED doc — including the decided_at the transition just wrote.
         doc = self._store.get_doc(self._collection, approval_id) or doc
+        locked = self._locked_target_result(doc, cmd)
+        if locked is not None:
+            # Locked-target guard (AL-1): central, dispatch-time, for every
+            # caller. Only lock/unlock themselves are exempt.
+            self._transition(
+                approval_id,
+                "approved",
+                {"status": "failed", "result": locked},
+            )
+            merged = self._store.get_doc(self._collection, approval_id) or {}
+            self._emit(merged, "failed")
+            return merged
         ctx = DispatchContext(
             store=self._store, queue=self._queue, collection=self._collection
         )
@@ -243,6 +256,20 @@ class ApprovalStateMachine:
 
     # -- sweeper-facing transitions (the watchdog's hands, same single writer) -
 
+    def _locked_target_result(
+        self, doc: dict[str, Any], cmd: Any
+    ) -> dict[str, Any] | None:
+        """Locked-target guard (AL-1): a command whose args carry a shot_id
+        that resolves to a LOCKED shot is refused. Lock/unlock commands are
+        exempt (unlock is the whole point)."""
+        args = (doc.get("command") or {}).get("args") or {}
+        shot_id = str(args.get("shot_id") or "")
+        if not shot_id or cmd.name in shots.LOCK_COMMANDS:
+            return None
+        if shots.is_locked(self._store, shot_id):
+            return {"ok": False, "locked": True, "shot_id": shot_id}
+        return None
+
     def redrive_fast(self, approval_id: str) -> dict[str, Any]:
         """Re-drive a fast action whose process died between the two fast
         transitions (status 'approved', no result). Safe precisely because
@@ -280,6 +307,17 @@ class ApprovalStateMachine:
         ctx = DispatchContext(
             store=self._store, queue=self._queue, collection=self._collection
         )
+        locked = self._locked_target_result(doc, cmd)
+        if locked is not None:
+            # The human locked the target after this action was approved.
+            self._transition(
+                approval_id,
+                "acting",
+                {"status": "failed", "result": locked},
+            )
+            merged = self._store.get_doc(self._collection, approval_id) or {}
+            self._emit(merged, "failed")
+            return merged
         try:
             outcome = cmd.fn(ctx, doc)
         except SupersededError as exc:

@@ -1,0 +1,32 @@
+{
+  "task": "AL-1 — alternates model + shot locking (TDD)",
+  "date": "2026-09-03",
+  "production_code": [
+    "backend/shots/lifecycle.py — pc-shots + pc-alternates lifecycle: ensure_shot, record_alternate (every generated clip = draft alternate), promote_to_continuity (transactional on the shot doc; previous cut retired), retire_alternate (revert path), lock_shot/unlock_shot (transactional), is_locked",
+    "backend/approvals/commands.py — four new fast-lane idempotent commands on default_registry: lock_shot, unlock_shot, add_to_continuity, remove_from_continuity (approval-tracked through H-0; no second action path)",
+    "backend/approvals/machine.py — _locked_target_result: central locked-target guard at dispatch AND redrive time; any command whose args.shot_id resolves to a locked shot fails with result.locked; only lock/unlock are exempt (LOCK_COMMANDS)",
+    "backend/api/spine.py — GET /projects/{id}/shots, GET /shots/{id} (with alternates), POST /shots/{id}/lock|unlock (propose-only; the flag never moves before approval)",
+    "backend/shots/README.md — C-8.1 station README"
+  ],
+  "tests": {
+    "file": "tests/test_shot_locking.py",
+    "count": 8,
+    "covers": [
+      "alternate lifecycle: record draft → promote to continuity → retire",
+      "promoting a new alternate retires the previous one (never overwritten, kept for revert)",
+      "lock/unlock route through the executor (approval-tracked), not a direct flag flip",
+      "locked-target guard refuses targeted commands at dispatch for any caller",
+      "lock/unlock commands remain executable on a locked shot",
+      "unlocked shots accept targeted commands",
+      "sweeper never redrives a crashed command whose target was locked after approval (crash-then-lock race)",
+      "API contract: lock route proposes through H-0; flag unmoved until approval; 404 on unknown shot"
+    ],
+    "full_suite": { "passed": 206, "failed": 0, "coverage_percent": 91.81 }
+  },
+  "gates": { "ruff": "clean", "mypy": "clean", "integrity_c12": "clean" },
+  "consumers": [
+    "D-9 (Extend) records renders as alternates with op=extend",
+    "H-1h Continuity Agent reasons over locks + alternates (gated on this)",
+    "H-0b continuity adds ride the same approval-tracked commands"
+  ]
+}
