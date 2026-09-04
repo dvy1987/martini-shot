@@ -150,6 +150,43 @@ def _remove_from_continuity(ctx, approval: dict) -> dict:
     return {"alternate_id": alternate_id, "in_continuity": False}
 
 
+def _extend_shot(ctx, approval: dict) -> dict:
+    """D-9: approve → enqueue a real `extend` station job (async render,
+    C-6.5). The job id is deterministic from the approval id, so the
+    fail-closed idempotency rule holds: a sweeper redrive submits the same
+    id and queue.submit swallows the duplicate (C-6.3). The render itself
+    lands as a DRAFT alternate — never an overwrite of any cut."""
+    args = (approval.get("command") or {}).get("args") or {}
+    shot_id = str(args.get("shot_id") or "")
+    project_id = str(args.get("project_id") or "")
+    source_uri = str(args.get("source_uri") or "")
+    if not shot_id or not project_id or not source_uri:
+        raise ValueError(
+            "extend_shot requires args.shot_id, args.project_id and args.source_uri"
+        )
+    if shots.get_shot(ctx.store, shot_id) is None:
+        raise ValueError(f"no such shot {shot_id}")
+    from backend.jobs.models import Job
+
+    job = Job(
+        station="extend",
+        project_id=project_id,
+        input_refs=[source_uri],
+        id=f"ext-{approval.get('approval_id')}",
+        status="queued",
+        result={
+            "shot_id": shot_id,
+            "approval_id": approval.get("approval_id"),
+            "prompt": args.get("prompt") or "",
+            "destination_key": (
+                f"projects/{project_id}/extends/ext-{approval.get('approval_id')}.mp4"
+            ),
+        },
+    )
+    ctx.queue.submit(job)
+    return {"job_id": job.id, "enqueued": True, "shot_id": shot_id}
+
+
 default_registry = CommandRegistry()
 default_registry.command("pause_intake", lane="fast", idempotent=True)(_pause_intake)
 default_registry.command("resume_intake", lane="fast", idempotent=True)(_resume_intake)
@@ -162,3 +199,4 @@ default_registry.command("add_to_continuity", lane="fast", idempotent=True)(
 default_registry.command("remove_from_continuity", lane="fast", idempotent=True)(
     _remove_from_continuity
 )
+default_registry.command("extend_shot", lane="fast", idempotent=True)(_extend_shot)

@@ -25,6 +25,7 @@ REGISTRY_COMMANDS: tuple[str, ...] = (
     "unlock_shot",
     "add_to_continuity",
     "remove_from_continuity",
+    "extend_shot",
 )
 
 

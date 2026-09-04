@@ -8,7 +8,7 @@ from backend.core.gcs import GCSMedia
 from backend.core.media import get_media
 from backend.jobs.models import Job
 
-STATION_NAMES = ("ingest", "loudness", "delivery", "spend", "pickups")
+STATION_NAMES = ("ingest", "loudness", "delivery", "spend", "pickups", "extend")
 
 
 def execute(
@@ -38,4 +38,8 @@ def execute(
         from backend.stations.pickups.run import run_pickups
 
         return run_pickups(job, gcs, get_media(settings))
+    if job.station == "extend":
+        from backend.stations.extend.run import run_extend
+
+        return run_extend(job, gcs, store, settings)
     raise ValueError(f"unknown station {job.station!r}")

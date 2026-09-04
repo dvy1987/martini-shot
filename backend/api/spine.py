@@ -46,6 +46,15 @@ class ShotActionIn(BaseModel):
     reason: str | None = Field(default=None)
 
 
+class ExtendIn(BaseModel):
+    """Body for an extend proposal (D-9): which stored artifact to extend
+    and why. The render is queued only when the approval is approved."""
+
+    source_uri: str
+    reason: str | None = Field(default=None)
+    prompt: str | None = Field(default=None)
+
+
 def _shot_project(store: FirestoreStore, shot_id: str) -> str:
     doc = shots.get_shot(store, shot_id) or {}
     return str(doc.get("project_id") or "")
@@ -320,6 +329,54 @@ def install_spine_routes(
             },
         )
         return {"approval_id": approval_id, "status": "proposed"}
+
+    @app.post("/api/v1/shots/{shot_id}/extend")
+    def propose_extend(shot_id: str, body: ExtendIn) -> dict[str, Any]:
+        """D-9: propose an Omni scene-extend. Approval-tracked through H-0;
+        the approved command enqueues a real `extend` job whose render lands
+        as a DRAFT alternate (never an overwrite)."""
+        if shots.get_shot(store, shot_id) is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        if not body.source_uri.startswith("gs://"):
+            raise HTTPException(
+                status_code=400, detail="source_uri must be a gs:// URI"
+            )
+        project_id = _shot_project(store, shot_id)
+        approval_id = propose_approval(
+            store,
+            {
+                "project_id": project_id,
+                "kind": "fix",
+                "title": f"Extend shot {shot_id}",
+                "detail": body.reason or "",
+                "command": {
+                    "name": "extend_shot",
+                    "args": {
+                        "shot_id": shot_id,
+                        "project_id": project_id,
+                        "source_uri": body.source_uri,
+                        **({"prompt": body.prompt} if body.prompt else {}),
+                    },
+                },
+            },
+        )
+        return {"approval_id": approval_id, "status": "proposed"}
+
+    @app.get("/api/v1/alternates/{alternate_id}/media")
+    def alternate_media(alternate_id: str) -> dict[str, Any]:
+        """Signed download URL for the FE player (spec §3) — real GCS V4
+        signing, no public buckets."""
+        alternate = store.get_doc(shots.ALTERNATES, alternate_id)
+        if alternate is None:
+            raise HTTPException(status_code=404, detail="no such alternate")
+        artifact_ref = str(alternate.get("artifact_ref") or "")
+        if not artifact_ref.startswith("gs://"):
+            raise HTTPException(
+                status_code=400, detail="alternate has no stored artifact"
+            )
+        key = artifact_ref.removeprefix("gs://").split("/", 1)[1]
+        url = gcs.signed_download_url(key, expires_minutes=60)
+        return {"alternate_id": alternate_id, "url": url, "expires_in_minutes": 60}
 
     @app.get("/api/v1/projects/{project_id}/events")
     async def project_events(project_id: str, request: Request) -> StreamingResponse:
