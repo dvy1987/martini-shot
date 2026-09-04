@@ -1,0 +1,8 @@
+{
+  "suite": "verification_veto",
+  "metric": "mean_veto_accuracy",
+  "threshold": 0.8,
+  "mean_veto_accuracy": 1.0,
+  "n": 4,
+  "pass": true
+}

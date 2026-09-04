@@ -23,3 +23,7 @@ suites:
     metric: mean_assessment_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: verification_veto
+    metric: mean_veto_accuracy
+    threshold: 0.8
+    comparison: ">="
