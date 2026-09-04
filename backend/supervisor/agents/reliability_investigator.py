@@ -18,9 +18,14 @@ from __future__ import annotations
 import json
 from typing import Any, Callable
 
-from backend.approvals.commands import default_registry
 from backend.core.config import Settings
-from backend.supervisor.case import RELIABILITY, Case, Claim, Finding, ProposedAction
+from backend.supervisor.agents.finding_schema import (
+    REGISTRY_COMMANDS,
+)
+from backend.supervisor.agents.finding_schema import (
+    validate_finding_payload as _validate_finding_payload,
+)
+from backend.supervisor.case import RELIABILITY, Case, Finding
 from backend.supervisor.otel_ai import run_agent_call
 
 # Read-only Grafana plan tools (mirror _TOOL_PREFERENCES in mcp.py; write
@@ -35,17 +40,8 @@ READ_ONLY_GRAFANA_TOOLS: tuple[str, ...] = (
     "get_incident",
 )
 
-# H-0 default_registry command vocabulary — proposed actions must name one
-# of these; validation enforces it against the live registry.
-REGISTRY_COMMANDS: tuple[str, ...] = (
-    "pause_intake",
-    "resume_intake",
-    "retry_job",
-    "lock_shot",
-    "unlock_shot",
-    "add_to_continuity",
-    "remove_from_continuity",
-)
+# H-0 registry command vocabulary now lives in finding_schema.py (shared by
+# all specialists); imported as REGISTRY_COMMANDS.
 
 FINDING_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -91,7 +87,12 @@ FINDING_SCHEMA: dict[str, Any] = {
     "required": ["case_id", "claims", "proposed_actions"],
 }
 
-_CONFIDENCES = {"low", "medium", "high"}
+
+def validate_finding_payload(payload: Any, *, case_id: str) -> Finding:
+    """Deterministic gate between the model and the pipeline (shared rules in
+    finding_schema.py). Anything not matching the contract raises ValueError
+    — fail loud (C-1.1)."""
+    return _validate_finding_payload(payload, case_id=case_id, specialist=RELIABILITY)
 
 
 def read_only_grafana_tools(connector: Any) -> tuple[Callable[..., Any], ...]:
@@ -106,70 +107,6 @@ def read_only_grafana_tools(connector: Any) -> tuple[Callable[..., Any], ...]:
         if callable(fn):
             bound.append(fn)
     return tuple(bound)
-
-
-def validate_finding_payload(payload: Any, *, case_id: str) -> Finding:
-    """Deterministic gate between the model and the pipeline. Anything not
-    matching the contract raises ValueError — fail loud (C-1.1)."""
-    if not isinstance(payload, dict):
-        raise ValueError("finding payload must be a JSON object")
-    if payload.get("case_id") != case_id:
-        raise ValueError(
-            f"case_id mismatch: payload {payload.get('case_id')!r} != case {case_id!r}"
-        )
-    raw_claims = payload.get("claims")
-    if not isinstance(raw_claims, list) or not raw_claims:
-        raise ValueError("finding must carry at least one claim (evidence or nothing)")
-    claims: list[Claim] = []
-    for raw in raw_claims:
-        if not isinstance(raw, dict):
-            raise ValueError("claim must be an object")
-        text = str(raw.get("text") or "").strip()
-        evidence_ref = str(raw.get("evidence_ref") or "").strip()
-        confidence = raw.get("confidence")
-        if not text or not evidence_ref:
-            raise ValueError("claim needs non-empty text and evidence_ref")
-        if confidence not in _CONFIDENCES:
-            raise ValueError(
-                f"claim confidence must be low|medium|high, got {confidence!r}"
-            )
-        claims.append(
-            Claim(text=text, evidence_ref=evidence_ref, confidence=confidence)
-        )
-
-    actions: list[ProposedAction] = []
-    raw_actions = payload.get("proposed_actions") or []
-    if not isinstance(raw_actions, list):
-        raise ValueError("proposed_actions must be a list")
-    for raw in raw_actions:
-        if not isinstance(raw, dict):
-            raise ValueError("proposed action must be an object")
-        name = str(raw.get("command_name") or "")
-        if default_registry.get(name) is None:
-            raise ValueError(
-                f"proposed command {name!r} is not in the H-0 registry; "
-                f"allowed: {list(REGISTRY_COMMANDS)}"
-            )
-        reversible = raw.get("reversible")
-        if not isinstance(reversible, bool):
-            raise ValueError("proposed action needs an explicit boolean 'reversible'")
-        cost = raw.get("cost_estimate_micros")
-        if not isinstance(cost, int) or isinstance(cost, bool) or cost < 0:
-            raise ValueError("cost_estimate_micros must be a non-negative integer")
-        args = raw.get("args")
-        if not isinstance(args, dict):
-            raise ValueError("proposed action args must be an object")
-        actions.append(
-            ProposedAction(
-                command_name=name,
-                args=args,
-                cost_estimate_micros=cost,
-                reversible=reversible,
-            )
-        )
-    return Finding(
-        specialist=RELIABILITY, case_id=case_id, claims=claims, proposed_actions=actions
-    )
 
 
 def build_investigation_prompt(case: Case) -> str:

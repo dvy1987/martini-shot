@@ -15,3 +15,7 @@ suites:
     metric: mean_root_cause_accuracy
     threshold: 0.75
     comparison: ">="
+  - name: delivery_qc_judgment
+    metric: mean_classification_accuracy
+    threshold: 0.8
+    comparison: ">="

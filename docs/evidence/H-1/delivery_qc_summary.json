@@ -1,0 +1,8 @@
+{
+  "suite": "delivery_qc_judgment",
+  "metric": "mean_classification_accuracy",
+  "threshold": 0.8,
+  "mean_classification_accuracy": 1.0,
+  "n": 5,
+  "pass": true
+}
