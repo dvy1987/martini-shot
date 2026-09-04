@@ -1,0 +1,8 @@
+{
+  "suite": "spend_guardian_judgment",
+  "metric": "mean_assessment_accuracy",
+  "threshold": 0.8,
+  "mean_assessment_accuracy": 1.0,
+  "n": 5,
+  "pass": true
+}

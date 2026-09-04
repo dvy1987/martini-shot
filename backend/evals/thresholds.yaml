@@ -19,3 +19,7 @@ suites:
     metric: mean_classification_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: spend_guardian_judgment
+    metric: mean_assessment_accuracy
+    threshold: 0.8
+    comparison: ">="
