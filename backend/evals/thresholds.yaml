@@ -11,3 +11,7 @@ suites:
     metric: artifact_rate
     threshold: 0.08
     comparison: "<"
+  - name: reliability_root_cause
+    metric: mean_root_cause_accuracy
+    threshold: 0.75
+    comparison: ">="
