@@ -1,0 +1,47 @@
+{
+  "timestamp_utc": "2026-09-04T08:05:23.861627+00:00",
+  "purpose": "Omni-vs-Veo: re-probe Omni video on Vertex after G0's preview-era failures (owner request before any Veo-feature build; owner follow-up: check Vertex + Agent Platform route)",
+  "final_verdict": "OMNI WORKS ON VERTEX — recommended as the primary video path",
+  "how": {
+    "endpoint": "aiplatform.googleapis.com/v1beta1/projects/{project}/locations/global/interactions (Agent Platform API; IAM auth, no new credentials)",
+    "model": "gemini-omni-1.1-flash-preview (the GA ID is not served for interactions on Vertex)",
+    "required_shape": [
+      "media input by gs:// URI (GCS bucket martini-shot-media/probes/)",
+      "generation_config.video_config.task = extend|edit (REQUIRED — bare requests 400)",
+      "NO response_format for edit/extend: aspect_ratio in response_format is explicitly rejected for these tasks (the single field that poisoned every earlier attempt, G0 included)"
+    ],
+    "sdk_vs_rest": "edit completed via google-genai SDK (enterprise client, global); extend completed via the documented raw REST endpoint with a gcloud bearer token — both surfaces work",
+    "prompt_sensitivity": "elaborate extend prompts were refused ('could not generate'); the docs' simple extend phrasing worked"
+  },
+  "results": {
+    "bg_swap_edit": {
+      "status": "completed",
+      "output": "outputs/G0-bg-swap-omni-01.mp4 (240 frames, 1.29MB)",
+      "flicker_input": 0.00071,
+      "flicker_output": 0.00131,
+      "ratio": 1.85
+    },
+    "scene_extend": {
+      "status": "completed",
+      "output": "outputs/G0-scene-extend-omni-01.mp4 (480 frames, 1.96MB — input doubled = real extension)",
+      "flicker_input": 0.00461,
+      "flicker_output": 0.00322,
+      "ratio": 0.7
+    }
+  },
+  "comparison_vs_veo_G0": {
+    "bg_swap": "Omni 0.00131 vs Veo 0.00992 (gate < 0.02) — Omni 7.5x cleaner",
+    "extend": "Omni 0.00322 (0.70x source) vs Veo 0.00327 (0.69x source) — equivalent class",
+    "conclusion": "Omni matches or beats Veo on the deterministic flicker metric for both ops"
+  },
+  "implications": {
+    "video_path": "Omni (preview) via Vertex interactions becomes the primary video path; Veo 3.1 Fast stays as fallback",
+    "credentials": "no Gemini API key needed — runs on the project's Vertex IAM identity",
+    "pricing": "Vertex preview token counts were null in responses; effective cost to be read from billing at the next spend review (C-7.1 metering still applies)",
+    "watch_items": [
+      "Vertex serves the -preview ID; the GA ID migration (preview IDs deprecating 2026-09-30 on the Gemini API surface) may land on Vertex — re-pin when it does",
+      "extend is append-only, 3-10s per call, 10s context window (docs)"
+    ]
+  },
+  "artifacts": ["omni_ops_2026-09-04.jsonl", "omni_probe_2026-09-04.json", "outputs/G0-bg-swap-omni-01.mp4", "outputs/G0-scene-extend-omni-01.mp4", "scripts/omni_probe.py"]
+}

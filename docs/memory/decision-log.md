@@ -1,5 +1,72 @@
 # Decision Log
 
+## 2026-09-04 - Omni-vs-Veo: Omni on Vertex WORKS — becomes primary video path (owner request)
+Status: active (supersedes the same-day "blocked on credentials" entry below)
+Scope: D-9 Extend, dub/render features, ADR 0002 model pinning
+Confidence: high (live renders + deterministic flicker comparison vs archived G0 Veo outputs)
+
+### Finding
+1. Omni 1.1 Flash is callable on **Vertex** via the Agent Platform interactions
+   endpoint (`aiplatform.googleapis.com/v1beta1/.../interactions`, project
+   IAM identity — no Gemini API key needed). Model: `gemini-omni-1.1-flash-preview`
+   (the GA ID is not served for interactions on Vertex).
+2. The required request shape (what G0 and the first probe missed):
+   media by gs:// URI + `generation_config.video_config.task` (REQUIRED) +
+   **no `response_format` for extend/edit** — `aspect_ratio` there is
+   explicitly rejected for these tasks and poisoned every earlier attempt.
+3. Live results (same shots/prompts as G0's Veo renders):
+   - bg-swap edit: completed, flicker 0.00131 vs Veo 0.00992 (Omni 7.5x cleaner; gate < 0.02)
+   - scene extend: completed, input doubled (240→480 frames = real extension),
+     flicker 0.00322 = 0.70x source vs Veo 0.69x — equivalent class
+4. Watch items: Vertex serves the -preview ID (GA migration pending — re-pin
+   when it lands); extend is append-only 3-10s per call, 10s context; extend
+   prompts must stay simple (docs' guidance; elaborate prompts were refused);
+   preview pricing to be read from billing at the next spend review.
+
+### Decision
+- Primary video path: **Omni via Vertex Agent Platform interactions**
+  (`backend/core/models.py` OMNI_MODEL; Veo 3.1 Fast stays pinned as fallback).
+- ALL Gemini text calls stay on the same Vertex endpoint family
+  (`generate_content`) — the interactions surface does not serve
+  `gemini-3.7-flash` (G0 routing probe: 400 "Unsupported model interaction"),
+  so "Agent Platform for everything" today means one platform, two surfaces.
+- D-9 Extend and render features build against Omni first; Veo fallback is
+  retained as the eval comparison arm per A5.
+
+## 2026-09-04 - Omni-vs-Veo check before Veo-feature build (owner request)
+Status: recommendation delivered, blocked on owner credential decision
+Scope: D-9 Extend, dub/render features, ADR 0002 model pinning
+Confidence: high (live probe + official docs, 2026-09-04)
+
+### Finding
+1. Omni 1.1 Flash went GA 2026-08-27 as `gemini-omni-1.1-flash` (the `-preview`
+   ID in models.py deprecates 2026-09-30). GA capabilities cover everything the
+   video features need: conversational editing, append-style extension (3-10s,
+   10s context, up to 40s), first/last-frame interpolation, subject references,
+   360p→4K resolution tiers. Pricing ~$0.10/s at 720p, ~1/3 at 360p draft.
+2. BUT the GA model's documented and only-supported video surface is the
+   **Gemini API** (API key). The project has NO Gemini API key (.env
+   GEMINI_API_KEY is empty).
+3. On Vertex (our primary runtime, owner credits): interactions serves ONLY the
+   `-preview` ID (GA ID → "Unsupported model interaction"); the preview ID
+   completes text but rejects every video-input shape (400 invalid argument,
+   404 with response_format) — both in G0 (2026-08-29) and in today's probe.
+4. Veo 3.1 Fast (`veo-3.1-fast-generate-001`) remains the ONLY working video
+   path on current credentials (proven at G0 with gate-passing renders).
+
+### Recommendation
+Yes, Omni can replace Veo — unlock it by adding a billed Gemini API key
+(AI Studio, paid tier). That is a provisioning step needing owner action.
+Until then, Veo stays the render path; no Veo features blocked: D-9 Extend
+builds against the media-gateway abstraction, model choice is an eval decision
+per A5, and Omni-vs-Veo A/B on the same prompts/shots is already staged
+(scripts/omni_probe.py vs archived G0 Veo outputs, flicker-gated).
+
+### Revisit triggers
+- Owner provides a Gemini API key → run omni_probe.py stage 2 on GA ID, compare
+  flicker vs G0 Veo outputs, record winner via ADR 0002 amendment + eval JSONL.
+- Vertex Enterprise Agent Platform adds Omni video on project credentials → re-probe.
+
 ## 2026-09-03 - Peer-review hardening pass on the approval executor (H-0)
 Status: active
 Scope: project
