@@ -76,6 +76,11 @@ def test_case_built_from_real_job_doc(env, jobs_col) -> None:
     assert evidence_job is not None
     assert evidence_job["job_id"] == job_id
     assert evidence_job["station"] == "loudness"
+    # The case always NAMES its subject: specialists echo target args from
+    # the evidence baseline, so the job_id must be explicit even when the
+    # underlying doc stores its id under a different key (eval fixtures use
+    # `id`; real docs use `job_id`).
+    assert case.evidence["job_id"] == job_id
     assert case.created_at.endswith("Z") or "+00:00" in case.created_at
 
 
@@ -178,9 +183,91 @@ def test_apply_verdict_is_a_hard_filter() -> None:
     assert surviving[0].proposed_actions == finding_reliable.proposed_actions
 
 
+def test_vetoed_claim_discards_exactly_the_actions_relying_on_it() -> None:
+    """ACT-gate review fix 1 (action provenance): every action declares the
+    claims that support it; a vetoed supporting claim removes exactly the
+    actions that relied on it — an unsupported action can no longer survive
+    a veto because the vetoed claim was dropped but its action copied."""
+    finding = Finding(
+        specialist="reliability_investigator",
+        case_id="case-1",
+        claims=[
+            Claim(text="stale claim", evidence_ref="stale-ref", confidence="high"),
+            Claim(text="fresh claim", evidence_ref="fresh-ref", confidence="high"),
+        ],
+        proposed_actions=[
+            ProposedAction(
+                command_name="retry_job",
+                args={"job_id": "job-1"},
+                cost_estimate_micros=500,
+                reversible=True,
+                supporting_evidence_refs=("stale-ref",),
+            ),
+            ProposedAction(
+                command_name="lock_shot",
+                args={"shot_id": "shot-1"},
+                cost_estimate_micros=0,
+                reversible=True,
+                supporting_evidence_refs=("fresh-ref",),
+            ),
+        ],
+    )
+    verdict = Verdict(
+        case_id="case-1",
+        rejected=[("stale-ref", "stale: superseded by a newer render")],
+        approved_specialists=["reliability_investigator"],
+        overall_confidence="high",
+    )
+
+    surviving = apply_verdict([finding], verdict)
+
+    assert surviving, "the finding itself still has a live claim"
+    assert [c.evidence_ref for c in surviving[0].claims] == ["fresh-ref"]
+    assert [a.command_name for a in surviving[0].proposed_actions] == ["lock_shot"], (
+        "the action supported by the vetoed claim is discarded, not copied"
+    )
+
+
+def test_action_without_provenance_depends_on_the_whole_finding() -> None:
+    """Conservative default: an action that declares NO supporting refs is
+    treated as depending on every claim in its finding — any veto drops it
+    (it must never silently ride on surviving claims it never cited)."""
+    finding = Finding(
+        specialist="reliability_investigator",
+        case_id="case-1",
+        claims=[
+            Claim(text="stale claim", evidence_ref="stale-ref", confidence="high"),
+            Claim(text="fresh claim", evidence_ref="fresh-ref", confidence="high"),
+        ],
+        proposed_actions=[
+            ProposedAction(
+                command_name="retry_job",
+                args={"job_id": "job-1"},
+                cost_estimate_micros=500,
+                reversible=True,
+            )
+        ],
+    )
+    verdict = Verdict(
+        case_id="case-1",
+        rejected=[("stale-ref", "stale")],
+        approved_specialists=["reliability_investigator"],
+        overall_confidence="high",
+    )
+
+    surviving = apply_verdict([finding], verdict)
+
+    assert surviving == [], (
+        "a finding whose only actions are provenance-less is dropped entirely "
+        "under any veto — nothing dispatchable rides on claims it never cited"
+    )
+
+
 def test_verdict_drops_individual_rejected_claims(env) -> None:
     """Rejection is per-claim: a specialist with one bad claim and one good
-    one survives with only the good claim's actions."""
+    one survives with only the good claim's SUPPORTED actions — under the
+    provenance contract, surviving actions are the ones that cited the
+    surviving claim."""
     good = Claim(text="loudness -26 LUFS", evidence_ref="metric-a", confidence="high")
     stale = Claim(text="quota exceeded", evidence_ref="log-old", confidence="medium")
     finding = Finding(
@@ -188,8 +275,20 @@ def test_verdict_drops_individual_rejected_claims(env) -> None:
         case_id="case-2",
         claims=[good, stale],
         proposed_actions=[
-            ProposedAction("retry_job", {"job_id": "j"}, 500, True),
-            ProposedAction("pause_intake", {"station": "ingest"}, 0, True),
+            ProposedAction(
+                "retry_job",
+                {"job_id": "j"},
+                500,
+                True,
+                supporting_evidence_refs=("metric-a",),
+            ),
+            ProposedAction(
+                "pause_intake",
+                {"station": "ingest"},
+                0,
+                True,
+                supporting_evidence_refs=("log-old",),
+            ),
         ],
     )
     verdict = Verdict(
@@ -203,6 +302,9 @@ def test_verdict_drops_individual_rejected_claims(env) -> None:
 
     assert len(surviving) == 1
     assert surviving[0].claims == [good]
+    assert [a.command_name for a in surviving[0].proposed_actions] == ["retry_job"], (
+        "the action citing the vetoed claim is discarded, not copied"
+    )
 
 
 def test_orchestrator_persists_deliberation_doc(env, run_id) -> None:

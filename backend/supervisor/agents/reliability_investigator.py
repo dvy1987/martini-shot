@@ -88,11 +88,21 @@ FINDING_SCHEMA: dict[str, Any] = {
 }
 
 
-def validate_finding_payload(payload: Any, *, case_id: str) -> Finding:
+def validate_finding_payload(payload: Any, *, case: Case) -> Finding:
     """Deterministic gate between the model and the pipeline (shared rules in
     finding_schema.py). Anything not matching the contract raises ValueError
-    — fail loud (C-1.1)."""
-    return _validate_finding_payload(payload, case_id=case_id, specialist=RELIABILITY)
+    — fail loud (C-1.1). The case's subject job_id rides along so the gate
+    can bind structurally-determined targets."""
+    return _validate_finding_payload(
+        payload,
+        case_id=case.case_id,
+        specialist=RELIABILITY,
+        subject_job_id=str(case.evidence.get("job_id") or "") or None,
+        subject_station=str(
+            case.trigger.get("station") or case.evidence.get("station") or ""
+        )
+        or None,
+    )
 
 
 def read_only_grafana_tools(connector: Any) -> tuple[Callable[..., Any], ...]:
@@ -133,18 +143,33 @@ GROUND RULES:
 2. Rate confidence honestly: high only when the evidence directly shows it.
 3. Proposed actions must use ONLY these H-0 registry commands:
    {", ".join(REGISTRY_COMMANDS)}.
+   args are MANDATORY and must be copied from the SHARED EVIDENCE BASELINE:
+   job-scoped commands (retry_job) take args {{"job_id": "<the job_id field
+   from the evidence>"}}; shot-scoped commands take {{"shot_id": ...}};
+   intake commands take {{"station": "<station name>"}}. NEVER return empty
+   args ({{}}) — an action without its target id is rejected outright and
+   the finding fails validation. For a job failure you are investigating,
+   the job_id is in the evidence baseline; echo it verbatim.
    They are proposals for human/budgeted approval — you never execute.
-4. Mark each proposed action reversible: true only if undoing it restores
-   the prior state exactly.
+4. Mark each proposed action reversible: true when acting then undoing
+   leaves no permanent change — a retry simply re-runs the same work, a
+   pause resumes, an alternate attaches without overwriting anything.
+   Irreversible means destructive or one-way (deleted media, overwritten
+   locked cuts) — those are not in the registry at all.
 5. When the evidence DOES support a diagnosis, propose the matching action
    and estimate its cost honestly from the job's own cost history — never
-   0: your cost estimate feeds a leverage ranking and a 0 estimate makes
-   the ranking meaningless.
-6. If the evidence is insufficient for a root cause: ABSTAIN — return an
-   EMPTY proposed_actions list and say so with low confidence. A proposed
-   action without sufficient evidence is an invented fix, which is worse
-   than no proposal. Do not pair an "insufficient evidence" statement with
-   a speculative action.
+   0 for an action that spends money: your cost estimate feeds a leverage
+   ranking and a 0 estimate makes the ranking meaningless.
+6. ABSTAIN (empty proposed_actions, said with low confidence) only when NO
+   action is justified. Do NOT confuse "upstream root cause is unclear"
+   with "no action is justified": when the evidence clearly shows a gate
+   breach or stuck state and a registry command is the sanctioned
+   remediation for exactly that condition (e.g. a loudness gate breach →
+   retry_job re-measures; a runaway retry loop → pause_intake), propose
+   THAT action, citing the evidence that shows the breach, and say plainly
+   that the upstream root cause remains open. Proposing a sanctioned,
+   reversible remediation while the root cause is open is not speculation;
+   inventing a fix for a case with NO observable signal is.
 
 Respond with JSON matching the required schema: case_id (echo this case's
 id), claims, proposed_actions."""
@@ -169,4 +194,4 @@ def investigate(
         response_schema=FINDING_SCHEMA,
     )
     payload = json.loads(raw["text"])
-    return validate_finding_payload(payload, case_id=case.case_id)
+    return validate_finding_payload(payload, case=case)

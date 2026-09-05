@@ -65,6 +65,21 @@ def h(env, approvals_col, jobs_col):
     harness.register_fast(
         "cheap_fix", lambda ctx, ap: {"ok": True, "cost_micros": 500_000}
     )
+    # Per-run ACT-gate control collection, pre-seeded with a CURRENT-version
+    # passing receipt — dispatch-mechanics tests exercise ACT assuming the
+    # eval gate holds; the fail-closed tests use fresh/unseeded collections.
+    harness.gate_col = f"it-gate-{uuid.uuid4().hex[:8]}"
+    harness.store.set_doc(
+        harness.gate_col,
+        budget_loop.ACT_GATE_DOC,
+        {
+            "passed": True,
+            "gate_version": budget_loop.ACT_GATE_VERSION,
+            "suite": budget_loop.ACT_GATE_SUITE,
+            "threshold": 0.8,
+            "runs": 3,
+        },
+    )
     return harness
 
 
@@ -76,6 +91,7 @@ def _act(
     policies=None,
     jobs_col="it-jobs-x",
     envelope_collection=None,
+    gate_collection=None,
     **kwargs,
 ):
     return run_budgeted_dispatch(
@@ -89,6 +105,11 @@ def _act(
         autonomy_mode=env,
         annotator=h._annotate,
         **({"envelope_collection": envelope_collection} if envelope_collection else {}),
+        **{
+            "gate_collection": gate_collection
+            if gate_collection is not None
+            else h.gate_col
+        },
         **kwargs,
     )
 
@@ -218,6 +239,47 @@ def test_propose_only_mode_records_ranked_proposals_and_dispatches_nothing(
     assert h.handler_calls == 0
 
 
+def test_act_mode_without_a_passing_gate_receipt_is_fail_closed_to_propose_only(
+    h, approvals_col
+):
+    """ACT-gate review fix 3: 'act' in the settings doc alone must NOT unlock
+    spending. A versioned passing eval receipt (pc-control/act-gate) is
+    required; without it the loop demotes to propose-only."""
+    empty_gate_col = f"it-gate-{uuid.uuid4().hex[:8]}"
+    summary = _act(
+        h, [_action(job_id="job-1")], env="act", gate_collection=empty_gate_col
+    )
+
+    assert summary["mode"] == "propose_only"
+    assert all(d["reason"].startswith("act gate:") for d in summary["decisions"])
+    assert h.store.list_where(approvals_col, "project_id", "proj-1") == []
+    assert h.handler_calls == 0
+
+
+def test_act_mode_with_a_stale_gate_receipt_is_refused(h):
+    stale_col = f"it-gate-{uuid.uuid4().hex[:8]}"
+    h.store.set_doc(
+        stale_col,
+        budget_loop.ACT_GATE_DOC,
+        {
+            "passed": True,
+            "gate_version": budget_loop.ACT_GATE_VERSION - 1,
+            "suite": budget_loop.ACT_GATE_SUITE,
+        },
+    )
+    summary = _act(h, [_action(job_id="job-1")], env="act", gate_collection=stale_col)
+
+    assert summary["mode"] == "propose_only"
+    assert all(d["reason"].startswith("act gate:") for d in summary["decisions"])
+
+
+def test_act_mode_with_a_current_passing_gate_receipt_dispatches(h):
+    summary = _act(h, [_action(job_id="job-1")], env="act")
+
+    assert summary["mode"] == "act"
+    assert summary["decisions"][0]["decision"] == "dispatched"
+
+
 def test_envelope_round_trips_from_firestore_without_redeploy(h, run_id):
     # Per-run control doc: the shared pc-control/budget doc is production
     # state and must never be mutated by a test.
@@ -305,6 +367,18 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
         )
 
     deliberation_col = f"it-deliberations-{uuid.uuid4().hex[:8]}"
+    gate_col = f"it-gate-{uuid.uuid4().hex[:8]}"
+    h.store.set_doc(
+        gate_col,
+        budget_loop.ACT_GATE_DOC,
+        {
+            "passed": True,
+            "gate_version": budget_loop.ACT_GATE_VERSION,
+            "suite": budget_loop.ACT_GATE_SUITE,
+            "threshold": 0.8,
+            "runs": 3,
+        },
+    )
     record = asyncio.run(
         run_budgeted_cycle(
             {
@@ -321,6 +395,7 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
             deliberation_col=deliberation_col,
             envelope_override=20_000_000,
             autonomy_mode="act",
+            gate_collection=gate_col,
             specialists={
                 DELIVERY_QC: delivery_specialist,
                 "reliability_investigator": None,

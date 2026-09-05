@@ -91,7 +91,7 @@ def test_validate_finding_payload_builds_typed_finding(case) -> None:  # type: i
             }
         ],
     }
-    finding = ri.validate_finding_payload(payload, case_id="case-test-01")
+    finding = ri.validate_finding_payload(payload, case=case)
     assert finding.specialist == "reliability_investigator"
     assert finding.case_id == "case-test-01"
     assert finding.claims[0].confidence == "high"
@@ -134,7 +134,7 @@ def test_validate_finding_payload_rejects_malformed(case, mutation) -> None:  # 
     }
     payload.update(mutation)
     with pytest.raises(ValueError):
-        ri.validate_finding_payload(payload, case_id="case-test-01")
+        ri.validate_finding_payload(payload, case=case)
 
 
 def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-untyped-def]
@@ -144,7 +144,7 @@ def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-unty
         "proposed_actions": [],
     }
     with pytest.raises(ValueError, match="case_id"):
-        ri.validate_finding_payload(payload, case_id="case-test-01")
+        ri.validate_finding_payload(payload, case=case)
 
 
 def test_build_prompt_names_case_evidence_and_rules(case) -> None:  # type: ignore[no-untyped-def]

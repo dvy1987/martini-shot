@@ -37,10 +37,31 @@ log = logging.getLogger("pc.budget")
 SUPERVISOR_APPROVER = "system:supervisor_budget"
 CONTROL = "pc-control"
 SETTINGS_DOC = "settings"
+ACT_GATE_DOC = "act-gate"
+# Bump when the ACT-gate eval contract hardens: a receipt from an older
+# gate version never unlocks spending (fail closed).
+ACT_GATE_VERSION = 1
+ACT_GATE_SUITE = "deliberation_ranking_quality"
 DEFAULT_ENVELOPE_MICROS = 20_000_000
 VALID_AUTONOMY_MODES = ("propose_only", "act")
 
 PROPOSE_ONLY = "propose_only"
+
+
+def act_gate_passed(store: Any, *, collection: str | None = None) -> bool:
+    """Fail-closed ACT receipt check: a CURRENT-version, passing receipt for
+    the ranking-quality suite must exist in `pc-control/act-gate`. Anything
+    missing, stale, or malformed refuses ACT."""
+    receipt = store.get_doc(collection or CONTROL, ACT_GATE_DOC) or {}
+    try:
+        version_ok = int(receipt.get("gate_version") or 0) == ACT_GATE_VERSION
+    except (TypeError, ValueError):
+        return False
+    return (
+        receipt.get("passed") is True
+        and version_ok
+        and str(receipt.get("suite") or "") == ACT_GATE_SUITE
+    )
 
 
 def load_autonomy_mode(
@@ -136,6 +157,7 @@ def run_budgeted_dispatch(
     autonomy_mode: str = "act",
     envelope_override: int | None = None,
     envelope_collection: str | None = None,
+    gate_collection: str | None = None,
     annotator: Any | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
@@ -150,6 +172,20 @@ def run_budgeted_dispatch(
     )
     decisions: list[dict[str, Any]] = []
 
+    # Fail-closed activation (ACT-gate review fix 3): 'act' in settings alone
+    # never unlocks spending — a current-version passing eval receipt must
+    # exist. Without it the loop runs propose-only with a visible reason.
+    if autonomy_mode == "act" and not act_gate_passed(
+        store, collection=gate_collection
+    ):
+        autonomy_mode = PROPOSE_ONLY
+        gate_reason = (
+            f"act gate: no passing {ACT_GATE_SUITE} receipt "
+            f"(version {ACT_GATE_VERSION} required)"
+        )
+    else:
+        gate_reason = ""
+
     if autonomy_mode != "act":
         for row in ranked_actions:
             decisions.append(
@@ -160,7 +196,7 @@ def run_budgeted_dispatch(
                         row.get("cost_estimate_micros")
                     ),
                     "decision": "skipped",
-                    "reason": f"autonomy: {PROPOSE_ONLY}",
+                    "reason": gate_reason or f"autonomy: {PROPOSE_ONLY}",
                     "ranked_for_morning_report": True,
                 }
             )
@@ -333,6 +369,7 @@ async def run_budgeted_cycle(
     autonomy_mode: str = "act",
     envelope_override: int | None = None,
     envelope_collection: str | None = None,
+    gate_collection: str | None = None,
     specialists: Any | None = None,
     verifier: Any | None = None,
     annotator: Any | None = None,
@@ -366,6 +403,7 @@ async def run_budgeted_cycle(
         autonomy_mode=autonomy_mode,
         envelope_override=envelope_override,
         envelope_collection=envelope_collection,
+        gate_collection=gate_collection,
         annotator=annotator,
         now=now,
     )

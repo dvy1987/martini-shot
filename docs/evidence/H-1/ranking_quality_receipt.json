@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "gate_version": 1,
+  "suite": "deliberation_ranking_quality",
+  "threshold": 0.8,
+  "runs": 3,
+  "run_results": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "hard_gate_failures": []
+}

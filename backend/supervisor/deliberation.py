@@ -44,21 +44,34 @@ SpecialistMap = dict[str, SpecialistFn]
 def apply_verdict(findings: list[Finding], verdict: Verdict) -> list[Finding]:
     """HARD filter (plan §0.4): rejected specialists are excluded outright;
     rejected CLAIMS are dropped individually; a finding left with no
-    surviving claims is excluded. Never a down-weight."""
+    surviving claims is excluded. Never a down-weight.
+
+    Action provenance (ACT-gate review fix 1): an action whose required
+    supporting claims include a vetoed ref is DISCARDED, not copied. An
+    action that declared no refs depends on the whole finding, so any veto
+    in its finding drops it (conservative; ProposedAction.required_evidence_refs)."""
     rejected_refs = {ref for ref, _reason in verdict.rejected}
     survivors: list[Finding] = []
     for finding in findings:
         if finding.specialist not in verdict.approved_specialists:
             continue
         kept_claims = [c for c in finding.claims if c.evidence_ref not in rejected_refs]
-        if not kept_claims:
+        kept_actions = [
+            action
+            for action in finding.proposed_actions
+            if not (set(action.required_evidence_refs(finding)) & rejected_refs)
+        ]
+        if not kept_claims or not kept_actions:
+            # A finding with no surviving actions carries nothing dispatchable
+            # — keep it only if it still has claims worth reading? No: the
+            # ranked list is the product; an actionless finding is noise.
             continue
         survivors.append(
             Finding(
                 specialist=finding.specialist,
                 case_id=finding.case_id,
                 claims=kept_claims,
-                proposed_actions=list(finding.proposed_actions),
+                proposed_actions=kept_actions,
             )
         )
     return survivors
@@ -113,6 +126,10 @@ def rank_actions(case: Case, findings: list[Finding]) -> list[dict[str, Any]]:
                     "reversible": action.reversible,
                     "specialist": finding.specialist,
                     "evidence_refs": [c.evidence_ref for c in finding.claims],
+                    # ACT-gate provenance: exactly what this action stands on.
+                    "supporting_evidence_refs": list(
+                        action.required_evidence_refs(finding)
+                    ),
                     "leverage": leverage,
                 }
             )

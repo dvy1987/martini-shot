@@ -64,7 +64,44 @@ mypy clean.
   contract aligned to the honest two-mode toggle (`propose_only` | `act`).
 - [x] Autonomy toggle demotes to propose-only — test 7.
 - [x] Human-wins rule — test 6.
-- [x] `deliberation_ranking_quality` clears threshold before ACT — 0.857 PASS (2026-09-04); **ACT remains gated on this suite**.
+- [x] `deliberation_ranking_quality` clears threshold before ACT — reworked
+  per the 2026-09-05 ACT-gate review and now **3/3 independent runs PASS at
+  1.0 end-to-end action accuracy** with hard gates clean
+  (`ranking_quality_summary.json` + `ranking_quality_receipt.json`, gate
+  version 1).
+
+## ACT-gate review fixes (2026-09-05, review-driven)
+
+1. **Action provenance contract**: every action carries
+   `supporting_evidence_refs`; the verdict filter discards exactly the
+   actions whose required claims were vetoed (provenance-less actions depend
+   on the whole finding — any veto drops them). An unsupported action can no
+   longer survive a veto (previously `apply_verdict` copied every action).
+2. **Real ACT-gate eval**: deterministic routing cases are scored separately
+   (`routing_ok`) and excluded from the judgment denominator; every judgment
+   case runs the real verifier → provenance filter → leverage rank and is
+   scored on final command AND target args, including a required-abstention
+   case; hard gates (unsupported-action survival, reversibility, spend-class
+   cost positivity, abstention) are run-killers, never averaged away; THREE
+   independent runs are reported verbatim.
+3. **Fail-closed activation**: `act` in settings alone never unlocks
+   spending — `run_budgeted_dispatch` requires a CURRENT-version passing
+   receipt in `pc-control/act-gate` (`ACT_GATE_VERSION=1`,
+   `act_gate_passed`); without it the loop demotes to propose-only with a
+   visible reason. The receipt file produced by the eval is evidence;
+   writing it into `pc-control/act-gate` (activation) remains a deliberate,
+   separate step — NOT done here. ACT stays locked until the demo
+   rehearsal.
+4. **Deterministic action-correctness gate** (beyond the review minimum):
+   `REQUIRED_ACTION_ARGS` — an action lacking its command's target keys is
+   rejected at the finding-schema gate; the case's own subject
+   job/station is bound structurally (never model guesswork), so a
+   malformed action can neither rank nor dispatch.
+5. **Evidence honesty**: H-1g's 4-cycle claim was not supported by the
+   committed artifacts (a single-case re-run had overwritten the JSONL);
+   corrected and superseded by the 2026-09-05 full run, recorded verbatim
+   including the abstentions and the gate refusal
+   (`docs/evidence/H-1/H-1g.md`).
 
 ## Honest watch items
 

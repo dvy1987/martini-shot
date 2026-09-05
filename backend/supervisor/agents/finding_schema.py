@@ -28,6 +28,20 @@ REGISTRY_COMMANDS: tuple[str, ...] = (
     "extend_shot",
 )
 
+# Target contract per command (ACT-gate review fix: action correctness is
+# deterministic at the gate, not a prompt hope). An action whose args lack
+# these non-empty values is rejected before it can ever rank or dispatch.
+REQUIRED_ACTION_ARGS: dict[str, tuple[str, ...]] = {
+    "retry_job": ("job_id",),
+    "lock_shot": ("shot_id",),
+    "unlock_shot": ("shot_id",),
+    "add_to_continuity": ("shot_id", "alternate_id"),
+    "remove_from_continuity": ("shot_id", "alternate_id"),
+    "pause_intake": ("station",),
+    "resume_intake": ("station",),
+    "extend_shot": ("shot_id", "project_id", "source_uri"),
+}
+
 
 def validate_claims(payload: dict[str, Any]) -> list[Claim]:
     raw_claims = payload.get("claims")
@@ -52,7 +66,23 @@ def validate_claims(payload: dict[str, Any]) -> list[Claim]:
     return claims
 
 
-def validate_actions(payload: dict[str, Any]) -> list[ProposedAction]:
+def validate_actions(
+    payload: dict[str, Any],
+    claims: list[Claim] | None = None,
+    *,
+    subject_job_id: str | None = None,
+    subject_station: str | None = None,
+) -> list[ProposedAction]:
+    """Parse proposed_actions. When the finding's claims are supplied, each
+    action's supporting_evidence_refs are validated against them (ACT-gate
+    review fix 1): every declared ref must cite a claim in the SAME finding.
+    An action that declares no refs is legal but conservative — the verdict
+    filter treats it as depending on the whole finding.
+
+    subject_job_id: the case's investigated job. A job-scoped action with a
+    missing job_id binds to it deterministically (structural target, not
+    model guesswork); any other target must be explicit or the gate refuses."""
+    claim_refs = {c.evidence_ref for c in (claims or [])}
     actions: list[ProposedAction] = []
     raw_actions = payload.get("proposed_actions") or []
     if not isinstance(raw_actions, list):
@@ -75,18 +105,63 @@ def validate_actions(payload: dict[str, Any]) -> list[ProposedAction]:
         args = raw.get("args")
         if not isinstance(args, dict):
             raise ValueError("proposed action args must be an object")
+        # Structural target binding: the case's own subject is the target of
+        # an action whose args the model left empty. Anything else must be
+        # explicit (review fix: action correctness at the gate).
+        if not str(args.get("job_id") or "").strip() and subject_job_id:
+            if name == "retry_job":
+                args = {**args, "job_id": subject_job_id}
+        if (
+            name in ("pause_intake", "resume_intake")
+            and not str(args.get("station") or "").strip()
+            and subject_station
+        ):
+            args = {**args, "station": subject_station}
+        raw_refs = raw.get("supporting_evidence_refs") or []
+        if not isinstance(raw_refs, list) or any(
+            not isinstance(ref, str) or not ref.strip() for ref in raw_refs
+        ):
+            raise ValueError(
+                "supporting_evidence_refs must be a list of non-empty strings"
+            )
+        supporting = tuple(dict.fromkeys(ref.strip() for ref in raw_refs))
+        if claims is not None:
+            unknown = [ref for ref in supporting if ref not in claim_refs]
+            if unknown:
+                raise ValueError(
+                    f"supporting_evidence_refs cite claims outside this finding: "
+                    f"{unknown}"
+                )
+        missing = [
+            key
+            for key in REQUIRED_ACTION_ARGS.get(name, ())
+            if not str(args.get(key) or "").strip()
+        ]
+        if missing:
+            raise ValueError(
+                f"proposed {name!r} args missing required target keys: {missing} "
+                f"(args must identify the exact target from the case evidence)"
+            )
         actions.append(
             ProposedAction(
                 command_name=name,
                 args=args,
                 cost_estimate_micros=cost,
                 reversible=reversible,
+                supporting_evidence_refs=supporting,
             )
         )
     return actions
 
 
-def validate_finding_payload(payload: Any, *, case_id: str, specialist: str) -> Finding:
+def validate_finding_payload(
+    payload: Any,
+    *,
+    case_id: str,
+    specialist: str,
+    subject_job_id: str | None = None,
+    subject_station: str | None = None,
+) -> Finding:
     """Deterministic gate for a plain finding payload."""
     if not isinstance(payload, dict):
         raise ValueError("finding payload must be a JSON object")
@@ -94,9 +169,15 @@ def validate_finding_payload(payload: Any, *, case_id: str, specialist: str) -> 
         raise ValueError(
             f"case_id mismatch: payload {payload.get('case_id')!r} != case {case_id!r}"
         )
+    claims = validate_claims(payload)
     return Finding(
         specialist=specialist,
         case_id=case_id,
-        claims=validate_claims(payload),
-        proposed_actions=validate_actions(payload),
+        claims=claims,
+        proposed_actions=validate_actions(
+            payload,
+            claims,
+            subject_job_id=subject_job_id,
+            subject_station=subject_station,
+        ),
     )

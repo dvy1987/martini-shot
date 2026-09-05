@@ -127,13 +127,14 @@ def read_qc_report_from_doc(doc: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_qc_finding_payload(payload: Any, *, case_id: str) -> QCFinding:
-    """Deterministic gate: shared finding rules + the classification enum."""
+def validate_qc_finding_payload(payload: Any, *, case: Case) -> QCFinding:
+    """Deterministic gate: shared finding rules + the classification enum.
+    The case's subject job/station ride along for structural target binding."""
     if not isinstance(payload, dict):
         raise ValueError("finding payload must be a JSON object")
-    if payload.get("case_id") != case_id:
+    if payload.get("case_id") != case.case_id:
         raise ValueError(
-            f"case_id mismatch: payload {payload.get('case_id')!r} != case {case_id!r}"
+            f"case_id mismatch: payload {payload.get('case_id')!r} != case {case.case_id!r}"
         )
     classification = payload.get("classification")
     if classification not in QC_CLASSIFICATIONS:
@@ -141,11 +142,20 @@ def validate_qc_finding_payload(payload: Any, *, case_id: str) -> QCFinding:
             f"classification must be one of {list(QC_CLASSIFICATIONS)}, "
             f"got {classification!r}"
         )
+    claims = validate_claims(payload)
     finding = Finding(
         specialist=DELIVERY_QC,
-        case_id=case_id,
-        claims=validate_claims(payload),
-        proposed_actions=validate_actions(payload),
+        case_id=case.case_id,
+        claims=claims,
+        proposed_actions=validate_actions(
+            payload,
+            claims,
+            subject_job_id=str(case.evidence.get("job_id") or "") or None,
+            subject_station=str(
+                case.trigger.get("station") or case.evidence.get("station") or ""
+            )
+            or None,
+        ),
     )
     return QCFinding(finding=finding, classification=str(classification))
 
@@ -220,7 +230,7 @@ def investigate(
         response_schema=QC_FINDING_SCHEMA,
     )
     payload = json.loads(raw["text"])
-    return validate_qc_finding_payload(payload, case_id=case.case_id)
+    return validate_qc_finding_payload(payload, case=case)
 
 
 __all__ = [

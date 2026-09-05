@@ -80,7 +80,7 @@ def test_validate_qc_finding_builds_typed_result(case) -> None:  # type: ignore[
         ],
         "proposed_actions": [],
     }
-    result = dqc.validate_qc_finding_payload(payload, case_id="case-dqc-01")
+    result = dqc.validate_qc_finding_payload(payload, case=case)
 
     assert result.finding.specialist == "delivery_qc"
     assert result.classification == "genuine_breach"
@@ -99,13 +99,13 @@ def test_validate_rejects_unknown_classification(case, bad_classification) -> No
         "proposed_actions": [],
     }
     with pytest.raises(ValueError):
-        dqc.validate_qc_finding_payload(payload, case_id="case-dqc-01")
+        dqc.validate_qc_finding_payload(payload, case=case)
 
 
 def test_validate_rejects_missing_claims(case) -> None:  # type: ignore[no-untyped-def]
     payload = {"case_id": "case-dqc-01", "classification": "pass", "claims": []}
     with pytest.raises(ValueError):
-        dqc.validate_qc_finding_payload(payload, case_id="case-dqc-01")
+        dqc.validate_qc_finding_payload(payload, case=case)
 
 
 def test_validate_rejects_invented_command(case) -> None:  # type: ignore[no-untyped-def]
@@ -123,7 +123,7 @@ def test_validate_rejects_invented_command(case) -> None:  # type: ignore[no-unt
         ],
     }
     with pytest.raises(ValueError, match="registry"):
-        dqc.validate_qc_finding_payload(payload, case_id="case-dqc-01")
+        dqc.validate_qc_finding_payload(payload, case=case)
 
 
 def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-untyped-def]
@@ -134,7 +134,7 @@ def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-unty
         "proposed_actions": [],
     }
     with pytest.raises(ValueError, match="case_id"):
-        dqc.validate_qc_finding_payload(payload, case_id="case-dqc-01")
+        dqc.validate_qc_finding_payload(payload, case=case)
 
 
 def test_build_prompt_carries_real_report_and_rules(case, seeded_job_doc) -> None:  # type: ignore[no-untyped-def]

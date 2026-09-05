@@ -52,12 +52,25 @@ class Claim:
 @dataclass(frozen=True)
 class ProposedAction:
     """One candidate for the H-0b leverage ranking. command_name must match
-    an H-0 default_registry command — never invented ad hoc."""
+    an H-0 default_registry command — never invented ad hoc.
+
+    supporting_evidence_refs: the evidence_refs of the claims this action
+    DEPENDS on (ACT-gate review fix 1). Empty means "depends on the whole
+    finding" — conservatively, any vetoed claim in the finding drops the
+    action, so an unsupported action can never survive a veto."""
 
     command_name: str
     args: dict[str, Any]
     cost_estimate_micros: int
     reversible: bool  # False => excluded from ranking, never just down-weighted
+    supporting_evidence_refs: tuple[str, ...] = ()
+
+    def required_evidence_refs(self, finding: Finding) -> tuple[str, ...]:
+        """The claim refs this action stands on: its declared refs, or every
+        claim in the finding when none were declared (conservative default)."""
+        if self.supporting_evidence_refs:
+            return self.supporting_evidence_refs
+        return tuple(claim.evidence_ref for claim in finding.claims)
 
 
 @dataclass(frozen=True)
@@ -92,11 +105,19 @@ def build_case(
     jobs_collection: str = "pc-jobs",
 ) -> Case:
     """Deterministic: reads the trigger's job doc as the shared evidence
-    baseline. A missing job doc is recorded as absence, never invented."""
+    baseline. A missing job doc is recorded as absence, never invented.
+    The case always names its subject explicitly (`evidence["job_id"]`) so
+    specialists can echo correct target args regardless of the underlying
+    doc's id key (ACT-gate review: action args must identify the target)."""
     evidence: dict[str, Any] = {}
     job_id = str(trigger.get("job_id") or "")
     if job_id:
-        evidence["job"] = store.get_doc(jobs_collection, job_id)
+        evidence["job_id"] = job_id
+        job_doc = store.get_doc(jobs_collection, job_id)
+        evidence["job"] = job_doc
+        station = str((job_doc or {}).get("station") or "")
+        if station:
+            evidence["station"] = station
     return Case(
         case_id=f"case-{uuid.uuid4().hex[:12]}",
         version=1,

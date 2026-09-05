@@ -100,7 +100,7 @@ def test_validate_assessment_builds_typed_result(case) -> None:  # type: ignore[
         ],
         "proposed_actions": [],
     }
-    result = sg.validate_assessment_payload(payload, case_id="case-sg-01")
+    result = sg.validate_assessment_payload(payload, case=case)
 
     assert result.finding.specialist == "spend_guardian"
     assert result.assessment == "underpriced"
@@ -115,7 +115,7 @@ def test_validate_rejects_unknown_assessment(case, bad) -> None:  # type: ignore
         "proposed_actions": [],
     }
     with pytest.raises(ValueError):
-        sg.validate_assessment_payload(payload, case_id="case-sg-01")
+        sg.validate_assessment_payload(payload, case=case)
 
 
 def test_validate_rejects_invented_command(case) -> None:  # type: ignore[no-untyped-def]
@@ -133,7 +133,7 @@ def test_validate_rejects_invented_command(case) -> None:  # type: ignore[no-unt
         ],
     }
     with pytest.raises(ValueError, match="registry"):
-        sg.validate_assessment_payload(payload, case_id="case-sg-01")
+        sg.validate_assessment_payload(payload, case=case)
 
 
 def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-untyped-def]
@@ -144,7 +144,7 @@ def test_validate_rejects_foreign_case_id(case) -> None:  # type: ignore[no-unty
         "proposed_actions": [],
     }
     with pytest.raises(ValueError, match="case_id"):
-        sg.validate_assessment_payload(payload, case_id="case-sg-01")
+        sg.validate_assessment_payload(payload, case=case)
 
 
 def test_build_prompt_carries_real_caps_and_proposal(case) -> None:  # type: ignore[no-untyped-def]

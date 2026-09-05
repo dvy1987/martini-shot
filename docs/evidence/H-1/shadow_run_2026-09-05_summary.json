@@ -1,0 +1,12 @@
+{
+  "run": "H-1g shadow run (propose-only)",
+  "project_id": "proj-shadow-h1g-20260905",
+  "mcp_connector_used": true,
+  "read_only_tools_bound": 2,
+  "scenarios": 4,
+  "cycles_completed": 3,
+  "all_persisted": true,
+  "cycles_with_veto": 0,
+  "cycles_with_ranked_actions": 3,
+  "nothing_executed": true
+}

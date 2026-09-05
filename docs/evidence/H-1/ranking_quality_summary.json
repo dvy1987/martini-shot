@@ -1,8 +1,39 @@
 {
   "suite": "deliberation_ranking_quality",
-  "metric": "mean_case_accuracy",
-  "threshold": 0.8,
-  "mean_case_accuracy": 0.8571428571428571,
-  "n": 7,
-  "pass": true
+  "gate_version": 1,
+  "runs_required": 3,
+  "runs": [
+    {
+      "run": 1,
+      "metric": "end_to_end_action_accuracy",
+      "n_judgment_cases": 4,
+      "mean_action_accuracy": 1.0,
+      "threshold": 0.8,
+      "routing_ok": true,
+      "hard_gate_failures": [],
+      "pass": true
+    },
+    {
+      "run": 2,
+      "metric": "end_to_end_action_accuracy",
+      "n_judgment_cases": 4,
+      "mean_action_accuracy": 1.0,
+      "threshold": 0.8,
+      "routing_ok": true,
+      "hard_gate_failures": [],
+      "pass": true
+    },
+    {
+      "run": 3,
+      "metric": "end_to_end_action_accuracy",
+      "n_judgment_cases": 4,
+      "mean_action_accuracy": 1.0,
+      "threshold": 0.8,
+      "routing_ok": true,
+      "hard_gate_failures": [],
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "note": "All runs reported verbatim (no cherry-picking). Routing cases scored separately (routing_ok), excluded from the judgment denominator. Hard gates are run-killers, never averaged away."
 }

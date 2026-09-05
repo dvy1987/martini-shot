@@ -144,24 +144,34 @@ def read_spend_state(
     }
 
 
-def validate_assessment_payload(payload: Any, *, case_id: str) -> "SGAssessment":
-    """Deterministic gate: shared finding rules + the assessment enum."""
+def validate_assessment_payload(payload: Any, *, case: Case) -> "SGAssessment":
+    """Deterministic gate: shared finding rules + the assessment enum. The
+    case's subject job/station ride along for structural target binding."""
     if not isinstance(payload, dict):
         raise ValueError("finding payload must be a JSON object")
-    if payload.get("case_id") != case_id:
+    if payload.get("case_id") != case.case_id:
         raise ValueError(
-            f"case_id mismatch: payload {payload.get('case_id')!r} != case {case_id!r}"
+            f"case_id mismatch: payload {payload.get('case_id')!r} != case {case.case_id!r}"
         )
     assessment = payload.get("assessment")
     if assessment not in ("reasonable", "underpriced", "over_budget"):
         raise ValueError(
             f"assessment must be reasonable|underpriced|over_budget, got {assessment!r}"
         )
+    claims = validate_claims(payload)
     finding = Finding(
         specialist=SPEND_GUARDIAN,
-        case_id=case_id,
-        claims=validate_claims(payload),
-        proposed_actions=validate_actions(payload),
+        case_id=case.case_id,
+        claims=claims,
+        proposed_actions=validate_actions(
+            payload,
+            claims,
+            subject_job_id=str(case.evidence.get("job_id") or "") or None,
+            subject_station=str(
+                case.trigger.get("station") or case.evidence.get("station") or ""
+            )
+            or None,
+        ),
     )
     return SGAssessment(finding=finding, assessment=str(assessment))
 
@@ -255,4 +265,4 @@ def investigate(
         response_schema=SPEND_FINDING_SCHEMA,
     )
     payload = json.loads(raw["text"])
-    return validate_assessment_payload(payload, case_id=case.case_id)
+    return validate_assessment_payload(payload, case=case)

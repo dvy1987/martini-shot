@@ -1,31 +1,45 @@
-# H-1g — Multi-agent shadow run (propose-only), 2026-09-04
+# H-1g — Multi-agent shadow run (propose-only)
 
-## What ran
+## Evidence integrity note (2026-09-05, review finding — read first)
 
-`scripts/shadow_run.py` — the FULL specialist team over 4 seeded Stage-1
-failure scenarios (labeled synthetic inputs, C-1.3, from
-`backend/evals/datasets/reliability_root_cause.jsonl`):
+The ORIGINAL 2026-09-04 run claimed 4/4 cycles with a live adversarial veto,
+but the committed artifacts only support ONE cycle
+(`shadow_run_2026-09-04.jsonl`: `cyc-b96633f5a332`, no veto) — a single-case
+`--only` re-run had overwritten the full JSONL before commit. That mismatch
+was flagged in the H-0b ACT-gate review and is corrected here: the claims
+below now describe ONLY what the committed artifacts show. The superseding
+artifact is the full 2026-09-05 run.
 
-| Scenario | Trigger | Routed team | Outcome |
-|---|---|---|---|
-| rel-eval-01 loudness breach | job_failed | reliability + delivery_qc | verifier VETOED both of delivery_qc's claims (contradicted case evidence) → only reliability survived |
-| rel-eval-02 Firestore 429 | job_failed | reliability + delivery_qc | both approved; retry_job ranked |
-| rel-eval-03 aspect breach | qc_breach | delivery_qc + reliability | both approved; retry_job + lock_shot ranked |
-| rel-eval-04 runaway loop | runaway | spend_guardian + reliability | both propose pause_intake (correct hold, not retry) |
+## What the 2026-09-05 run shows (committed evidence)
 
-All 4 cycles persisted REAL `pc-deliberations` documents (summary:
-`shadow_run_2026-09-04_summary.json`, `all_persisted: true`, 4/4 completed,
-1 cycle with a real veto). Real Grafana MCP annotation per cycle
-(`deliberation cycle_id=... job_id ...`); nothing executed — propose-only
-(ranked actions stay records; H-0b owns ACT mode).
+`scripts/shadow_run.py` ran the FULL specialist team (real Gemini via
+`run_agent_call`, real Grafana MCP read-only tools, real verifier, real
+leverage synthesis) over the 4 seeded Stage-1 scenarios from
+`backend/evals/datasets/reliability_root_cause.jsonl` (labeled synthetic
+inputs, C-1.3). Summary: `shadow_run_2026-09-05_summary.json` —
+**3/4 cycles persisted, 0 with ranked actions, nothing executed**
+(propose-only; ranked actions stay records — H-0b owns ACT mode).
 
-## Live adversarial veto (DoD)
+- **rel-eval-01/02/03: completed, zero ranked actions.** The specialists
+  abstained (empty `proposed_actions`) under the hardened prompt contract.
+  This is honest model variance, recorded verbatim in
+  `shadow_run_2026-09-05.jsonl`; the review explicitly requires variance to
+  be reported without cherry-picking. The propose-only loop is unaffected:
+  an abstention lands as a cycle with no dispatchable actions.
+- **rel-eval-04: refused by the deterministic target-args gate** — the model
+  proposed `pause_intake` without the required `station` arg, and the
+  finding-schema gate rejected it before it could ever rank or dispatch
+  (`proposed 'pause_intake' args missing required target keys`). This is the
+  ACT-gate review's "action correctness at the gate" fix working as designed:
+  a malformed action cannot silently survive.
 
-rel-eval-01: delivery_qc claimed "missing delivery QC report" / relied on the
-absent `lufs` field; the Verification agent vetoed both claims as
-contradicting the case evidence, and `apply_verdict` hard-filtered
-delivery_qc's actions out of the ranking. Archived verbatim in
-`shadow_run_2026-09-04.jsonl` (`vetoed` array of cycle `cyc-e2174406c102`).
+An adversarial veto (delivery_qc claims vetoed on rel-eval-01) WAS observed
+live during 2026-09-05 reruns, but that intermediate artifact was overwritten
+by later reruns, so no committed file supports it; the veto MECHANISM is
+proven by unit tests (`test_deliberation.py` hard-filter + provenance tests)
+and by the ACT-gate eval's conflict case (veto applied,
+`unsupported_action_survival` clean — see
+`ranking_quality_eval.jsonl`). We do not claim it from the shadow artifacts.
 
 ## FE proof (DoD)
 
@@ -33,55 +47,25 @@ delivery_qc's actions out of the ranking. Archived verbatim in
 product (localhost, real backend + real Firestore docs, project
 `proj-shadow-h1g-20260904` via the `/deliberations` API) showing the Agent
 deliberation panel: specialists consulted, vetoes, proposed next action with
-reversibility, dissent. A judge can see who ran, what each concluded, and
-where they disagreed.
+reversibility, dissent. That screenshot predates this evidence correction and
+rendered a real persisted cycle from the 2026-09-04 session.
 
-## Latent bug found and fixed live
+## Latent bugs found and fixed live (unchanged)
 
-`verdict.rejected` was stored as a list of tuples → Firestore rejects nested
-arrays ("Property verdict contains an invalid nested entity"). It only
-surfaced when the verifier actually vetoed something. Fixed: verdicts
-serialize as `{claim_ref, reason}` dicts (matches the FE contract).
-Also fixed: `rank_actions` rows now carry `reversible` (FE renders it
-truthfully; caught live in the panel).
+- Verdict vetoes serialized as tuples broke Firestore writes (`_verdict_to_doc`
+  now emits `{claim_ref, reason}` dicts — found only when a veto actually
+  fired).
+- Ranked actions carried no `reversible` flag (FE rendered all actions as
+  irreversible) — fixed in `rank_actions`.
 
-## Honest watch items (feed the ranking-quality eval)
+## Runtime-readiness wording (ACT-gate review, binding for submission)
 
-- Specialists estimated cost 0 for their proposed actions → leverage `inf`
-  for all; ranking within a cycle is then order-stable, not cost-sensitive.
-  The ranking-quality eval must score cost-estimate realism.
-- rel-eval-01: after the (correct) veto, the surviving action was
-  reliability's `lock_shot` — a debatable fix for a loudness breach; the
-  dataset's expected action was `retry_job`. Recorded, not hidden.
-
-## deliberation_ranking_quality eval — PASS (2026-09-04)
-
-Suite `deliberation_ranking_quality` added to thresholds.yaml
-(mean_case_accuracy >= 0.8 — H-0b's ACT-mode gate). Dataset:
-`backend/evals/datasets/deliberation_ranking_quality.jsonl` (7 cases across
-5 dimensions); runner `scripts/ranking_quality_eval.py` (real verifier /
-real specialist Gemini calls; delegation rows scored deterministically).
-
-**Result: 6/7 = 0.857 PASS (threshold 0.8).**
-
-- delegation 3/3, conflict 1/1 (conflicting retry-vs-hold: verifier vetoed
-  the "transient" claim the evidence ruled out; pause_intake ranked),
-  stale_evidence 1/1 (stale 429 claim vetoed per-claim; sound claim and its
-  action survived), abstention 1/1 after one prompt-contract sharpening,
-  cost_realism 0/1.
-
-Two honest prompt-contract iterations (dataset labels unchanged):
-
-1. Abstention failed first: the specialist said "root cause cannot be
-   established" (low confidence) but still proposed retry_job. Rule 5
-   sharpened to require an EMPTY proposed_actions list on insufficient
-   evidence → abstention passes.
-2. The sharpening over-corrected: the cost_realism row (sufficient
-   evidence) now sometimes abstains too. Run 1 scored it 1.0 (retry_job @
-   41200 micros, inside the history bound); runs 2-3 abstained (0.0).
-   Run-to-run model variance, not a contract gap — the same evidence
-   produced proposals in earlier runs (shadow run included). Stopping here:
-   further prompt tuning would be eval-overfitting. Recorded as a watch
-   item for H-0b: cost-estimate realism is flaky when the prompt leans on
-   abstention; the ACT gate uses the suite mean, which stays above
-   threshold either way (6/7 both ways).
+This system is a **custom Python-orchestrated Gemini specialist team with
+parallel investigation, independent verification, deterministic safety
+filtering, and Grafana-observed deliberation**. It is NOT an "ADK multi-agent
+runtime", there is no "agent-to-agent delegation", and it is not a
+"production autonomous network": the only external full-cycle caller is this
+propose-only shadow script; the H-0b budgeted loop
+(`backend/supervisor/budget_loop.py`) exists and is tested but has no
+production caller wired in `app.py` yet, and ACT mode remains fail-closed
+behind a versioned eval receipt that has not been activated.
