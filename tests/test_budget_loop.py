@@ -225,7 +225,7 @@ def test_envelope_round_trips_from_firestore_without_redeploy(h, run_id):
     assert load_envelope_micros(h.store, collection=col) == 20_000_000  # owner default
     h.store.set_doc(
         col,
-        budget_loop.BUDGET_DOC,
+        budget_loop.SETTINGS_DOC,
         {"post_command_budget_micros": 5_000_000},
     )
     assert load_envelope_micros(h.store, collection=col) == 5_000_000

@@ -5,11 +5,11 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PositiveInt
 
 from backend.api.events import EventHub
 from backend.api.present import approval_to_api, job_to_api, project_to_api
@@ -27,6 +27,7 @@ from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
 from backend.shots import lifecycle as shots
 from backend.stations.ingest.run import STATION
+from backend.supervisor import budget_loop
 from backend.supervisor.deliberation import DELIBERATIONS
 
 log = logging.getLogger("pc.api")
@@ -53,6 +54,14 @@ class ExtendIn(BaseModel):
     source_uri: str
     reason: str | None = Field(default=None)
     prompt: str | None = Field(default=None)
+
+
+class SettingsIn(BaseModel):
+    """Partial body for PATCH /settings (H-0b round-trip): the autonomy
+    toggle and the nightly envelope. Only provided fields move."""
+
+    autonomy: Literal["propose_only", "act"] | None = Field(default=None)
+    post_command_budget_micros: PositiveInt | None = Field(default=None)
 
 
 def _shot_project(store: FirestoreStore, shot_id: str) -> str:
@@ -382,6 +391,37 @@ def install_spine_routes(
         key = artifact_ref.removeprefix("gs://").split("/", 1)[1]
         url = gcs.signed_download_url(key, expires_minutes=60)
         return {"alternate_id": alternate_id, "url": url, "expires_in_minutes": 60}
+
+    # -- H-0b settings round-trip: autonomy toggle + nightly envelope -------
+
+    def _settings_payload() -> dict[str, Any]:
+        doc = store.get_doc(budget_loop.CONTROL, budget_loop.SETTINGS_DOC) or {}
+        envelope = budget_loop.load_envelope_micros(store)
+        return {
+            "autonomy": budget_loop.load_autonomy_mode(store),
+            # Echo the effective envelope even when the doc omits it, so the
+            # UI shows the number the loop will actually use.
+            "post_command_budget_micros": int(
+                doc.get("post_command_budget_micros") or envelope
+            ),
+        }
+
+    @app.get("/api/v1/settings")
+    def get_settings_route() -> dict[str, Any]:
+        return _settings_payload()
+
+    @app.patch("/api/v1/settings")
+    def patch_settings(body: SettingsIn) -> dict[str, Any]:
+        """One flip, no redeploy: the budgeted autonomy loop reads this same
+        Firestore doc at cycle time (`budget_loop.load_autonomy_mode` /
+        `load_envelope_micros`)."""
+        doc = store.get_doc(budget_loop.CONTROL, budget_loop.SETTINGS_DOC) or {}
+        if body.autonomy is not None:
+            doc["autonomy"] = body.autonomy
+        if body.post_command_budget_micros is not None:
+            doc["post_command_budget_micros"] = body.post_command_budget_micros
+        store.set_doc(budget_loop.CONTROL, budget_loop.SETTINGS_DOC, doc)
+        return _settings_payload()
 
     @app.get("/api/v1/projects/{project_id}/events")
     async def project_events(project_id: str, request: Request) -> StreamingResponse:

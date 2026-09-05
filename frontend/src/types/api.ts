@@ -110,10 +110,13 @@ export interface MorningReport {
   verdicts: ReportVerdict[];
 }
 
-export type Autonomy = "propose_only" | "act_with_approval" | "autonomous";
+/** H-0b autonomy toggle: one flip, no redeploy (pc-control/settings). */
+export type Autonomy = "propose_only" | "act";
 
 export interface Settings {
   autonomy: Autonomy;
+  /** Nightly supervisor envelope, integer micros (default $20 = 20_000_000). */
+  post_command_budget_micros: number;
 }
 
 export type BackendReach = "checking" | "up" | "down";

@@ -36,19 +36,33 @@ log = logging.getLogger("pc.budget")
 
 SUPERVISOR_APPROVER = "system:supervisor_budget"
 CONTROL = "pc-control"
-BUDGET_DOC = "budget"
+SETTINGS_DOC = "settings"
 DEFAULT_ENVELOPE_MICROS = 20_000_000
+VALID_AUTONOMY_MODES = ("propose_only", "act")
 
 PROPOSE_ONLY = "propose_only"
 
 
+def load_autonomy_mode(
+    store: Any, *, collection: str | None = None, doc_id: str = SETTINGS_DOC
+) -> str:
+    """The autonomy toggle from Firestore (`pc-control/settings`) — one flip
+    demotes the whole loop to propose-only, no redeploy. Missing/invalid
+    falls back to propose-only (safe default)."""
+    raw = (store.get_doc(collection or CONTROL, doc_id) or {}).get("autonomy")
+    mode = str(raw or "").strip().lower()
+    return mode if mode in VALID_AUTONOMY_MODES else PROPOSE_ONLY
+
+
 def load_envelope_micros(
-    store: Any, *, collection: str = CONTROL, doc_id: str = BUDGET_DOC
+    store: Any, *, collection: str | None = None, doc_id: str = SETTINGS_DOC
 ) -> int:
-    """The envelope lives in Firestore (`pc-control/budget`) so the product's
-    Settings UI can change it with no redeploy; missing/invalid falls back to
-    the owner default."""
-    raw = (store.get_doc(collection, doc_id) or {}).get("post_command_budget_micros")
+    """The envelope lives in Firestore (`pc-control/settings`) so the
+    product's Settings UI can change it with no redeploy; missing/invalid
+    falls back to the owner default."""
+    raw = (store.get_doc(collection or CONTROL, doc_id) or {}).get(
+        "post_command_budget_micros"
+    )
     try:
         value = int(raw)  # type: ignore[arg-type]
     except (TypeError, ValueError):
@@ -121,7 +135,7 @@ def run_budgeted_dispatch(
     policies: dict[str, Any] | None = None,
     autonomy_mode: str = "act",
     envelope_override: int | None = None,
-    envelope_collection: str = CONTROL,
+    envelope_collection: str | None = None,
     annotator: Any | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
@@ -318,7 +332,7 @@ async def run_budgeted_cycle(
     policies: dict[str, Any] | None = None,
     autonomy_mode: str = "act",
     envelope_override: int | None = None,
-    envelope_collection: str = CONTROL,
+    envelope_collection: str | None = None,
     specialists: Any | None = None,
     verifier: Any | None = None,
     annotator: Any | None = None,

@@ -58,7 +58,10 @@ mypy clean.
 - [x] Ranked table as Grafana annotation — test 10 asserts the annotation call; production annotator is the Grafana MCP connector.
 - [x] Envelope exhaustion end-to-end — tests 2/3 (leftovers persisted with reasons).
 - [x] House cap halts with envelope room — test 4 (integration, Spend Control source of truth).
-- [x] Settings round-trip — test 8.
+- [x] Settings round-trip — test 8, plus the product route: `GET/PATCH
+  /api/v1/settings` (tests/test_settings_route.py 4/4) reads/writes the same
+  `pc-control/settings` doc the loop reads at cycle time; FE `Settings`
+  contract aligned to the honest two-mode toggle (`propose_only` | `act`).
 - [x] Autonomy toggle demotes to propose-only — test 7.
 - [x] Human-wins rule — test 6.
 - [x] `deliberation_ranking_quality` clears threshold before ACT — 0.857 PASS (2026-09-04); **ACT remains gated on this suite**.
