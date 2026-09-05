@@ -374,13 +374,26 @@ async def run_budgeted_cycle(
     verifier: Any | None = None,
     annotator: Any | None = None,
     now: datetime | None = None,
+    cycle_id: str | None = None,
 ) -> dict[str, Any]:
     """One full budgeted autonomy cycle (H-0b steps 1-6): the multi-agent
     deliberation collects + verifies + ranks (Amendment A9), then this
     dispatches the ranked table through H-0 under the nightly envelope and
-    persists the decision table onto the cycle doc."""
+    persists the decision table onto the cycle doc.
+
+    FAIL-CLOSED about specialists (review fix): every routed name must map
+    to a real persona — a production caller that omits one is a wiring bug,
+    never a reason to consult a stand-in."""
+    from backend.supervisor.case import route_specialists
     from backend.supervisor.deliberation import run_deliberation_cycle
 
+    provided = specialists or {}
+    missing = [name for name in route_specialists(trigger) if name not in provided]
+    if missing:
+        raise ValueError(
+            f"production deliberation requires real specialists for {missing} "
+            f"(no stand-ins — wire backend.supervisor.team.production_specialists)"
+        )
     record = await run_deliberation_cycle(
         trigger,
         settings,
@@ -391,6 +404,7 @@ async def run_budgeted_cycle(
         verifier=verifier,
         annotator=annotator,
         propose=False,
+        cycle_id=cycle_id,
     )
     summary = run_budgeted_dispatch(
         store,

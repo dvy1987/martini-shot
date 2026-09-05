@@ -6,7 +6,7 @@
     {
       "run": 1,
       "metric": "end_to_end_action_accuracy",
-      "n_judgment_cases": 4,
+      "n_judgment_cases": 5,
       "mean_action_accuracy": 1.0,
       "threshold": 0.8,
       "routing_ok": true,
@@ -16,7 +16,7 @@
     {
       "run": 2,
       "metric": "end_to_end_action_accuracy",
-      "n_judgment_cases": 4,
+      "n_judgment_cases": 5,
       "mean_action_accuracy": 1.0,
       "threshold": 0.8,
       "routing_ok": true,
@@ -26,7 +26,7 @@
     {
       "run": 3,
       "metric": "end_to_end_action_accuracy",
-      "n_judgment_cases": 4,
+      "n_judgment_cases": 5,
       "mean_action_accuracy": 1.0,
       "threshold": 0.8,
       "routing_ok": true,

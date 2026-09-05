@@ -3,6 +3,7 @@
   "metric": "mean_root_cause_accuracy",
   "threshold": 0.75,
   "mean_root_cause_accuracy": 1.0,
+  "mean_action_accuracy": 1.0,
   "n": 4,
   "pass": true
 }

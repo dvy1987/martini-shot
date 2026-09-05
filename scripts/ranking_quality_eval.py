@@ -43,7 +43,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from backend.core.config import get_settings
-from backend.supervisor.agents.reliability_investigator import investigate
 from backend.supervisor.agents.verification import verify
 from backend.supervisor.case import (
     Case,
@@ -112,6 +111,26 @@ def _args_match(expected: dict, actual: dict) -> bool:
     return all(actual.get(k) == v for k, v in expected.items())
 
 
+def _real_specialist_findings(case: Case, settings) -> list:
+    """Run the SAME production specialist map the app wires
+    (supervisor.team.production_specialists) for every routed name — the
+    eval exercises the production wiring, not a hardcoded persona. The map
+    gets a real Firestore store (C-1.1: no mocks), so Delivery QC reads its
+    evaluator report path exactly as it does in the app; a missing job doc
+    is recorded as absence, never invented."""
+    from backend.core.firestore import get_firestore
+    from backend.supervisor.team import production_specialists
+
+    global _EVAL_STORE
+    if _EVAL_STORE is None:
+        _EVAL_STORE = get_firestore(settings)
+    specialists = production_specialists(_EVAL_STORE, settings)
+    return [specialists[name](name, case) for name in route_specialists(case.trigger)]
+
+
+_EVAL_STORE = None
+
+
 def score_action_accuracy(row: dict, settings) -> tuple[float, dict]:
     """End-to-end: real verifier → provenance filter → leverage rank; the
     final top command AND args must match expected_action (null = the case
@@ -120,7 +139,7 @@ def score_action_accuracy(row: dict, settings) -> tuple[float, dict]:
     findings = (
         _findings_from_row(row, case)
         if row.get("findings")
-        else [investigate(case, settings)]
+        else _real_specialist_findings(case, settings)
     )
     verdict = verify(case, findings, settings)
     survivors = apply_verdict(findings, verdict)

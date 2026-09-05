@@ -114,3 +114,24 @@ mypy clean.
 - A live ACT-mode night run (real $20 envelope) is intentionally NOT executed
   here — the eval gate passed, but the first real ACT night belongs to the
   demo rehearsal window with the owner watching, per the plan's go-live gate.
+
+## Production wiring (2026-09-05, closes "no production caller / silent stand-ins")
+
+- `backend/supervisor/team.py`: `production_specialists(store, settings)` builds
+  the REAL persona map for the full routed vocabulary (reliability, delivery_qc,
+  spend_guardian, and the NEW localization investigator for `dub_breach`).
+  `run_budgeted_cycle` is FAIL-CLOSED about it: any trigger routing a name the
+  map does not carry raises instead of consulting a stand-in.
+- `maybe_deliberate(job, ...)` is the app-level signal-fired trigger, wired into
+  the worker's `on_terminal` hook in `backend/api/app.py`: failed / quarantined /
+  needs_human terminal states fire ONE deliberation cycle per job, deterministic
+  `cycle_id=cyc-job-<job_id>` (Firestore-durable dedup, C-6.3), autonomy read
+  from `pc-control/settings`, propose-only unless the ACT receipt exists, Grafana
+  annotation attached, and it never raises into the worker path.
+- `scripts/ranking_quality_eval.py` now runs the SAME production specialist map
+  against a real Firestore store (C-1.1) — the eval exercises the production
+  wiring, not a hardcoded persona. New case `drq-loc-01` (dub_breach) scores the
+  localization persona end-to-end.
+- Eval state: `ranking_quality` 3/3 runs PASS at 1.0, zero hard-gate failures
+  (receipt refreshed); `reliability_root_cause` PASS with `expected_action` now
+  SCORED (root-cause 1.0, action accuracy 1.0) — the last unscored review gap.

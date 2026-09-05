@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager, suppress
+from typing import Any
 from urllib.parse import parse_qs
 
 from fastapi import FastAPI
@@ -158,14 +159,35 @@ def create_app(
 
 async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
     from backend.jobs.worker import worker_loop
+    from backend.supervisor.team import maybe_deliberate
 
     machine = getattr(app.state, "machine", None)
+    store = getattr(app.state, "store", None)
+
+    def on_terminal(job: Any) -> None:
+        # H-0: approval bookkeeping first (never delayed by deliberation).
+        if machine is not None:
+            machine.on_job_terminal(job)
+        # H-0b signal-fired deliberation: fire-and-forget, propose-only
+        # unless the ACT gate receipt is present, idempotent per job,
+        # never raises into the worker path (see supervisor/team.py).
+        if store is not None and getattr(app.state, "worker_enabled", False):
+            from backend.api.spine import _grafana_annotator
+
+            maybe_deliberate(
+                job,
+                store=store,
+                settings=cfg,
+                machine=machine,
+                annotator=_grafana_annotator(cfg),
+            )
+
     await worker_loop(
         app.state.queue,
         app.state.gcs,
         cfg,
         hub,
-        on_terminal=machine.on_job_terminal if machine is not None else None,
+        on_terminal=on_terminal,
     )
 
 

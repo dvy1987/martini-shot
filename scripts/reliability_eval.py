@@ -40,6 +40,17 @@ def root_cause_hit(claims: list[dict], row: dict) -> bool:
     return any(any(n in norm(c.get("text", "")) for n in needles) for c in claims)
 
 
+def action_hit(proposed_commands: list[str], row: dict) -> bool:
+    """Deterministic judge for `expected_action` (review gap: it was recorded
+    but never scored): the top of the ranked table must BE the sanctioned
+    remediation command for the failure family. `expected_action: null` means
+    abstention is required — any proposal scores 0."""
+    expected = row.get("expected_action")
+    if expected is None:
+        return not proposed_commands
+    return expected in proposed_commands
+
+
 def main() -> int:
     settings = get_settings()
     rows = [
@@ -49,6 +60,7 @@ def main() -> int:
     ]
     records = []
     scores: list[float] = []
+    action_scores: list[float] = []
     for row in rows:
         case = Case(
             case_id=f"{row['case_id']}-case",
@@ -59,7 +71,11 @@ def main() -> int:
                 "job_id": row["job"]["id"],
                 "station": row["station"],
             },
-            evidence={"job": row["job"]},
+            evidence={
+                "job_id": row["job"]["id"],
+                "station": row["station"],
+                "job": row["job"],
+            },
         )
         record: dict = {
             "case_id": row["case_id"],
@@ -80,27 +96,32 @@ def main() -> int:
                 {
                     "ok": True,
                     "score": 1.0 if root_cause_hit(claims, row) else 0.0,
+                    "action_ok": action_hit(commands, row),
                     "claims": claims,
                     "proposed_commands": commands,
                     "expected_action": row["expected_action"],
                 }
             )
             scores.append(float(record["score"]))
+            action_scores.append(1.0 if record["action_ok"] else 0.0)
         except Exception as exc:
             record.update(
                 {"ok": False, "score": 0.0, "error": f"{type(exc).__name__}: {exc}"}
             )
             scores.append(0.0)
+            action_scores.append(0.0)
         records.append(record)
 
     mean = sum(scores) / len(scores) if scores else 0.0
+    action_mean = sum(action_scores) / len(action_scores) if action_scores else 0.0
     payload = {
         "suite": "reliability_root_cause",
         "metric": "mean_root_cause_accuracy",
         "threshold": THRESHOLD,
         "mean_root_cause_accuracy": mean,
+        "mean_action_accuracy": action_mean,
         "n": len(rows),
-        "pass": mean >= THRESHOLD,
+        "pass": mean >= THRESHOLD and action_mean >= THRESHOLD,
     }
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     (EVIDENCE / "reliability_root_cause_eval.jsonl").write_text(

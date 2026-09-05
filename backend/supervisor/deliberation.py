@@ -168,6 +168,7 @@ async def run_deliberation_cycle(
     annotator: Callable[[str, list[str]], Any] | None = None,
     on_complete: Callable[[dict[str, Any]], None] | None = None,
     propose: bool = True,
+    cycle_id: str | None = None,
 ) -> dict[str, Any]:
     """One full cycle. `specialists` maps routed name → finding factory;
     missing names fall back to the stand-in (visible as low confidence)."""
@@ -198,7 +199,9 @@ async def run_deliberation_cycle(
     recommendation = synthesizer(case, filtered, verdict)
 
     record: dict[str, Any] = {
-        "cycle_id": f"cyc-{uuid.uuid4().hex[:12]}",
+        # A caller may pin the cycle id (deterministic per job — idempotent
+        # signal-fired triggers, C-6.3); otherwise it is random.
+        "cycle_id": cycle_id or f"cyc-{uuid.uuid4().hex[:12]}",
         "case_id": case.case_id,
         "case_version": case.version,
         "created_at": utc_now_iso(),

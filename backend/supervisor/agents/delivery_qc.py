@@ -210,7 +210,10 @@ def investigate(
     read from the job doc via `store` unless the caller supplies it directly
     (eval runner / in-memory cases). Malformed responses raise (fail loud)."""
     if qc_report is None:
-        job_id = str(case.trigger.get("job_id") or "")
+        job_id = str(case.trigger.get("job_id") or case.evidence.get("job_id") or "")
+        if not job_id:
+            # Fail loud, never a malformed Firestore read (empty doc id 400s).
+            raise ValueError("delivery_qc case carries no job_id to investigate")
         if store is None:
             raise ValueError("either store or qc_report is required")
         qc_report = read_qc_report(store, job_id, jobs_collection=jobs_collection)
