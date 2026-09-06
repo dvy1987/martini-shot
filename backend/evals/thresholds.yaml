@@ -55,6 +55,10 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: ingest_triage_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: extend_quality
     metric: mean_output_flicker
     threshold: 0.02
