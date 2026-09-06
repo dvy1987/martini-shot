@@ -14,16 +14,105 @@ Proven call shape (the one that survived every probe failure):
 
 from __future__ import annotations
 
+import base64
 import json
 import math
+import subprocess
+import urllib.request
 from typing import Any
 
 from backend.core.config import Settings
-from backend.core.models import OMNI_MODEL, VEO_MODEL
+from backend.core.models import OMNI_MODEL, TTS_API_BASE, TTS_VOICE_FAMILY, VEO_MODEL
 
 # Vertex list prices (2026-09): Omni 1.1 Flash ~$0.10/s of output at 720p;
 # 360p drafts are ~1/3 of that. Integer micro-units (C-6.4), ceil per second.
 PRICE_PER_SECOND_MICROS = {"720p": 100_000, "360p": 33_334}
+
+# Google Cloud TTS Chirp 3 HD list price (2026-09): $30 per 1M characters.
+PRICE_PER_CHAR_MICROS = 30.0
+
+
+def estimate_tts_cost_micros(chars: int) -> int:
+    """Chirp 3 HD cost estimate (C-6.4): integer micros over input characters."""
+    return int(chars * PRICE_PER_CHAR_MICROS)
+
+
+def _gcloud_access_token() -> str:
+    """ADC token via the gcloud CLI (same auth path as the Veo adapter)."""
+    import shutil
+
+    gcloud = shutil.which("gcloud") or shutil.which("gcloud.cmd")
+    if gcloud is None:
+        raise RuntimeError("gcloud executable not found on PATH")
+    token = subprocess.run(
+        [gcloud, "auth", "application-default", "print-access-token"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    if not token:
+        raise RuntimeError("gcloud returned an empty access token")
+    return token
+
+
+def tts_synthesize(
+    settings: Settings,
+    *,
+    ssml: str,
+    language_code: str,
+    voice_name: str | None = None,
+) -> dict[str, Any]:
+    """REAL Google Cloud TTS synthesis (Chirp 3 HD, A10/E-2). SSML in
+    (`<speak>…<prosody rate="…">…`), LINEAR16 WAV bytes out — the raw audio
+    the dub QC measures. Billed per character; cost estimate rides along.
+    Raises on any API error (fail loud, C-1.1)."""
+    voice = voice_name or f"{language_code}-{TTS_VOICE_FAMILY}"
+    body = {
+        "input": {"ssml": ssml},
+        "voice": {"languageCode": language_code, "name": voice},
+        "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 24000},
+    }
+    token = _gcloud_access_token()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json; charset=utf-8",
+        # Local ADC requires an explicit quota project for
+        # texttospeech.googleapis.com (403 SERVICE_DISABLED otherwise).
+        "x-goog-user-project": settings.gcp_project_id,
+    }
+    # Transient 5xxs observed on 2026-09-06 — bounded retry with backoff.
+    import time
+    import urllib.error
+
+    for attempt in range(3):
+        request = urllib.request.Request(
+            f"{TTS_API_BASE}/text:synthesize",
+            data=json.dumps(body).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as resp:
+                payload = json.load(resp)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code < 500 or attempt == 2:
+                raise
+            time.sleep(2**attempt)
+        except urllib.error.URLError:
+            if attempt == 2:
+                raise
+            time.sleep(2**attempt)
+    audio_b64 = str(payload.get("audioContent") or "")
+    if not audio_b64:
+        raise RuntimeError("tts synthesize returned no audio content")
+    return {
+        "audio_bytes": base64.b64decode(audio_b64),
+        "voice": voice,
+        "language_code": language_code,
+        "chars": len(ssml),
+        "cost_estimate_micros": estimate_tts_cost_micros(len(ssml)),
+    }
 
 
 def estimate_extend_cost_micros(duration_s: float, *, resolution: str = "720p") -> int:
@@ -94,7 +183,6 @@ def _extract_video(interaction: Any) -> bytes | None:
     """Video out of an SDK interaction object (output_video, possibly a
     signed URI) — mirrors the probe's proven extraction."""
     import base64
-    import urllib.request
 
     output_video = getattr(interaction, "output_video", None)
     if output_video is None:
@@ -162,7 +250,6 @@ def veo_extend(
     import shutil
     import subprocess
     import time
-    import urllib.request
 
     gcloud = shutil.which("gcloud") or shutil.which("gcloud.cmd")
     if gcloud is None:

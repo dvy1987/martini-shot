@@ -43,6 +43,14 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: dub_timing
+    metric: mean_duration_delta_mae_ms
+    threshold: 45
+    comparison: "<="
+  - name: dub_truncation_recall
+    metric: truncation_recall
+    threshold: 0.9
+    comparison: ">="
   - name: extend_quality
     metric: mean_output_flicker
     threshold: 0.02

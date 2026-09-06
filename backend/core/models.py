@@ -18,3 +18,8 @@ OMNI_MODEL = "gemini-omni-1.1-flash-preview"
 # (bg-swap + scene-extend renders, docs/evidence/G0/). FALLBACK video path
 # since Omni on Vertex matched/beat it on the flicker gate (2026-09-04).
 VEO_MODEL = "veo-3.1-fast-generate-001"
+
+# Speech synthesis — Google Cloud Text-to-Speech, Chirp 3 HD voice family
+# (per-language voice name: "<lang>-Chirp3-HD-Aoede"). E-2 dub station (A10).
+TTS_VOICE_FAMILY = "Chirp3-HD-Aoede"
+TTS_API_BASE = "https://texttospeech.googleapis.com/v1"
