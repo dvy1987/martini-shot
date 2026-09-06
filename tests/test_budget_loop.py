@@ -92,6 +92,7 @@ def _act(
     jobs_col="it-jobs-x",
     envelope_collection=None,
     gate_collection=None,
+    reservation_collection=None,
     **kwargs,
 ):
     return run_budgeted_dispatch(
@@ -104,6 +105,10 @@ def _act(
         policies=policies or {},
         autonomy_mode=env,
         annotator=h._annotate,
+        # Per-run reservation ledger unless a test shares one explicitly —
+        # tests must never pollute the real pc-budget-reservations night doc.
+        reservation_collection=reservation_collection
+        or f"pc-res-{uuid.uuid4().hex[:8]}",
         **({"envelope_collection": envelope_collection} if envelope_collection else {}),
         **{
             "gate_collection": gate_collection
@@ -328,7 +333,13 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
     persisted on the cycle doc."""
     from backend.core.config import get_settings
     from backend.supervisor.budget_loop import run_budgeted_cycle
-    from backend.supervisor.case import DELIVERY_QC, Claim, Finding, ProposedAction
+    from backend.supervisor.case import (
+        DELIVERY_QC,
+        RELIABILITY,
+        Claim,
+        Finding,
+        ProposedAction,
+    )
 
     # A real signal: a stuck needs_human job (the trigger evidence).
     h.store.set_doc(
@@ -398,7 +409,20 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
             gate_collection=gate_col,
             specialists={
                 DELIVERY_QC: delivery_specialist,
-                "reliability_investigator": None,
+                # A REAL persona callable (review round 2: a stand-in would
+                # now correctly demote this cycle to propose-only).
+                RELIABILITY: lambda name, case: Finding(
+                    specialist=RELIABILITY,
+                    case_id=case.case_id,
+                    claims=[
+                        Claim(
+                            text="stuck lease exceeds the 15-minute backstop",
+                            evidence_ref=f"firestore://{jobs_col}/job-stuck",
+                            confidence="high",
+                        )
+                    ],
+                    proposed_actions=[],  # concurs with Delivery QC's finding
+                ),
             },
             annotator=h._annotate,
         )
@@ -414,3 +438,240 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
     approvals = h.store.list_where(approvals_col, "project_id", "proj-1")
     assert approvals and approvals[0]["approver"] == SUPERVISOR_APPROVER
     assert any("budget loop" in str(a["text"]) for a in h.annotations)
+
+
+# ---------------------------------------------------------------------------
+# Review round 2 (2026-09-06): concurrency-safe envelope + stand-in labeling
+# ---------------------------------------------------------------------------
+
+
+def test_envelope_reservation_is_atomic(env):
+    """The nightly envelope gate must be a compare-and-set on the night
+    ledger doc, not a read-check-write race: two cycles can never both
+    reserve the last chunk of the envelope."""
+    from datetime import datetime, timezone
+
+    from backend.supervisor.budget_loop import (
+        ledger_reserved_micros,
+        reconcile_reservation,
+        reserve_envelope,
+    )
+
+    col = f"pc-reservations-{uuid.uuid4().hex[:8]}"
+    now = datetime(2026, 9, 6, 2, 0, tzinfo=timezone.utc)
+
+    assert reserve_envelope(
+        env, cost=600, envelope=1000, base_spent=0, collection=col, now=now
+    )
+    assert not reserve_envelope(
+        env, cost=600, envelope=1000, base_spent=0, collection=col, now=now
+    ), "second concurrent reservation over the envelope must refuse"
+    assert reserve_envelope(
+        env, cost=400, envelope=1000, base_spent=0, collection=col, now=now
+    )
+    assert ledger_reserved_micros(env, collection=col, now=now) == 1000
+
+    # Reconcile refunds the difference between estimate and actual.
+    reconcile_reservation(env, delta=-300, collection=col, now=now)
+    assert ledger_reserved_micros(env, collection=col, now=now) == 700
+
+
+def test_parallel_reservations_cannot_overspend(env):
+    """True concurrency: N threads racing for the same envelope chunk — the
+    Firestore transaction must admit exactly the ones that fit."""
+    import threading
+    from datetime import datetime, timezone
+
+    from backend.supervisor.budget_loop import reserve_envelope
+
+    col = f"pc-reservations-{uuid.uuid4().hex[:8]}"
+    now = datetime(2026, 9, 6, 2, 0, tzinfo=timezone.utc)
+    results: list[bool] = []
+    lock = threading.Lock()
+
+    def attempt() -> None:
+        ok = reserve_envelope(
+            env, cost=600, envelope=1000, base_spent=0, collection=col, now=now
+        )
+        with lock:
+            results.append(ok)
+
+    threads = [threading.Thread(target=attempt) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert results.count(True) == 1, f"exactly one 600 fits a 1000 envelope: {results}"
+    assert results.count(False) == 3
+
+
+def test_second_dispatch_skips_when_reservation_exhausts_envelope(h):
+    """Two sequential cycles sharing the night ledger: the first dispatches,
+    the second must see the reservation and skip — even though its own
+    supervisor_spend snapshot still shows zero (the job's real cost has not
+    landed yet). This is precisely the window where the old read-check-write
+    loop would double-spend."""
+    # The dispatched job does NOT report cost synchronously (like a slow-lane
+    # render in flight): supervisor_spend stays 0 after cycle 1.
+    h.register_fast("remediate", lambda ctx, ap: {"ok": True})
+    res_col = f"pc-res-{uuid.uuid4().hex[:8]}"
+    first = _act(
+        h,
+        [_action(name="remediate", job_id="job-1")],
+        envelope_override=2_000_000,
+        reservation_collection=res_col,
+    )
+    assert [d["decision"] for d in first["decisions"]] == ["dispatched"]
+    second = _act(
+        h,
+        [_action(name="remediate", job_id="job-2")],
+        envelope_override=2_000_000,
+        reservation_collection=res_col,
+    )
+    assert [d["decision"] for d in second["decisions"]] == ["skipped"]
+    assert "envelope" in second["decisions"][0]["reason"]
+
+
+def test_reservation_reconciles_to_actual_cost(h):
+    """An over-estimate is refunded to the ledger after dispatch, so the
+    night budget tracks real spend, not the loop's own guess."""
+    res_col = f"pc-res-{uuid.uuid4().hex[:8]}"
+    from datetime import datetime, timezone
+
+    from backend.supervisor.budget_loop import ledger_reserved_micros
+
+    summary = _act(
+        h,
+        [_action(name="cheap_fix", job_id="job-1", cost=2_000_000)],
+        reservation_collection=res_col,
+    )
+    assert [d["decision"] for d in summary["decisions"]] == ["dispatched"]
+    # cheap_fix really costs 500_000; the 2_000_000 estimate was reserved.
+    assert (
+        ledger_reserved_micros(
+            h.store, collection=res_col, now=datetime.now(timezone.utc)
+        )
+        == 500_000
+    )
+
+
+def test_stand_in_cycle_is_demoted_even_with_receipt(h):
+    """Defense in depth: a cycle that consulted a stand-in specialist is
+    labeled non-actionable at deliberation time and the dispatch demotes it
+    to propose-only — even with a passing ACT receipt in hand."""
+    summary = _act(
+        h,
+        [_action(job_id="job-1")],
+        actionable=False,
+    )
+    assert all(d["decision"] == "skipped" for d in summary["decisions"])
+    assert "stand-in" in summary["decisions"][0]["reason"]
+
+
+def test_deliberation_labels_stand_in_specialists(env, run_id):
+    """run_deliberation_cycle records which routed names fell back to the
+    stand-in and marks the cycle non-actionable."""
+    from datetime import datetime, timezone
+
+    from backend.core.config import get_settings
+    from backend.supervisor.case import Verdict
+    from backend.supervisor.deliberation import (
+        _stand_in_specialist,
+        run_deliberation_cycle,
+    )
+
+    col = f"pc-deliberations-{run_id}"
+    datetime(2026, 9, 6, 2, 0, tzinfo=timezone.utc)
+
+    def fake_verifier(case, findings):
+        return Verdict(
+            case_id=case.case_id,
+            rejected=[],
+            approved_specialists=[f.specialist for f in findings],
+            overall_confidence="medium",
+        )
+
+    def fake_synthesizer(case, findings, verdict):
+        return {"summary": "stub", "ranked_actions": []}
+
+    def reliability_stub(name, case):
+        return _stand_in_specialist  # replaced below — real Finding instead
+
+    record = asyncio.run(
+        run_deliberation_cycle(
+            {
+                "kind": "job_failed",
+                "job_id": "job-nothing",
+                "project_id": "proj-1",
+                "station": "loudness",  # routes [reliability, delivery_qc]
+            },
+            get_settings(),
+            store=env,
+            jobs_collection=f"pc-jobs-{run_id}",
+            deliberation_col=col,
+            specialists={
+                # reliability covered by a real callable; delivery_qc missing
+                # (job_failed on loudness routes both) → stand-in fallback
+                "reliability_investigator": lambda name, case: _stand_in_specialist(
+                    name, case
+                ),
+            },
+            verifier=fake_verifier,
+            synthesizer=fake_synthesizer,
+            cycle_id=f"cyc-{run_id}",
+        )
+    )
+    assert record["actionable"] is False
+    assert record["stand_in_specialists"] == ["delivery_qc"]
+
+
+def test_run_budgeted_cycle_forwards_verifier(h, approvals_col, jobs_col, run_id):
+    """Regression lock (review round 2, finding 2): the verifier passed to
+    run_budgeted_cycle MUST be the one that runs — a verifier that rejects
+    everything leaves nothing to dispatch."""
+    from backend.core.config import get_settings
+    from backend.supervisor.budget_loop import run_budgeted_cycle
+    from backend.supervisor.case import Verdict
+    from backend.supervisor.team import production_specialists
+
+    deliberation_col = f"pc-deliberations-{run_id}"
+    specs = production_specialists(h.store, get_settings())
+
+    def reject_all(case, findings):
+        return Verdict(
+            case_id=case.case_id,
+            rejected=[
+                (c.evidence_ref, "test: reject everything")
+                for f in findings
+                for c in f.claims
+            ],
+            approved_specialists=[],
+            overall_confidence="low",
+        )
+
+    record = asyncio.run(
+        run_budgeted_cycle(
+            {
+                "kind": "job_failed",
+                "job_id": "job-veto-all",
+                "project_id": "proj-1",
+                "station": "ingest",
+            },
+            get_settings(),
+            h.store,
+            h.machine,
+            project_id="proj-1",
+            jobs_col=jobs_col,
+            approvals_col=approvals_col,
+            deliberation_col=deliberation_col,
+            envelope_override=20_000_000,
+            autonomy_mode="act",
+            gate_collection=h.gate_col,
+            specialists=specs,
+            verifier=reject_all,
+        )
+    )
+    ranked = (record.get("recommendation") or {}).get("ranked_actions") or []
+    assert ranked == [], "a veto-everything verifier must leave nothing ranked"
+    assert all(d["decision"] == "skipped" for d in record["budget"]["decisions"])

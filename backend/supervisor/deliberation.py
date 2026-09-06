@@ -171,7 +171,9 @@ async def run_deliberation_cycle(
     cycle_id: str | None = None,
 ) -> dict[str, Any]:
     """One full cycle. `specialists` maps routed name → finding factory;
-    missing names fall back to the stand-in (visible as low confidence)."""
+    missing names fall back to the stand-in AND the cycle is persisted with
+    `actionable: false` — the dispatcher demotes such cycles to propose-only
+    (review round 2: stand-ins must never be spend-eligible)."""
     case = build_case(trigger, store, jobs_collection=jobs_collection)
     # Routing is deterministic over the trigger; when the caller didn't know
     # the station, the case's own job-doc evidence supplies it (real data,
@@ -183,10 +185,12 @@ async def run_deliberation_cycle(
             route_trigger["station"] = str(job_evidence["station"])
     names = route_specialists(route_trigger)
     fns: SpecialistMap = specialists or {}
+    stand_ins: list[str] = []
 
     def _invoke(name: str) -> Finding:
         fn = fns.get(name)
         if fn is None:
+            stand_ins.append(name)
             return _stand_in_specialist(name, case)
         return fn(name, case)
 
@@ -209,6 +213,10 @@ async def run_deliberation_cycle(
         "project_id": str(route_trigger.get("project_id") or ""),
         "trigger": route_trigger,
         "specialists": names,
+        # Review round 2 (finding 8): a cycle that consulted a stand-in is
+        # explicitly non-actionable — the dispatcher refuses to spend on it.
+        "stand_in_specialists": stand_ins,
+        "actionable": not stand_ins,
         "findings": [asdict(f) for f in findings],
         "verdict": _verdict_to_doc(verdict),
         "recommendation": recommendation,

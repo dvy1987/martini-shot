@@ -47,6 +47,90 @@ VALID_AUTONOMY_MODES = ("propose_only", "act")
 
 PROPOSE_ONLY = "propose_only"
 
+# Nightly-envelope reservation ledger (review round 2, finding 3): one doc
+# per UTC night; every dispatch reserves its cost inside a Firestore
+# transaction so concurrent cycles can never both pass the same check and
+# double-spend the envelope.
+RESERVATION_COL = "pc-budget-reservations"
+
+
+class _EnvelopeExceeded(Exception):
+    """Raised inside the reservation transaction to refuse the write."""
+
+
+def _night_key(now: datetime) -> str:
+    return now.astimezone(timezone.utc).date().isoformat()
+
+
+def reserve_envelope(
+    store: Any,
+    *,
+    cost: int,
+    envelope: int,
+    base_spent: int,
+    collection: str = RESERVATION_COL,
+    now: datetime | None = None,
+) -> bool:
+    """Atomically reserve `cost` against the nightly envelope. Returns False
+    (writing nothing) when the reservation would exceed it. `base_spent` is
+    the caller's pre-cycle snapshot of completed supervisor spend; the ledger
+    carries every active reservation, and the compare-and-set inside the
+    Firestore transaction is what makes concurrent cycles safe."""
+    now = now or datetime.now(timezone.utc)
+    night = _night_key(now)
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        reserved = int(doc.get("reserved_micros") or 0)
+        if base_spent + reserved + cost > envelope:
+            raise _EnvelopeExceeded
+        return {
+            "night": night,
+            "reserved_micros": reserved + cost,
+            "updated_at": utc_now_iso(),
+        }
+
+    try:
+        store.transactional_update(collection, night, mutate)
+        return True
+    except _EnvelopeExceeded:
+        return False
+
+
+def reconcile_reservation(
+    store: Any,
+    *,
+    delta: int,
+    collection: str = RESERVATION_COL,
+    now: datetime | None = None,
+) -> None:
+    """Adjust the night ledger after dispatch: refund an over-estimate (or
+    book an overrun) so the night tracks REAL spend, never the loop's guess.
+    Clamped at zero — the ledger can only ever over-count, which fails safe
+    (under-spends, never over-spends the envelope)."""
+    now = now or datetime.now(timezone.utc)
+    night = _night_key(now)
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        reserved = max(0, int(doc.get("reserved_micros") or 0) + delta)
+        return {
+            "night": night,
+            "reserved_micros": reserved,
+            "updated_at": utc_now_iso(),
+        }
+
+    store.transactional_update(collection, night, mutate)
+
+
+def ledger_reserved_micros(
+    store: Any,
+    *,
+    collection: str = RESERVATION_COL,
+    now: datetime | None = None,
+) -> int:
+    now = now or datetime.now(timezone.utc)
+    doc = store.get_doc(collection, _night_key(now)) or {}
+    return int(doc.get("reserved_micros") or 0)
+
 
 def act_gate_passed(store: Any, *, collection: str | None = None) -> bool:
     """Fail-closed ACT receipt check: a CURRENT-version, passing receipt for
@@ -160,10 +244,22 @@ def run_budgeted_dispatch(
     gate_collection: str | None = None,
     annotator: Any | None = None,
     now: datetime | None = None,
+    reservation_collection: str = RESERVATION_COL,
+    actionable: bool = True,
 ) -> dict[str, Any]:
     """Dispatch ranked candidates down the list through H-0 until the
     nightly envelope runs out. Returns the decision table; nothing is ever
-    silently dropped (skips carry reasons and stay ranked)."""
+    silently dropped (skips carry reasons and stay ranked).
+
+    Concurrency (review round 2, finding 3): each dispatch reserves its cost
+    inside a Firestore transaction on the night ledger
+    (`reserve_envelope`) — two concurrent cycles can never both pass the
+    same envelope check. After dispatch the reservation is reconciled to the
+    actual cost, so the night tracks real spend.
+
+    Defense in depth (review round 2, finding 8): a cycle that consulted a
+    stand-in specialist (`actionable=False`) is demoted to propose-only even
+    with a passing ACT receipt — stand-in findings never dispatch."""
     now = now or datetime.now(timezone.utc)
     envelope = (
         envelope_override
@@ -183,6 +279,9 @@ def run_budgeted_dispatch(
             f"act gate: no passing {ACT_GATE_SUITE} receipt "
             f"(version {ACT_GATE_VERSION} required)"
         )
+    elif autonomy_mode == "act" and not actionable:
+        autonomy_mode = PROPOSE_ONLY
+        gate_reason = "stand-in specialist consulted — cycle not actionable"
     else:
         gate_reason = ""
 
@@ -212,6 +311,7 @@ def run_budgeted_dispatch(
         return summary
 
     spent = supervisor_spend_micros(store, approvals_col, jobs_col, now=now)
+    base_spent = spent  # pre-cycle snapshot; the ledger carries this cycle
     house_spent = project_spend_micros(
         store.list_where(jobs_col, "project_id", project_id), now=now
     )
@@ -252,7 +352,14 @@ def run_budgeted_dispatch(
                 }
             )
             continue
-        if spent + cost > envelope:
+        if not reserve_envelope(
+            store,
+            cost=cost,
+            envelope=envelope,
+            base_spent=base_spent,
+            collection=reservation_collection,
+            now=now,
+        ):
             decisions.append(
                 {
                     **base,
@@ -286,6 +393,14 @@ def run_budgeted_dispatch(
         )
         result = (merged or {}).get("result") or {}
         actual = coerce_cost_micros(result.get("cost_micros")) or cost
+        # Reconcile the reservation to the real cost (refund an over-estimate,
+        # book an overrun) — the night tracks actual spend, not the guess.
+        reconcile_reservation(
+            store,
+            delta=actual - cost,
+            collection=reservation_collection,
+            now=now,
+        )
         spent += actual
         house_spent += actual
         decisions.append(
@@ -420,6 +535,7 @@ async def run_budgeted_cycle(
         gate_collection=gate_collection,
         annotator=annotator,
         now=now,
+        actionable=bool(record.get("actionable", True)),
     )
     return record_budget_outcome(
         store, record, summary, deliberation_col=deliberation_col

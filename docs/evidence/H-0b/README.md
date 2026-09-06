@@ -135,3 +135,25 @@ mypy clean.
 - Eval state: `ranking_quality` 3/3 runs PASS at 1.0, zero hard-gate failures
   (receipt refreshed); `reliability_root_cause` PASS with `expected_action` now
   SCORED (root-cause 1.0, action accuracy 1.0) — the last unscored review gap.
+
+## Review round 2 (2026-09-06): concurrency + stand-in hardening
+
+- **Concurrent double-spend (fixed)**: every ACT dispatch now reserves its
+  cost inside a Firestore transaction on the night ledger
+  (`pc-budget-reservations/<utc-date>` — `reserve_envelope`,
+  `reconcile_reservation`). Two concurrent cycles can never both pass the
+  same envelope check; an over-estimate is refunded after dispatch so the
+  night tracks real spend. Proven by a 4-thread racing test (exactly one
+  reservation admitted) and an in-flight-job test where the supervisor
+  spend snapshot is still zero.
+- **Stand-in cycles never spend (fixed, defense in depth)**: a cycle that
+  consulted a stand-in specialist is persisted with `actionable: false` +
+  the stand-in list, and the dispatcher demotes it to propose-only even
+  with a passing ACT receipt. Production callers were already fail-closed
+  (run_budgeted_cycle raises on missing routed personas).
+- **Verifier forwarding (regression lock)**: run_budgeted_cycle forwards
+  the caller's verifier to run_deliberation_cycle; a test now proves a
+  veto-everything verifier leaves nothing ranked and nothing dispatched.
+- Reviewer findings already fixed at earlier commits and confirmed stale:
+  production caller wiring (4672503), per-claim provenance vetoes +
+  evidence regeneration (16dee4f).
