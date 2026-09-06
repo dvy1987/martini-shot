@@ -56,6 +56,7 @@ def run_agent_call(
     tools: tuple[Callable[..., Any], ...] = (),
     response_schema: dict[str, Any] | None = None,
     audio: tuple[bytes, str] | None = None,
+    images: list[tuple[bytes, str]] | None = None,
     instrument: bool = True,
 ) -> dict[str, Any]:
     """H-1a: THE one instrumented Gemini call site (generalizes B-3's
@@ -97,12 +98,16 @@ def run_agent_call(
             config_kwargs["response_mime_type"] = "application/json"
             config_kwargs["response_schema"] = response_schema
         contents: Any = prompt
+        media_parts: list[Any] = []
+        if images:
+            for data, mime in images:
+                media_parts.append(types.Part.from_bytes(data=data, mime_type=mime))
         if audio is not None:
             data, mime = audio
-            contents = [
-                types.Part.from_bytes(data=data, mime_type=mime),
-                prompt,
-            ]
+            media_parts.append(types.Part.from_bytes(data=data, mime_type=mime))
+        if media_parts:
+            media_parts.append(prompt)
+            contents = media_parts
         # Bounded retry on transient 429 RESOURCE_EXHAUSTED (observed on the
         # dub eval under burst): 3 attempts, exponential backoff. Any other
         # error or the final 429 fails loud (C-1.1).
