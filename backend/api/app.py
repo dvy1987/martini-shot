@@ -69,9 +69,12 @@ def create_app(
     settings: Settings | None = None,
     telemetry: bool = True,
     worker: bool = True,
+    settings_token_verifier: Any | None = None,
 ) -> FastAPI:
     """Build the FastAPI app. `telemetry=False` is for tests that initialize
-    OTel themselves; without a configured OTLP endpoint init is a no-op."""
+    OTel themselves; without a configured OTLP endpoint init is a no-op.
+    `settings_token_verifier` is a test seam for the owner sign-in gate —
+    production uses real Google ID-token verification."""
     cfg = settings if settings is not None else get_settings()
     setup_logging(level=cfg.log_level)
     install_access_log_redaction()
@@ -151,6 +154,7 @@ def create_app(
             hub=hub,
             settings=cfg,
             machine=machine,
+            settings_token_verifier=settings_token_verifier,
         )
         app.state.worker_enabled = worker
 

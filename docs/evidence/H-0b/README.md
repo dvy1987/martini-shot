@@ -157,3 +157,22 @@ mypy clean.
 - Reviewer findings already fixed at earlier commits and confirmed stale:
   production caller wiring (4672503), per-claim provenance vetoes +
   evidence regeneration (16dee4f).
+
+## Owner sign-in gate on settings writes (review round 2, finding 4 — DONE)
+
+- `PATCH /api/v1/settings` now requires a Google ID token (header
+  `X-Google-ID-Token`) verified against Google public keys with the
+  configured OAuth client audience, allowlisted to the owner email
+  (`backend/api/google_auth.py`). Reads stay API-key-only.
+- Fail-closed: no `GOOGLE_CLIENT_ID` / `GOOGLE_OWNER_EMAIL` configured means
+  every write is refused; valid-but-not-owner sign-ins get 403.
+- FE plumbing: `setGoogleIdToken` + header injection in the API client,
+  `GoogleSignInButton` (Google Identity Services) — honest empty state when
+  no client id is configured. Button placement lands with the settings
+  panel surface (design-gated).
+- Tests: settings route 10/10 incl. no-sign-in/garbage/non-owner/owner and
+  unconfigured-gate cases; FE 82/82 incl. header injection + component
+  fixture tests (GIS is an external SDK, labeled fixture per C-1.3);
+  mypy/ruff/build green. Owner one-time setup: create an OAuth Web client
+  id, set GOOGLE_CLIENT_ID + GOOGLE_OWNER_EMAIL (+ VITE_GOOGLE_CLIENT_ID)
+  in the backend env and FE build.

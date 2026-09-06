@@ -23,10 +23,22 @@ export class ApiError extends Error {
   }
 }
 
+// Owner sign-in credential (Google ID token). The API key identifies the
+// machine; this header identifies the OWNER for owner-class writes
+// (settings). Held in memory only — never persisted to storage.
+let googleIdToken = "";
+export function setGoogleIdToken(token: string): void {
+  googleIdToken = token;
+}
+export function hasGoogleCredential(): boolean {
+  return googleIdToken.length > 0;
+}
+
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
   if (apiKey) headers.set("X-API-Key", apiKey);
+  if (googleIdToken) headers.set("X-Google-ID-Token", googleIdToken);
   if (init?.body && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }

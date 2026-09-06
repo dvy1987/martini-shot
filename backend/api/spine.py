@@ -91,6 +91,7 @@ def install_spine_routes(
     hub: EventHub,
     settings: Settings | None = None,
     machine: ApprovalStateMachine | None = None,
+    settings_token_verifier: Any | None = None,
 ) -> None:
     # One machine instance serves the HTTP API, the worker hook and the
     # sweeper; single-writer is the MODULE, instances share its transactions.
@@ -394,6 +395,45 @@ def install_spine_routes(
 
     # -- H-0b settings round-trip: autonomy toggle + nightly envelope -------
 
+    def _require_owner(request: Request) -> None:
+        """Google sign-in gate for owner-class writes (review round 2,
+        finding 4). The verifier is injectable for tests; production uses
+        real ID-token verification (google_auth.verify_owner_id_token)."""
+        token = request.headers.get("X-Google-ID-Token") or ""
+        if settings_token_verifier is not None:
+            verifier = settings_token_verifier
+        elif settings is not None:
+            from backend.api.google_auth import verify_owner_id_token
+
+            def verifier(tok: str) -> dict[str, Any]:
+                return verify_owner_id_token(tok, settings)
+
+        else:
+            # No settings = no gate configuration = locked (fail closed).
+            from backend.api.google_auth import GoogleTokenError
+
+            raise GoogleTokenError("owner sign-in gate is not configured")
+
+        try:
+            verifier(token)
+        except Exception as gate_error:
+            from fastapi import HTTPException
+
+            from backend.api.google_auth import GoogleAuthError, GoogleTokenNotOwner
+
+            if isinstance(gate_error, GoogleTokenNotOwner):
+                raise HTTPException(
+                    status_code=403, detail="signed-in account is not the owner"
+                ) from gate_error
+            if isinstance(gate_error, GoogleAuthError):
+                raise HTTPException(
+                    status_code=401, detail="owner Google sign-in required"
+                ) from gate_error
+            # An unexpected verifier failure also refuses the write.
+            raise HTTPException(
+                status_code=401, detail="owner Google sign-in required"
+            ) from gate_error
+
     def _settings_payload() -> dict[str, Any]:
         doc = store.get_doc(budget_loop.CONTROL, budget_loop.SETTINGS_DOC) or {}
         envelope = budget_loop.load_envelope_micros(store)
@@ -411,10 +451,16 @@ def install_spine_routes(
         return _settings_payload()
 
     @app.patch("/api/v1/settings")
-    def patch_settings(body: SettingsIn) -> dict[str, Any]:
+    def patch_settings(body: SettingsIn, request: Request) -> dict[str, Any]:
         """One flip, no redeploy: the budgeted autonomy loop reads this same
         Firestore doc at cycle time (`budget_loop.load_autonomy_mode` /
-        `load_envelope_micros`)."""
+        `load_envelope_micros`).
+
+        Owner-gated (review round 2, finding 4): the API key identifies the
+        machine, but settings decide what the AUTONOMOUS loop may do — the
+        write requires a Google ID token proving the signer is the owner
+        (header `X-Google-ID-Token`). Unconfigured gate = locked gate."""
+        _require_owner(request)
         doc = store.get_doc(budget_loop.CONTROL, budget_loop.SETTINGS_DOC) or {}
         if body.autonomy is not None:
             doc["autonomy"] = body.autonomy

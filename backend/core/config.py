@@ -35,6 +35,10 @@ _ENV_NAMES: dict[str, tuple[str, ...]] = {
     "cors_allowed_origins": ("CORS_ALLOWED_ORIGINS",),
     "service_name": ("POST_COMMAND_SERVICE_NAME",),
     "log_level": ("POST_COMMAND_LOG_LEVEL",),
+    # Google sign-in gate for owner-class writes (settings). Not secrets:
+    # client id is public; the email allowlist is not sensitive either.
+    "google_client_id": ("GOOGLE_CLIENT_ID",),
+    "google_owner_email": ("GOOGLE_OWNER_EMAIL",),
 }
 
 
@@ -59,6 +63,9 @@ class Settings:
     cors_allowed_origins: list[str] = field(default_factory=list)
     service_name: str = "martini-shot-backend"
     log_level: str = "INFO"
+    # Google sign-in gate (settings writes): unset = gate locked (fail-closed).
+    google_client_id: str = ""
+    google_owner_email: str = ""
 
     def __repr__(self) -> str:
         """Never echo tokens (C-5.1); pytest traces print this."""
