@@ -61,10 +61,12 @@ def apply_verdict(findings: list[Finding], verdict: Verdict) -> list[Finding]:
             for action in finding.proposed_actions
             if not (set(action.required_evidence_refs(finding)) & rejected_refs)
         ]
-        if not kept_claims or not kept_actions:
-            # A finding with no surviving actions carries nothing dispatchable
-            # — keep it only if it still has claims worth reading? No: the
-            # ranked list is the product; an actionless finding is noise.
+        if not kept_claims:
+            continue
+        if finding.proposed_actions and not kept_actions:
+            # The finding DID propose actions and every one was vetoed —
+            # nothing dispatchable rides on it, drop it. A specialist that
+            # never proposed actions is narrative: its surviving claims stay.
             continue
         survivors.append(
             Finding(

@@ -61,16 +61,23 @@ def tts_synthesize(
     ssml: str,
     language_code: str,
     voice_name: str | None = None,
+    speaking_rate: float = 1.0,
 ) -> dict[str, Any]:
     """REAL Google Cloud TTS synthesis (Chirp 3 HD, A10/E-2). SSML in
-    (`<speak>…<prosody rate="…">…`), LINEAR16 WAV bytes out — the raw audio
-    the dub QC measures. Billed per character; cost estimate rides along.
+    (`<speak>…`), LINEAR16 WAV bytes out — the raw audio the dub QC
+    measures. speaking_rate scales playback speed server-side
+    (audioConfig.speakingRate) — the time-fit lever for dub pacing.
+    Billed per character; cost estimate rides along.
     Raises on any API error (fail loud, C-1.1)."""
     voice = voice_name or f"{language_code}-{TTS_VOICE_FAMILY}"
     body = {
         "input": {"ssml": ssml},
         "voice": {"languageCode": language_code, "name": voice},
-        "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 24000},
+        "audioConfig": {
+            "audioEncoding": "LINEAR16",
+            "sampleRateHertz": 24000,
+            "speakingRate": speaking_rate,
+        },
     }
     token = _gcloud_access_token()
     headers = {
@@ -206,7 +213,7 @@ def _extract_video(interaction: Any) -> bytes | None:
 
 
 # -- Veo fallback (predictLongRunning — the Interactions API does not serve
-#    the pinned Veo ID; proven 2026-09-04: veo-3.1-fast-generate-001 accepts
+#    the pinned Veo ID (core/models.py); proven 2026-09-04: it accepts
 #    video_extension with a 720p source, 7s duration, mime type required).
 
 VEO_LOCATION = "global"

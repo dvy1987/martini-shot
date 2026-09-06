@@ -55,6 +55,7 @@ def run_agent_call(
     persona: str,
     tools: tuple[Callable[..., Any], ...] = (),
     response_schema: dict[str, Any] | None = None,
+    audio: tuple[bytes, str] | None = None,
     instrument: bool = True,
 ) -> dict[str, Any]:
     """H-1a: THE one instrumented Gemini call site (generalizes B-3's
@@ -63,7 +64,9 @@ def run_agent_call(
     construction (C-4.4). `persona` lands on the span as gen_ai.agent.name
     so Grafana filters per-specialist cost ("child spans per agent").
     tools = plain Python callables (google-genai automatic function calling);
-    response_schema enables typed JSON output (responseMimeType application/json)."""
+    response_schema enables typed JSON output (responseMimeType application/json).
+    audio = (bytes, mime_type) attaches inline media (e.g. a dub WAV the
+    agent must listen to) — same metered call, multimodal contents."""
     if instrument:
         instrument_genai()
     from google import genai
@@ -78,6 +81,9 @@ def run_agent_call(
             vertexai=True,
             project=settings.gcp_project_id,
             location="global",
+            # Hard bound on any agent call — an unbounded generate_content
+            # once stalled 10+ min mid-station (dub audio judgment).
+            http_options={"timeout": 300_000},
         )
         config_kwargs: dict[str, Any] = {
             "thinking_config": types.ThinkingConfig(
@@ -90,9 +96,16 @@ def run_agent_call(
         if response_schema is not None:
             config_kwargs["response_mime_type"] = "application/json"
             config_kwargs["response_schema"] = response_schema
+        contents: Any = prompt
+        if audio is not None:
+            data, mime = audio
+            contents = [
+                types.Part.from_bytes(data=data, mime_type=mime),
+                prompt,
+            ]
         response = client.models.generate_content(
             model=TEXT_MODEL,
-            contents=prompt,
+            contents=contents,
             config=types.GenerateContentConfig(**config_kwargs),
         )
         usage = getattr(response, "usage_metadata", None)
