@@ -39,8 +39,12 @@
 | 2026-09-02 | brainstorming | docs/specs/2026-09-02-h0-approval-executor-design.md | Design spec for H-0 typed approval->action executor (Approach C: one dispatcher, two lanes; migrates Spend Control's act path) |
 
 | 2026-09-02 | implementation-plan | docs/plans/2026-09-02-h0b-budgeted-supervisor-plan.md | Engineering plan for H-0b budgeted autonomy loop (owner ruling in decision-log); flags 2 open engineering decisions (continuity remove-autonomy, per-night action-count cap) not covered by the ruling |
+| 2026-09-03 | deep-thinking (critical review) + implementation-plan + architectural-decision-log | docs/plans/2026-09-03-multiagent-supervisor-plan.md, decision-log.md (A9), tasks file (H-1a..H-1j), H-0b addendum | Critically reviewed a second agent's multi-agent proposal against real repo state (grep-verified no ADK `Runner` usage anywhere) and installed SDK capabilities (`google-genai==2.20.0` structured output + callable tools, version-checked); kept the specialist-team shape, changed invocation mechanism (direct-call extension of proven B-3 pattern, not new ADK Runner), deferred Localization Agent to E-2, made Verification a hard filter. H-0b amended in place, owner rulings preserved verbatim |
 
 ## Standing context pointers for any executing agent
 - Mission briefing: `ideas/AO-STATION-MAP.md` (read FIRST; Amendments A1–A3 binding)
 - Idea catalog: `ideas/IDEAS.md` · Track notes: `docs/grafana-track-notes.md`
 - Constitution: `docs/constitution.md@1` — specs/plans cite this version; violations reject work
+
+| 2026-09-06 11:00 | test-driven-development | tests/test_dub_qc.py, tests/test_dubbing_run.py, tests/test_station_agents.py | TDD: dub QC measurements (sync offset, atempo fit, defect mutation) + StationDecision contract + dub agent prompt/parse |
+| 2026-09-06 12:00 | test-driven-development | tests/test_orchestrator.py | TDD: batch orchestrator deterministic surface (manifest validation, chain plan, agent-chain subsequence validation, cost estimate, idempotent job ids) |

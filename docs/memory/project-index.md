@@ -2,6 +2,9 @@
 
 | Date | Type | File | Status | Tags | Summary |
 |---|---|---|---|---|---|
+| 2026-09-06 | spec+plan+decision | ../specs/2026-09-06-agentic-stations-design.md + decision-log.md (A10) + ../adr/0004-dub-timefit-and-agentic-qc.md | current | a10, agentic-stations, dub-qc, orchestrator, edd | A10 approved: 8 bespoke station agents + batch orchestrator; StationDecision contract; A10-1 Dub QC DONE (eval green, docs/evidence/E-2); task rows A10-1..A10-4 in tasks plan |
+| 2026-09-06 | handoff | agent-handoffs.md#2026-09-06 | current | e2, dub, atempo, fr03-lessons | E-2 dub station agentic + eval green; load-bearing lessons (atempo, truncation mutation, reference script, WAV streaming headers) |
+| 2026-09-03 | plan+decision | ../plans/2026-09-03-multiagent-supervisor-plan.md + decision-log.md (A9) | current | architecture, multi-agent, h1, h0b | Supervisor → hierarchical specialist team (Investigator/QC/Spend Guardian/Verifier); H-0b amended in place, not rewritten; H-1 moved+expanded into H-1a..H-1g |
 | 2026-09-02 | decision | decision-log.md + ../adr/0003-spend-control-not-bigquery.md | current | spend, s5b, bigquery | Live spend = Spend Control on Firestore micros; BQ billing export is optional later audit, not the brain |
 | 2026-09-02 | handoff | agent-handoffs.md | current | g2, stations, supervisor | G2 GREEN; P1 MCP tools + B-3 + D-1..D-7; push origin/main |
 | 2026-09-01 | handoff | agent-handoffs.md#2026-09-01-14:20 | superseded | plan, p0, supervisor | Rest-of-sprint: MCP registry next; F-4 deferred; G1/B-2 done |

@@ -92,9 +92,27 @@ human) stand unchanged.
 ## SPRINT — Phase 3: hero depth + Dub QC (moved after H-0/AL-1/D-9 per A8)
 | ID | Task | Station | Mode | Refs | DoD |
 |---|---|---|---|---|---|
-| E-2 | Dub timing QC: TTS dubs (SSML pacing), duration-delta, envelope cross-correlation sync, Gemini listen-classify | S4 | EDD | AC-S4.1 | eval JSONL; playable dub pair in FE; README |
-| E-3 | Batch demo seed (start early — TTS slow + billable): 8–10 eps × 3 languages dubs + captions; cost estimate printed pre-run | fixtures | manual+scripts | C-7.2 | manifest committed; dry-run cost print; first episode seeded |
+| E-2 ✅ done 2026-09-06 | Dub timing QC: TTS dubs, duration-delta, envelope cross-correlation sync — **made agentic per A10 (see A10-1 below): Dub QC Agent listens with the reference script, deterministic verdict advisory** | S4 | EDD | AC-S4.1 | eval JSONL (`docs/evidence/E-2/`, 3 runs green); playable dub pair in FE (**pending**); README `backend/stations/dubbing/README.md` |
+| E-3 | Batch demo seed (start early — TTS slow + billable): 8–10 eps × 3 languages dubs + captions; cost estimate printed pre-run — **superseded in part by A10-2: the orchestrator plans/submits the batch; the manifest seed remains this task** | fixtures | manual+scripts | C-7.2 | manifest committed; dry-run cost print; first episode seeded |
 | G3 | **Gate G3 run**: hero ops hold bars on ≥3 fresh shots; Dub QC within thresholds; raw evidence clips | — | — | — | Stage 1 complete end-to-end — guaranteed fallback submission |
+
+### Amendment A10 (owner-approved 2026-09-06): agentic stations — every judgment surface gets a bespoke agent
+
+Design (approved after adversarial self-review): `docs/specs/2026-09-06-agentic-stations-design.md`.
+Owner rulings: agents may take the deterministic suggestion **under advisement** (real override
+authority, every override explicit + logged); real billed model calls wherever the product demands
+judgment; EDD datasets + numeric gates seeded BEFORE the agent code; no canned responses.
+Measurements stay deterministic and machine-checkable — agents own the RESPONSE (triage, strategy,
+fixes). H-0 remains the only executor. Logged: `docs/memory/decision-log.md` (2026-09-06).
+Shared machinery already landed: `StationDecision` contract (`backend/supervisor/station_agents/base.py`),
+`run_agent_call` audio support + 300s timeout + 429 retry, `dub_qc` EDD suite + live eval harness pattern.
+
+| ID | Task | Mode | Refs | DoD |
+|---|---|---|---|---|
+| A10-1 ✅ done 2026-09-06 | **Dub QC station agentic (E-2)**: `StationDecision` contract; Dub QC Agent — one metered Gemini listen (audio inline part) judging the atempo-time-fitted dub WITH the reference script (missing-content detection); deterministic timing verdict advisory, overrides explicit; `truncate_speech_wav` honest defect mutation (tail cuts only remove TTS silence — agent was RIGHT to pass them, verified by transcription probes); deterministic time-fit via ffmpeg atempo (Chirp rate response nonlinear, re-render fitting can't hit 45 ms — probe archived) | TDD+EDD | AC-S4.1, C-3.4 | EDD `dub_qc`: 18 cases (6 segs × 3 langs, 4 truncation probes); live eval 3 runs GREEN — **MAE 4.8/8.0/9.9 ms ≤ 45, truncation recall 1.0 ≥ 0.9**, ~$0.07/run; evidence `docs/evidence/E-2/`; commits `7abdb5f`, `3ea25b8` |
+| A10-2 | **Batch Orchestrator Agent** (`backend/supervisor/orchestrator.py`): approved episode×language manifest → per-item station chain over the REAL plannable vocabulary (`ingest, dub, loudness, delivery`); agent may TRIM the deterministic chain (subsequence validation — never invent/reorder; fallback visible as `decision_mode: deterministic_fallback`); cost estimate printed BEFORE any billable run (C-7.2); deterministic idempotent job ids (`cyc-<batch>-<ep>-<lang>-<station>`, C-6.3); submits through the real lease queue; monitors and re-plans on failure via the H-0b signal path | TDD+EDD | C-6.3, C-7.2 | EDD gate `orchestrator_planning` (dataset seeded first, mean_case_accuracy ≥ 0.8, 3 runs reported); integration: a batch of jobs traverses the real queue; dry-run cost print archived; bounded: refuses stations outside vocabulary/manifest, fail loud |
+| A10-3 | **Measurement-station strategists**: Ingest Triage Agent (quarantine disposition + BATCH-level correlation over real batch state — recurring anomalies → one upstream escalation, not N rejections); Loudness Strategist (fix path: stem-targeted/limiter/re-mix; profile routing incl. season-coherence mode); Caption Remediation Agent (concrete fixes — re-segmentation/rewrites/re-timing — every fix RE-VALIDATED by the deterministic D-3 rule engine before it can ship); Delivery Strategist (profile selection when multiple qualify, accept-with-deviation with rationale) | TDD+EDD | C-3.4 | EDD gates `ingest_triage_judgment`, `loudness_strategy_judgment`, `caption_remediation_judgment`, `delivery_strategy_judgment` (datasets seeded first, ≥ 0.8 each, 3 runs); each agent schema-validated with visible deterministic fallback |
+| A10-4 | **Retrofits** (existing stations gain agents): Pickups Vision QC (frame extracts + flicker doc → accept / retry-with-strengthened-anchors / needs_human); Extend QC (accept-as-draft / bounded-revision / escalate); Spend Steward (deterministic policy trigger as advice → throttle/stop/require-approval with reason; incident still created on every enforcement, C-4.3) | TDD+EDD | C-3.4, AC-S2.2, AC-S5b.* | EDD gates `pickups_qc_judgment`, `extend_qc_judgment`, `spend_steward_judgment` (≥ 0.8 each); every override logged with reason; Spend Control enforcement path unchanged |
 
 ## SPRINT — Phase 4: supervisor intelligence
 | ID | Task | Mode | Refs | DoD |

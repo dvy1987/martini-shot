@@ -1,5 +1,5 @@
 # Feature Spec: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics; A5: Stage 1a generative fast-follow, demo batch 3 languages, Vertex AI compute) | Status: **Approved** | Constitution: `docs/constitution.md@1`
+Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics; A5: Stage 1a generative fast-follow, demo batch 3 languages, Vertex AI compute) | **2026-09-06 (A10: agentic stations — every judgment surface gets a bespoke agent; dub time-fit decision, ADR-0004)** | Status: **Approved** | Constitution: `docs/constitution.md@1`
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
@@ -20,6 +20,16 @@ stages** by what they contribute to the product story, replacing the P0/P1/P2
 priority stack. Stage 1 alone is a complete, sellable product: everything on the
 direct path from "files arrive" to "files ship." Later stages finish compliance,
 add audio/library depth, then the editing side.
+
+**Agentic station layer (A10, 2026-09-06, owner-approved):** every station with a
+judgment surface gains a bespoke agent that holds REAL judgment authority — the
+deterministic verdict is advice the agent may override with a stated, logged reason
+(`overridden: true`), and measurement-station agents own the RESPONSE to the
+deterministic report (triage, remediation strategy, fixes, profile routing — fixes
+re-validated by the deterministic rule engines they must satisfy). Measurements
+themselves stay exact and machine-checkable; H-0 remains the only executor; every
+agent is gated by its own EDD suite (≥0.8) against real billed model calls before it
+ships. Roster + contract: `docs/specs/2026-09-06-agentic-stations-design.md`.
 
 ## 2. Users
 
@@ -269,6 +279,8 @@ Multi-tenant auth/RBAC (reads stay API-key-only; Google sign-in gates decision w
 | Spend Control | NEW station in Stage 1 (acts: throttle/stop/approve) | real action vs reporting; Diverge retry-loop pain; protects budget |
 | Demo dataset | Batch: 8–10 episodes × ~30 languages | charts must look like a working system, not a list |
 | FE auth | Public reads (API key); Google sign-in (Firebase) gates decision writes; approver identity in audit trail (§7.2) | owner ruling 2026-08-28 — accountability without demo friction |
+| Agentic stations | Bespoke agent per judgment surface (8 + batch orchestrator); deterministic verdicts advisory with logged overrides; EDD gate ≥0.8 per agent (A10, 2026-09-06) | owner ruling — numeric proxies underfit quality; remediation/strategy is reasoned work (design doc after adversarial self-review) |
+| Dub time-fit | ONE TTS render + deterministic ffmpeg atempo stretch to the source window (ADR-0004) | Chirp 3 HD rate response measured nonlinear (0.8 → 1.34×) — re-render fitting cannot hit the 45 ms bar; atempo is exact, free, pitch-preserving |
 
 ## 10. Risks & Mitigations
 

@@ -1,5 +1,5 @@
 # Execution Plan: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (4-stage staging per owner ruling; Spend Control task; batch demo seed; handoff silent/UI split; A5: Stage 1a fast-follow, batch 3 langs, Vertex AI, calendar re-baseline); **A7 2026-08-30** (C-5.3 error-middleware clause in A-1; F-3b fresh-source attestation; C-8.1 station-README DoD clause on D-1..D-7/E-2; Gate G1 records AC-S0.2 evidence — per spec-crosscheck)
+Date: 2026-08-26 | Amended: 2026-08-28 (4-stage staging per owner ruling; Spend Control task; batch demo seed; handoff silent/UI split; A5: Stage 1a fast-follow, batch 3 langs, Vertex AI, calendar re-baseline); **A7 2026-08-30** (C-5.3 error-middleware clause in A-1; F-3b fresh-source attestation; C-8.1 station-README DoD clause on D-1..D-7/E-2; Gate G1 records AC-S0.2 evidence — per spec-crosscheck); **A10 2026-09-06** (agentic stations: bespoke agent per judgment surface + batch orchestrator — task rows A10-1..A10-4 in `docs/plans/2026-08-26-post-command-tasks.md`; A10-1 Dub QC done, eval green)
 Spec: `docs/specs/2026-08-26-post-command-feature-spec.md` (Approved, amended 2026-08-28)
 Constitution: `docs/constitution.md@1` | Gates & rulings: `ideas/AO-STATION-MAP.md#amendments`
 

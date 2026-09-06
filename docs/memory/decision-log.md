@@ -286,3 +286,63 @@ Owner ruling 2026-09-02: **no sign-in gate now** — Firebase Auth (spec §7.2) 
 - No second action path may grow around the missing auth (H-0 remains the only executor).
 - Demo approvals run as `approver: "dev"` until Firebase lands; the Grafana annotation (C-4.3) records whatever identity exists at act time.
 - Revisit: the moment any real deployment is exposed beyond localhost/dev, auth can no longer wait.
+
+---
+
+## 2026-09-06 - A10: Agentic stations (owner-approved amendment)
+
+Type: decision (amendment A10)
+Scope: project
+Confidence: high
+Tags: a10, agentic-stations, edd, station-agents, dub-qc, orchestrator
+
+### Decision
+Owner ruling 2026-09-06 (dialogue + adversarial self-review): every station with a
+judgment surface becomes agentic - 8 bespoke personas + a Batch Orchestrator agent.
+The deterministic verdict is ADVICE the agent may override with a stated, logged
+reason (overridden: true); measurement-station agents own the RESPONSE to the
+deterministic report (triage/remediation/fixes/profile routing), with every agent fix
+re-validated by the deterministic rule engines it must satisfy. Measurements stay
+exact and machine-checkable. H-0 remains the only executor. Each agent ships only
+after its EDD gate (mean_case_accuracy >= 0.8, 3 real runs) passes - datasets seeded
+BEFORE the agent code. Design: docs/specs/2026-09-06-agentic-stations-design.md.
+Build order: Dub QC (A10-1) -> Orchestrator (A10-2) -> strategists (A10-3) ->
+retrofits (A10-4). Task rows: docs/plans/2026-08-26-post-command-tasks.md.
+
+### Consequences
+- EDD dataset count grows by 8 (orchestrator_planning, ingest_triage_judgment,
+  loudness_strategy_judgment, caption_remediation_judgment,
+  delivery_strategy_judgment, pickups_qc_judgment, extend_qc_judgment,
+  spend_steward_judgment) on top of the shipped dub_qc.
+- Schedule risk accepted by owner (bespoke personas vs one shared judge).
+- Malformed/failed agent responses fall back to the deterministic verdict, marked
+  decision_mode: deterministic_fallback - visible, never silent.
+
+---
+
+## 2026-09-06 - Dub time-fit via ffmpeg atempo, not re-rendering (ADR-0004)
+
+Type: decision (engineering, evidence-based)
+Scope: dub station (E-2)
+Confidence: high (measured probe + 3 green eval runs)
+Tags: dub-qc, atempo, tts, chirp, e2
+
+### Decision
+A dub is time-fitted to its source line with ONE TTS render + a deterministic
+ffmpeg tempo stretch (ackend/stations/dubbing/qc.py::atempo_wav), not by
+re-rendering at an adjusted rate. The Dub QC Agent judges the FITTED audio with the
+reference script in the prompt (missing-content detection). The eval's truncation
+defect is a hard EOF mid-speech (	runcate_speech_wav), not a tail cut.
+
+### Evidence and consequences
+- Chirp 3 HD rate response measured nonlinear (probe scripts/probe_tts_rate.py:
+  rate 0.8 -> 1.34x duration), so re-render fitting cannot hit the 45 ms gate;
+  atempo is exact, free, local, pitch-preserving. Gate result: MAE 4.8-9.9 ms.
+- TTS tails carry breath/noise above naive amplitude floors AND sentence-final
+  words below any floor: tail cuts remove silence, not words. Transcription probes
+  (scripts/probe_fr03_hear.py) proved the agent was RIGHT twice to call tail-cut
+  dubs clean - the dataset mutation was the defect until fixed.
+- A dub QC agent that cannot see the reference line cannot detect MISSING content
+  ("Prise trois." is a complete sentence until compared to the script).
+- ffmpeg piped WAVs carry streaming headers (nframes=0xFFFFFFFF): WAV readers must
+  read to EOF, never copy nframes (_read_wav, 	runcate_wav).
