@@ -35,3 +35,27 @@ def read_ingest_batch_state(store: Any, batch_id: str) -> list[dict[str, Any]]:
             }
         )
     return rows
+
+
+def read_loudness_season_state(store: Any, batch_id: str) -> list[dict[str, Any]]:
+    """All MEASURED loudness jobs of a batch (season coherence view):
+    {episode_id, lufs}. Jobs without a measurement are skipped — an
+    unmeasured episode cannot anchor coherence. Read-only (C-6.3)."""
+    if not batch_id:
+        raise ValueError("batch_id is required (caller bug)")
+    docs = store.list_where(JOBS_COLLECTION, "result.batch_id", batch_id)
+    rows: list[dict[str, Any]] = []
+    for doc in docs:
+        if doc.get("station") != "loudness":
+            continue
+        result = doc.get("result") or {}
+        lufs = result.get("lufs")
+        if lufs is None:
+            continue
+        rows.append(
+            {
+                "episode_id": str(result.get("episode_id") or ""),
+                "lufs": float(lufs),
+            }
+        )
+    return rows
