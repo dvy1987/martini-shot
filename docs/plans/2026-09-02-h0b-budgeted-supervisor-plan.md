@@ -72,3 +72,28 @@ The supervisor's spending is **real `cost_micros` on real Jobs** created through
 - Building H-1's full investigation-chain playbooks — the deliberation loop *consumes* the same evidence sources H-1 will formalize, but H-1's rubric/playbook work is separate and can land in either order.
 - A UI for editing the ranked table before it's dispatched — V1 is autonomous-then-reportable, not autonomous-with-a-preview-step (that would reintroduce the "pager with extra steps" pattern the owner explicitly rejected).
 - Cross-night budget rollover (unused envelope does not carry to the next night) — unless the owner asks for it later.
+
+## Addendum 2026-09-03 — multi-agent specialist team (Amendment A9)
+
+Owner ruling (2026-09-03): the supervisor becomes a hierarchical specialist team, not one monolithic
+agent. Full design in `docs/plans/2026-09-03-multiagent-supervisor-plan.md`. This addendum changes
+**only** where step 2 gets its evidence from; every owner ruling above (no action-count cap, envelope
+covers continuity adds, self-correction can't re-fight a human, ACT-mode gated on the rubric eval) is
+unchanged and not reopened here.
+
+- **Step 2 ("Collect candidates") is now:** `build_case` → deterministic `route_specialists` →
+  parallel specialist calls (Reliability Investigator / Delivery QC / Spend Guardian / later
+  Localization) each returning a typed `Finding` (claims + evidence citations + proposed actions,
+  zero act-class tools) → Verification Agent hard-filters unsupported/stale/resolved claims (a
+  rejected finding's actions never enter the ranked list — same "exclude, don't down-weight" shape
+  already used for reversibility below).
+- **Step 3 ("Score each candidate") is unchanged** — the leverage formula
+  (`unblocks_weight / cost_micros`, reversibility as hard exclusion) now scores the `ProposedAction`s
+  carried on verified findings instead of directly-queried telemetry. No formula change.
+- **Decision-quality hardening (above) is extended, not replaced:** the `deliberation_ranking_quality`
+  eval dataset gains delegation-correctness, disagreement-handling, and abstention cases (multi-agent
+  specific adversarial scenarios) per the new plan's §6 step 8 and §8. Same suite name, same gate,
+  richer cases — ACT mode still does not flip until it clears threshold.
+- **Observability:** every specialist/verifier/synthesis call shares one `deliberation_id` with
+  per-agent child spans (new plan §5) — this is additive to, not a replacement for, the annotation +
+  Firestore persistence already specified above.

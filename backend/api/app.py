@@ -127,6 +127,23 @@ def create_app(
     async def version() -> dict[str, str]:
         return {"version": API_VERSION, "service": cfg.service_name}
 
+    @app.get("/api/v1/health/ai")
+    def health_ai() -> dict[str, Any]:
+        from backend.supervisor.otel_ai import run_agent_call
+
+        res = run_agent_call(
+            cfg,
+            prompt="Respond with the single word: READY",
+            span_name="health.ai",
+            persona="health_probe",
+        )
+        return {
+            "status": "ok",
+            "model": res.get("model"),
+            "text": res.get("text", "").strip(),
+            "cost_micros": res.get("cost_micros", 0),
+        }
+
     if cfg.gcp_project_id and cfg.gcs_bucket:
         from backend.api.spine import install_spine_routes
         from backend.core.firestore import get_firestore
