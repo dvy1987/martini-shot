@@ -103,11 +103,23 @@ def run_agent_call(
                 types.Part.from_bytes(data=data, mime_type=mime),
                 prompt,
             ]
-        response = client.models.generate_content(
-            model=TEXT_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(**config_kwargs),
-        )
+        # Bounded retry on transient 429 RESOURCE_EXHAUSTED (observed on the
+        # dub eval under burst): 3 attempts, exponential backoff. Any other
+        # error or the final 429 fails loud (C-1.1).
+        import time as _time
+
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model=TEXT_MODEL,
+                    contents=contents,
+                    config=types.GenerateContentConfig(**config_kwargs),
+                )
+                break
+            except Exception as exc:
+                if attempt == 2 or "429" not in str(exc):
+                    raise
+                _time.sleep(2**attempt)
         usage = getattr(response, "usage_metadata", None)
         input_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)
         output_tokens = int(getattr(usage, "candidates_token_count", 0) or 0)

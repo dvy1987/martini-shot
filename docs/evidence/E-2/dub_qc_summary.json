@@ -1,0 +1,49 @@
+{
+  "suite": "dub_qc",
+  "runs": 3,
+  "gates": {
+    "dub_timing": {
+      "threshold": 45.0,
+      "comparison": "<="
+    },
+    "dub_truncation_recall": {
+      "threshold": 0.9,
+      "comparison": ">="
+    }
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "mean_duration_delta_mae_ms": 4.8,
+      "timing_pass": true,
+      "truncation_recall": 1.0,
+      "truncation_hits": 4,
+      "truncation_total": 4,
+      "recall_pass": true,
+      "cost_micros": 73170
+    },
+    {
+      "run": 2,
+      "mean_duration_delta_mae_ms": 8.0,
+      "timing_pass": true,
+      "truncation_recall": 1.0,
+      "truncation_hits": 4,
+      "truncation_total": 4,
+      "recall_pass": true,
+      "cost_micros": 73951
+    },
+    {
+      "run": 3,
+      "mean_duration_delta_mae_ms": 9.9,
+      "timing_pass": true,
+      "truncation_recall": 1.0,
+      "truncation_hits": 4,
+      "truncation_total": 4,
+      "recall_pass": true,
+      "cost_micros": 73408
+    }
+  ],
+  "timing_pass": true,
+  "recall_pass": true,
+  "pass": true
+}

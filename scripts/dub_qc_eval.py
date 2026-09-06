@@ -118,16 +118,18 @@ def run_suite(run_index: int) -> tuple[list[dict], dict]:
                 }
             )
             total_cost_micros += agent_cost
-            if truncate_ms:
-                truncation_total += 1
-                if record["classification"] == "truncated":
-                    truncation_hits += 1
-            else:
-                deltas.append(abs(float(measurements["duration_delta_ms"])))
         except Exception as exc:
             record.update(
                 {"ok": False, "error": f"{type(exc).__name__}: {str(exc)[:200]}"}
             )
+        # Accounting INDEPENDENT of agent success: a failed judgment is a
+        # miss, never a silent exclusion (honest evidence, C-3.5).
+        if truncate_ms:
+            truncation_total += 1
+            if record.get("classification") == "truncated":
+                truncation_hits += 1
+        else:
+            deltas.append(abs(float(measurements["duration_delta_ms"])))
         records.append(record)
         print(
             json.dumps(
