@@ -51,6 +51,10 @@ suites:
     metric: truncation_recall
     threshold: 0.9
     comparison: ">="
+  - name: orchestrator_planning
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: extend_quality
     metric: mean_output_flicker
     threshold: 0.02
