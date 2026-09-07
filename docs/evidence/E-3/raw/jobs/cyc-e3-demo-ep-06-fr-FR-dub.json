@@ -1,0 +1,28 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-06.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-06-fr-FR-dub",
+  "status": "failed",
+  "attempts": 2,
+  "cost_micros": 0,
+  "error": "unknown station 'dub'",
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T05:41:15.048Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T05:46:14.041Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "language": "fr-FR",
+    "episode_id": "ep-06",
+    "script": "Le rapport du matin resume les incidents de la nuit.",
+    "ssml": "<speak>Le rapport du matin resume les incidents de la nuit.</speak>",
+    "shot_id": "shot-ep06-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [],
+  "runner_error": "unknown station 'dub'"
+}

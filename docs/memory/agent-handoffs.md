@@ -1,5 +1,59 @@
 # Agent Handoffs
 
+## 2026-09-07 06:20 - D-10 correction guard started
+
+### Done
+- Added the first D-10 TDD slice: correction prompts reject blank intent and preserve explicit subject and continuity constraints.
+
+### Deferred
+- The actual queued Omni edit, H-0 command, EDD dataset/rubric, API, and drawer controls remain required before D-10 can be called complete.
+
+### Next Agent Should Know
+- The prompt function is `backend/stations/corrections/run.py::build_correction_prompt`; it deliberately does not infer a target from an ambiguous brief.
+
+### Working Tree
+- D-10 prompt guard and regression test ready to commit.
+
+## 2026-09-07 06:10 - Multi-agent runtime gap closure
+
+### Done
+- Production deliberations now inject real Verification and Post Supervisor Gemini synthesis callbacks.
+- Model synthesis is restricted to partitioning existing verified candidates; it cannot invent or mutate an H-0 action.
+- Daily Spend Control admission is transactionally reserved, and detached cycle outcomes are consumed and logged.
+- Updated stale runtime evidence; non-terminal signal routes are explicitly deferred with reasons.
+
+### Deferred
+- ACT remains deliberately unactivated until owner-approved live rehearsal. Stage 1a domain pipelines follow.
+
+### Next Agent Should Know
+- Real-service integration tests require configured GCP credentials; deterministic contracts pass locally.
+
+### Working Tree
+- Runtime gap closure ready to commit on `cursor/full-stage-1a-demo-be5d`.
+
+## 2026-09-07 05:55 - Full Stage 1a demo scope baseline
+
+### Done
+- Confirmed Amendment A11 is reflected in the canonical task plan and feature spec.
+- Corrected the durable decision record to the owner-approved $100 remaining Stage 1a eval/demo envelope.
+- Indexed the active scope and logged its planning provenance.
+
+### Decisions
+- Stage 1 plus D-10, E-1, D-11, D-12, D-15, and D-16 is the demo release; G3/G3a are integrated gates.
+- Each Stage 1a operation requires its own agent, live-model EDD, manual UX path, H-0 execution path, alternate, and Grafana audit.
+
+### Deferred
+- Implementation begins with the multi-agent runtime gaps, then the six Stage 1a vertical slices.
+
+### Next Agent Should Know
+- Do not edit `/opt/cursor/artifacts/plans/plan.md`; it is the immutable request reference. The canonical project artifacts are under `docs/`.
+
+### Revisit Triggers
+- $100 envelope exhaustion requires an explicit owner decision; batches above $5 require `--yes`.
+
+### Working Tree
+- Scope-record documentation changes ready to commit on `cursor/full-stage-1a-demo-be5d`.
+
 ## 2026-09-07 (late, session 2) - Stage 1a agents COMPLETE (live EDD); A1 done; E-3 run unblocked
 
 ### Done

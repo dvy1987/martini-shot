@@ -2,7 +2,13 @@
 Generated: 2026-08-30 (SDD `/tasks` step) from `docs/plans/2026-08-26-post-command-plan.md` (amended A7) · Spec: `docs/specs/2026-08-26-post-command-feature-spec.md` (Approved) · Constitution: `docs/constitution.md@1`
 Crosscheck: `docs/reviews/2026-08-30-post-command-spec-crosscheck.md` — PASS (after A7)
 
-**Sprint scoping (owner ruling 2026-08-30):** this sprint builds **Stage 1 only** (Phases 1→3 + supervisor slice + rehearsal). Phase 3a (Stage 1a) stays in the plan as amended (A5) but is **parked behind Gate G3** — do not start 3a tasks until G3 passes. Stage-2 leftovers (I-1) only if ahead of schedule on Sep 7.
+**Sprint scoping (amended A11, owner ruling 2026-09-07):** this demo release
+builds **Stage 1 plus the full non-stretch Stage 1a scope**. D-10, E-1, D-11,
+D-12, D-15, and D-16 may run alongside G3/E-3 work; **G3/G3a are integrated
+release gates, not prerequisites**. Every feature must have live Gemini/Vertex
+EDD evidence, an H-0/lease-queue path, Grafana audit, a real UX surface, and a
+manual user-initiated route using the same guarded workflow.
+D-13/D-14 remain stretch; Stage-2 leftovers remain post-demo.
 
 **Rules every task inherits (A6, plan §Orchestration):** workers may build; only the orchestrator reviews diffs, observes RED, runs `make check`, and commits. Evidence goes to `docs/evidence/<task-id>/`. No task is done without its DoD evidence.
 
@@ -114,6 +120,17 @@ Shared machinery already landed: `StationDecision` contract (`backend/supervisor
 | A10-3 ✅ done 2026-09-06 | **Measurement-station strategists**: Ingest Triage Agent (quarantine disposition + BATCH-level correlation over real batch state — recurring anomalies → one upstream escalation, not N rejections); Loudness Strategist (fix path: stem-targeted/limiter/re-mix; profile routing incl. season-coherence mode); Caption Remediation Agent (concrete fixes — re-segmentation/rewrites/re-timing — every fix RE-VALIDATED by the deterministic D-3 rule engine before it can ship); Delivery Strategist (profile selection when multiple qualify, accept-with-deviation with rationale) | TDD+EDD | C-3.4 | All 4 EDD gates ≥ 0.8, 3 runs each — `ingest_triage_judgment` **1.0/1.0/1.0**, `loudness_strategy_judgment` **1.0/0.875/1.0**, `caption_remediation_judgment` **1.0/1.0/1.0** (closed-loop scoring: residual violations + meaning preservation), `delivery_strategy_judgment` **1.0/1.0/1.0** (H-0 `retry_job` proposals, registry-gated); evidence `docs/evidence/A10-3/`; commits `d223273`, `5b0bda3`, `9d308f9`, `72be3a1`, `aaf7dcd`, `da4add0`, `a7cfe1e`, `a86d06c` |
 | A10-4 ✅ done 2026-09-06 | **Retrofits** (existing stations gain agents): Pickups Vision QC (frame extracts + flicker doc → accept / retry-with-strengthened-anchors / needs_human — the ONE measurement-station agent that may override the numeric gate, explicit + reasoned); Extend QC (accept-as-draft / bounded-revision / escalate — two-strikes + meter-integrity rules); Spend Steward (deterministic policy trigger as advice → throttle/stop/require-approval with reason; enforcement path UNCHANGED, incident still created on every enforcement, C-4.3) | TDD+EDD | C-3.4, AC-S2.2, AC-S5b.* | EDD gates ≥ 0.8, 3 runs each — `extend_qc_judgment` **1.0/1.0/1.0**, `spend_steward_judgment` **1.0/1.0/1.0**, `pickups_qc_judgment` **1.0/1.0/1.0** (incl. the gate-override case; `run_agent_call` gained inline `images`); evidence `docs/evidence/A10-4/`; commits `aee7f7a`, `21cb00c`, `26bebc6`, `dc74cb1`, `d71a02d`, `f879888` |
 
+### Amendment A11 — remaining full Stage 1a demo work
+
+| ID | Task | Mode | Refs | DoD |
+|---|---|---|---|---|
+| D-10 | Conversational Corrections: standalone correction job + agent for element replacement and signage/text continuity; explicit brief, source alternate, target constraints; output is always an alternate via H-0 | EDD+TDD | C-1.*, C-3.3, AL-1 | live correction dataset and numeric preservation/adherence/artifact thresholds; three runs archived; approval→queue→QC→alternate→drawer journey |
+| E-1 | Relight Studio: standalone named-preset job + Relight Agent (practical, daylight, overhead, noir); preserve framing, identity, geometry, and continuity | EDD+TDD | C-1.*, C-3.3, C-7 | comparative live model eval on ≥3 fresh shots; ADR model choice; real draft preview, QC, cost, approval, and drawer preset surface |
+| D-11 | Draft-first orchestration: operation-independent state machine (`draft → QC → master eligible/revise/escalate → master → final QC`) | TDD+EDD | C-6.3, C-6.4, C-7 | master dispatch rejected without linked QC-passing draft; idempotency/crash tests; actual/estimated cost delta; all generated-alternate UX badges |
+| D-12 | Coverage: standalone new-angle generation job + Coverage Agent using persisted subject references, neighboring shots, and continuity constraints | EDD+TDD | C-1.*, C-3.3, AL-1 | live identity/flicker/framing/neighbor-compatibility/abstention eval; model ADR; coverage controls and independent-QC alternate view |
+| D-15 | Revision Room: versioned script/caption alignment, edit diff, affected spans/languages, regeneration proposals and refreshed alignment/QC | EDD+TDD | C-3.3, C-6.3, H-0 | live alignment/impact-recall/proposal-faithfulness eval; stale-version conflict tests; first-class timeline-linked Revision Room journey |
+| D-16 | Camera Language: standalone constrained camera-intent generation + agent; allowed movement vocabulary, genre suggestions, reference-style influence disclosure | EDD+TDD | C-1.*, C-3.3, AL-1 | live vocabulary/motion/genre/preservation/flicker/abstention eval; model ADR; suggestion chips, manual selector, evidence, preview, approval flow |
+
 ## SPRINT — Phase 4: supervisor intelligence
 | ID | Task | Mode | Refs | DoD |
 |---|---|---|---|---|
@@ -133,8 +150,17 @@ Shared machinery already landed: `StationDecision` contract (`backend/supervisor
 | J-5 | 3-min video FROM THE RUNNING PRODUCT; announced fault injections; captions EN | C-1.5 | raw takes + final cut in `docs/evidence/video/` |
 | J-6 | Devpost submission ≥24 h early | C-2.3 | confirmation screenshot |
 
-## PARKED — Phase 3a: Stage 1a (A5; **starts only after G3 passes**)
-AL-1 Alternates model+API (TDD) → D-9 Extend (EDD; Omni-vs-Veo per op decided by eval + ADR — Veo `-001` path already proven at G0, Omni research parked until now) → **H-1h Continuity Agent + H-1i Creative Finishing Agent + H-1j Visual QC Agent** (Amendment A9, same multi-agent pattern as H-1b..H-1e — **now executable task rows in the Phase 3a-team table above**, with EDD gates and datasets seeded; genuinely gated on AL-1+D-9 landing first, both ✅ — Continuity reasons over alternates/locks that don't exist before AL-1, Creative Finishing triggers Extend proposals that don't exist before D-9; design in `docs/plans/2026-09-03-multiagent-supervisor-plan.md` §3) → D-10 Corrections (EDD) → E-1 Relight Studio (EDD) → D-11 Draft-first orchestration (TDD+EDD) → D-12 Coverage (EDD) → D-15 Revision Room (EDD+TDD) → D-16 Camera Language (EDD) → stretch: D-13 Transition Forge, D-14 Versioning. Gate G3a. Post-deadline: I-1..I-4 (Stage 2 remainder), I-5..I-9 (Stages 3–4).
+## DEMO RELEASE — Full Stage 1a (A11, owner-approved 2026-09-07)
+
+D-10 Corrections → E-1 Relight Studio → D-11 Draft-first orchestration → D-12
+Coverage → D-15 Revision Room → D-16 Camera Language are **active demo work**,
+not parked. They remain separate domain pipelines but share H-0, AL-1, the
+lease queue, `run_agent_call`, StationDecision, real GCS/Firestore, Grafana
+MCP/OTel, and versioned HTTP/SSE contracts. Complete both hero-shot and
+episode-revision journeys at integrated G3/G3a. Remaining live-eval/demo spend
+is capped at $100; C-7.2's `--yes` rule applies to every batch estimated above
+$5. D-13 Transition Forge and D-14 Versioning remain stretch; I-1..I-9 remain
+post-demo.
 
 ## PARKED — post-sprint backlog (owner-confirmed 2026-09-02)
 

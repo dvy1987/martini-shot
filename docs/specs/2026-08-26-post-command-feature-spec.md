@@ -101,7 +101,7 @@ Ingest & Dailies; Virtual Pickups ★HERO; Loudness Marshal; Dub timing QC;
 Caption specs (**as part of the delivery check, not its own screen**); Delivery
 & Compliance pack; **Spend Control (NEW — acts, not just reports)**.
 
-**Stage 1a — generative fast-follow (A5, owner ruling 2026-08-28; built only after Stage 1 gates pass):**
+**Stage 1a — full demo scope (A11, owner ruling 2026-09-07):**
 Omni-powered ops on the Pickups/Extend machinery: **Extend** (Veo 3.1/Omni scene
 extension ≤40s, last-10s context); **Conversational Corrections** (Omni stateful
 editing incl. signage/text continuity fixes, routed via Approvals); **Draft-first
@@ -117,8 +117,14 @@ reference-style transfer). In-1a stretch: **Transition Forge** (first/last-frame
 interpolation), **Versioning** (9:16 cutdowns). Every generated clip lands as an
 **alternate** attached to its shot — never silently overwriting a locked cut;
 adding/removing from continuity is an approval-tracked action. All 1a ops are
-EDD-gated and feasibility-probed at G0; **worst case the product ships complete
-with Stage 1 alone.**
+EDD-gated and feasibility-probed at G0. Stage 1 + every named non-stretch Stage
+1a operation are the hackathon demo release: each must be exposed in the frontend
+and supported by real-model eval evidence, approval/queue execution, and
+Grafana-visible audit. Each feature must expose both an agent-assisted and a
+manual user path: manual requests select validated parameters and still use the
+same H-0 approval, queue, alternate, QC, cost, and evidence controls. G3/G3a are
+integrated release gates, not prerequisites for the remaining Stage 1a work.
+D-13 Transition Forge and D-14 Versioning remain stretch only.
 
 **Stage 2 — finish the compliance checks (nothing ships unless every box ticks):**
 Cue Sheet Auditor; Conform Sentinel; Accessibility Auditor; Handoff Validator

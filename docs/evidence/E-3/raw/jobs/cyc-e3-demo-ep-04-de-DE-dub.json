@@ -1,0 +1,28 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-04.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-04-de-DE-dub",
+  "status": "failed",
+  "attempts": 2,
+  "cost_micros": 0,
+  "error": "unknown station 'dub'",
+  "created_at": "2026-09-07T03:43:26.478Z",
+  "updated_at": "2026-09-07T05:40:14.435Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T05:45:13.416Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "language": "de-DE",
+    "episode_id": "ep-04",
+    "script": "Der Kontinuitats-Agent blockiert das Ueberschreiben des gesperrten Schnitts.",
+    "ssml": "<speak>Der Kontinuitats-Agent blockiert das Ueberschreiben des gesperrten Schnitts.</speak>",
+    "shot_id": "shot-ep04-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [],
+  "runner_error": "unknown station 'dub'"
+}

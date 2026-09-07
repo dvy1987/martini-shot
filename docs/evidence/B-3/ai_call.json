@@ -2,7 +2,7 @@
   "model": "gemini-3.7-flash",
   "text": "B-3 probe OK",
   "input_tokens": 9,
-  "output_tokens": 82,
-  "cost_micros": 314,
-  "latency_ms": 11366.9
+  "output_tokens": 118,
+  "cost_micros": 449,
+  "latency_ms": 9777.6
 }
