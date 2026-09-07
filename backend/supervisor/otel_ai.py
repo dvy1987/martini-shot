@@ -25,6 +25,31 @@ tracer = trace.get_tracer("pc.supervisor")
 _instrumented = False
 
 
+def gemini_transient(exc: Exception) -> bool:
+    """Vertex 504/503/429/timeouts on a look are retryable."""
+    text = str(exc)
+    if isinstance(exc, (TimeoutError, ConnectionError)):
+        return True
+    name = type(exc).__name__
+    if "Timeout" in name:
+        return True
+    return any(
+        token in text
+        for token in (
+            "429",
+            "500",
+            "502",
+            "503",
+            "504",
+            "DEADLINE_EXCEEDED",
+            "UNAVAILABLE",
+            "RESOURCE_EXHAUSTED",
+            "timed out",
+            "Timeout",
+        )
+    )
+
+
 def cost_micros(input_tokens: int, output_tokens: int) -> int:
     """Integer micro-units: usd * 1e6, rounded. Thinking tokens count as output."""
     usd = (
@@ -109,10 +134,7 @@ def run_agent_call(
         if media_parts:
             media_parts.append(prompt)
             contents = media_parts
-        # Shared resilience policy (owner directive 2026-09-07): bounded
-        # retry on transient 429 RESOURCE_EXHAUSTED / 503 (observed on the
-        # dub eval under burst). Any other error or the final failure fails
-        # loud (C-1.1). generate_content is safe to retry (no side effects).
+        # Shared resilience: 429/5xx/DEADLINE on generate_content (idempotent).
         response = call_with_resilience(
             lambda: client.models.generate_content(
                 model=TEXT_MODEL,
@@ -120,7 +142,7 @@ def run_agent_call(
                 config=types.GenerateContentConfig(**config_kwargs),
             ),
             attempts=3,
-            is_transient=lambda exc: "429" in str(exc) or "503" in str(exc),
+            is_transient=gemini_transient,
         )
         usage = getattr(response, "usage_metadata", None)
         input_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)

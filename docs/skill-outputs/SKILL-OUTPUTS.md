@@ -74,5 +74,10 @@
 | 2026-09-07 20:20 | test-driven-development | tests/test_adk_finishing.py tests/test_inspect.py tests/test_finishing_rank.py | TDD: D-9/D-10 looker must/nice/leave; ok notes never become jobs |
 | 2026-09-07 20:20 | eval-rubric-design | docs/evals/2026-09-07-extend-corrections-inspect-rubric.md | Must vs nice vs leave on a live watch |
 | 2026-09-07 20:20 | eval-pipeline | docs/evals/2026-09-07-extend-corrections-inspect-eval-pipeline.md | Live Gemini inspect EDD for finish_extend + finish_corrections |
-| 2026-09-07 20:41 | memory-handoff | agent-handoffs.md#2026-09-07-20:41 | Ingest ADK look + handoff repair; owner commit+push of dirty tree |
+| 2026-09-07 21:55 | test-driven-development | tests/test_finishing_flow.py tests/test_spend_pricing.py tests/test_handoff.py | TDD: upload order, mandatory mix then pickups, spine notes on rank payload, spend parse |
+| 2026-09-07 21:55 | eval-rubric-design | docs/evals/2026-09-07-walkaway-orchestrator-rubric.md | Orchestrator impact+deps+spine; spend prices leftover jobs |
+| 2026-09-07 21:55 | eval-pipeline | docs/evals/2026-09-07-walkaway-orchestrator-eval-pipeline.md | Live Gemini rank + spend pricing; bar 0.8 |
+| 2026-09-07 21:55 | memory-decision | docs/memory/decision-log.md | Walk-away: leftover Gemini looks only after all pickups; orchestrator ranks with spine notes |
+| 2026-09-07 22:10 | memory-handoff | agent-handoffs.md#2026-09-07-22:10 | Walk-away wiring; owner commit+push |
+
 

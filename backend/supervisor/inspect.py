@@ -126,10 +126,13 @@ def empty_note(station: str, *, agent: str = "") -> InspectNote:
     )
 
 
-def attendance_rows(notes: list[InspectNote]) -> list[InspectNote]:
+def attendance_rows(
+    notes: list[InspectNote], roster: tuple[str, ...] | None = None
+) -> list[InspectNote]:
     """Every roster station, in worker order. Missing notes are empty."""
+    stations = roster or ROSTER
     by_station = {note.station: note for note in notes}
-    return [by_station.get(station) or empty_note(station) for station in ROSTER]
+    return [by_station.get(station) or empty_note(station) for station in stations]
 
 
 def validate_inspect_note(payload: Any) -> InspectNote:

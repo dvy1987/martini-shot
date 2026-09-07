@@ -33,20 +33,28 @@ dependencies (mix before extending the same scene; one generative picture
 edit per shot at a time; independent clips may run together).
 
 Each shot carries ingest metadata: ingested (bool), spoken_words (the
-original script), scene (what is on camera). Use those fields. If a
-handoff_orchestrator_note is present, treat it as a spine message: ingest
-look was missing, metadata was lost and restored, or the bag could not be
-repaired. Do not invent a different line than spoken_words.
+original script), scene (what is on camera). Use those fields. Mix and
+pickups already ran; do not re-enqueue them as optional taste.
+
+orchestrator_spine is a first-class list of messages from ingest/handoff.
+Read every note and act:
+- Look just ran / restored from the shot / drifted and restored: the shot
+  bag is truth. Do not invent a different line.
+- Cannot restore: do not invent dialogue. Drop or block work on that shot
+  that needs a script. Other shots may still run.
 
 Hard rails you never break:
 - empty notes are attendance holes, never work.
 - ok / leave-it notes are not work. Do not invent a job for them.
 - kind=defect is required. Spend it before kind=improvement (nice-to-have).
+- Name dependencies. Two generative picture edits on the same shot must
+  wait on each other. Independent clips may run together. Dub before
+  packing captions on the same language when both are work.
 - When the envelope is tight, drop low improvements first. They wait.
 - you cannot invent a station, a cost, or a command.
 - spend never becomes a picture job.
 
-Return JSON: {"order": ["loudness::shot-a", ...], "dependencies": [{"before": "...", "after": "...", "reason": "..."}], "drop": [{"id": "...", "reason": "..."}], "reason": "..."}
+Return JSON: {"order": ["extend::shot-a", ...], "dependencies": [{"before": "...", "after": "...", "reason": "..."}], "drop": [{"id": "...", "reason": "..."}], "reason": "..."}
 """
 
 
@@ -56,12 +64,14 @@ def rank_payload(
     shot_order: dict[str, int],
     candidates: list[dict[str, Any]],
     scene_by_shot: dict[str, Any] | None = None,
+    orchestrator_spine: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
         "remaining_micros": remaining_micros,
         "shot_order_earlier_first": shot_order,
         "candidates": candidates,
         "scene_by_shot": scene_by_shot or {},
+        "orchestrator_spine": list(orchestrator_spine or []),
     }
 
 
@@ -136,6 +146,8 @@ def build_finishing_team(
     context: dict[str, Any] | None = None,
     preview_cache: Any | None = None,
 ) -> SequentialAgent:
+    from backend.supervisor.finishing_loop import PROPOSE_STATIONS
+
     context = dict(context or {})
     cache = preview_cache
     if cache is None and settings is not None:
@@ -145,7 +157,8 @@ def build_finishing_team(
     parallel = ParallelAgent(
         name="finishing_attendance",
         sub_agents=[
-            build_station_agent(station, settings, context, cache) for station in ROSTER
+            build_station_agent(station, settings, context, cache)
+            for station in PROPOSE_STATIONS
         ],
     )
     boss = LlmAgent(
@@ -196,7 +209,9 @@ def notes_from_events(events: list[Any]) -> list[InspectNote]:
             found[station] = validate_inspect_note(payload)
         except Exception:
             log.exception("ADK inspect JSON failed station=%s", station)
-    return attendance_rows(list(found.values()))
+    from backend.supervisor.finishing_loop import PROPOSE_STATIONS
+
+    return attendance_rows(list(found.values()), roster=PROPOSE_STATIONS)
 
 
 async def run_finishing_runner(
@@ -221,8 +236,8 @@ async def run_finishing_runner(
         parts=[
             types.Part(
                 text=(
-                    "Take attendance of every station on this clip. "
-                    "Each specialist must look. Then the orchestrator ranks.\n"
+                    "Cleanup already ran. Look at this clip in upload order. "
+                    "Each leftover specialist must look. Then the orchestrator ranks.\n"
                     + json.dumps(context, default=str)
                 )
             )
@@ -272,6 +287,7 @@ def run_orchestrator_rank_sync(
     remaining_micros: int,
     shot_order: dict[str, int],
     scene_by_shot: dict[str, Any] | None = None,
+    orchestrator_spine: list[dict[str, Any]] | None = None,
 ) -> Any:
     """ADK boss over the complete bag of station notes (all clips)."""
     from backend.supervisor.rank import RankPlan
@@ -307,14 +323,17 @@ def run_orchestrator_rank_sync(
             shot_order=shot_order,
             candidates=candidates,
             scene_by_shot=scene_by_shot,
+            orchestrator_spine=orchestrator_spine,
         )
         message = types.Content(
             role="user",
             parts=[
                 types.Part(
                     text=(
-                        "Specialists already looked. Rank the complete bag. "
-                        "IDs are station::shot_id.\n" + json.dumps(payload, default=str)
+                        "Specialists already looked. Mix and pickups already ran. "
+                        "Read orchestrator_spine. Rank the complete bag. "
+                        "Name dependencies. IDs are station::shot_id.\n"
+                        + json.dumps(payload, default=str)
                     )
                 )
             ],

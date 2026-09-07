@@ -123,6 +123,10 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: spend_pricing_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: ingest_transcript_judgment
     metric: mean_case_accuracy
     threshold: 0.8

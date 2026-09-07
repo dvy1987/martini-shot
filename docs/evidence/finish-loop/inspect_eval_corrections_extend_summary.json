@@ -1,0 +1,33 @@
+{
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 0.857,
+      "hits": 6,
+      "n": 7,
+      "cost_micros": 1050000,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 1.0,
+      "hits": 7,
+      "n": 7,
+      "cost_micros": 1050000,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 1.0,
+      "hits": 7,
+      "n": 7,
+      "cost_micros": 1050000,
+      "pass": true
+    }
+  ],
+  "stations": [
+    "corrections",
+    "extend"
+  ],
+  "estimate_micros": 3150000
+}

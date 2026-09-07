@@ -79,6 +79,10 @@ def score_plan(row: dict, plan) -> tuple[float, str]:
         return 0.0, f"invented {illegal}"
     if any(key.startswith("trailer_bench") for key in keys):
         return 0.0, "invented trailer_bench"
+    must_drop = row.get("expected_drop") or []
+    for item_id in must_drop:
+        if item_id in keys:
+            return 0.0, f"{item_id} still ordered; drop={plan.dropped}"
     return 1.0, plan.reason[:180]
 
 
@@ -120,7 +124,9 @@ def main() -> int:
                 settings,
                 notes,
                 shot_order=shot_order,
-                remaining_micros=50_000_000,
+                remaining_micros=int(row.get("remaining_micros") or 50_000_000),
+                scene_by_shot=row.get("scene_by_shot") or {},
+                orchestrator_spine=row.get("orchestrator_spine") or [],
             )
             score, reason = score_plan(row, plan)
             hits += int(score)

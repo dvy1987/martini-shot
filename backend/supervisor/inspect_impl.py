@@ -137,7 +137,8 @@ def station_inspect_prompt(station: str, context: dict[str, Any]) -> str:
         f"{DEFAULT_COST_MICROS[station]}. "
         'proposal.kind is "station_job" with "station" matching you and '
         '"args" for presets/intents/movements when needed. '
-        "If status is needs_work you MUST include that proposal object."
+        "If status is needs_work you MUST include that proposal object. "
+        "Keep summary to one short sentence so the JSON is complete."
     )
 
 
@@ -246,16 +247,27 @@ def run_inspect(
             )
             return empty_note(station, agent=_AGENT[station])
     try:
-        response = run_agent_call(
-            settings,
-            station_inspect_prompt(station, context),
-            span_name=f"station.{station}.inspect",
-            persona=_AGENT[station],
-            response_schema=INSPECT_SCHEMA,
-            images=images,
-            audio=audio,
-        )
-        note = parse_inspect_text(response["text"], station)
+        note: InspectNote | None = None
+        last_exc: Exception | None = None
+        for _attempt in range(3):
+            try:
+                response = run_agent_call(
+                    settings,
+                    station_inspect_prompt(station, context),
+                    span_name=f"station.{station}.inspect",
+                    persona=_AGENT[station],
+                    response_schema=INSPECT_SCHEMA,
+                    images=images,
+                    audio=audio,
+                )
+                note = parse_inspect_text(response["text"], station)
+                last_exc = None
+                break
+            except InspectNoteError as exc:
+                last_exc = exc
+                log.warning("inspect JSON retry station=%s err=%s", station, exc)
+        if note is None:
+            raise last_exc or InspectNoteError("inspect returned no JSON")
         extra = int(response.get("cost_micros") or 0)
         if extra and note.status != "empty":
             return InspectNote(

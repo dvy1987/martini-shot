@@ -144,6 +144,26 @@ def _scene_codes(
     return []
 
 
+def _sequence_codes(manifest: dict[str, Any]) -> list[str]:
+    predecessors = {
+        "loudness": "ingest",
+        "pickups": "loudness",
+        "delivery": "pickups",
+        "dub": "pickups",
+        "extend": "pickups",
+        "corrections": "pickups",
+        "relight": "pickups",
+        "coverage": "pickups",
+        "camera_language": "pickups",
+    }
+    to_station = str(manifest.get("to_station") or "")
+    from_station = str(manifest.get("from_station") or "")
+    need = predecessors.get(to_station)
+    if need and from_station and from_station != need:
+        return ["SEQUENCE_SKIP"]
+    return []
+
+
 def _blocked_note(codes: list[str]) -> str:
     if "SCENE_MISSING" in codes:
         return (
@@ -157,7 +177,11 @@ def _blocked_note(codes: list[str]) -> str:
             "and could not be reconciled from the shot. Do not invent a "
             "different script or description."
         )
-    if codes:
+    if "SEQUENCE_SKIP" in codes:
+        return (
+            "This station skipped a required earlier step. Run the missing "
+            "predecessor first. Do not invent a line or jump the house order."
+        )
         return (
             "Media files failed the handoff check "
             f"({', '.join(codes)}). Do not proceed; the clip bytes are not "
@@ -191,6 +215,7 @@ class HandoffValidator:
         watch: Any | None = None,
     ) -> HandoffResult:
         codes, blocked = _codes_and_blocks(manifest, delivered)
+        codes.extend(_sequence_codes(manifest))
         scene_codes = _scene_codes(
             manifest, require_scene=require_scene, delivered_scene=delivered_scene
         )

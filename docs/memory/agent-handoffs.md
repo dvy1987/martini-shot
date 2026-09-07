@@ -1,5 +1,34 @@
 # Agent Handoffs
 
+## 2026-09-07 22:10 - Walk-away: mix then pickups, then leftover Gemini looks + orchestrator
+
+### Done
+- Finishing no longer inspects all 11 stations after ingest. After ingest watch: **mandatory loudness then pickups jobs** (upload order; shot N mix waits on N−1). Pickups uses the picture mix when loudness wrote an mp4.
+- **After every clip finishes pickups:** leftover lookers (extend, corrections, relight, coverage, camera language, dub, delivery) Gemini-watch clips 1..N with script+scene. Spend **prices each** leftover job (`spend_pricing`). Orchestrator ranks impact, **dependencies**, envelope, and **`orchestrator_spine`** (handoff/ingest notes). Heuristic sort is crash-only.
+- Handoff `SEQUENCE_SKIP` if pickups/Stage 1a skip a predecessor. Terminal tick copies `handoff_orchestrator_note` onto the worklist spine.
+- EDD artifacts: `spend_pricing_judgment` + rank rows fr-07..fr-10. Live rank/spend exams **not run** this session.
+
+### Debated
+- Python sort vs Gemini boss: owner — complex judgment (impact, spend, dependencies, spine notes) is billed Gemini + live eval.
+
+### Decisions
+- `docs/memory/decision-log.md` — walk-away leftover looks only after all pickups; orchestrator reads spine notes.
+
+### Deferred
+- Live `finishing_rank_eval.py --runs 3` (~$6, needs `--yes`) and `spend_pricing_eval.py --runs 3`.
+- `make check` coverage still below 90%.
+
+### Next Agent Should Know
+- `_finish_once` seeds cleanup only. `run_proposal_phase` runs from `app.py` when `cleanup_finished`. Do not ParallelAgent ingest/loudness/pickups.
+- Rank payload must include `orchestrator_spine` (empty list if none).
+
+### Revisit Triggers
+- Live rank or spend-pricing 3-run mean < 0.8.
+- Leftover agents looking before pickups complete.
+
+### Working Tree
+- Committing + pushing this walk-away wiring (plus inspect-eval evidence / otel_ai already dirty).
+
 ## 2026-09-07 20:41 - Ingest ADK look + handoff repair; owner commit+push
 
 ### Done

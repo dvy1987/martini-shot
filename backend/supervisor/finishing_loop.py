@@ -6,7 +6,11 @@ import logging
 from typing import Any
 
 from backend.jobs.models import Job
-from backend.supervisor.inspect import InspectNote, attendance_rows
+from backend.supervisor.inspect import (
+    DEFAULT_COST_MICROS,
+    InspectNote,
+    attendance_rows,
+)
 from backend.supervisor.rank import (
     RankPlan,
     RankResult,
@@ -22,6 +26,17 @@ DEFAULT_BUDGET_MICROS = 50_000_000
 INSPECT_ESTIMATE_MICROS = 200_000  # per station billed look, printed (C-7.2)
 
 
+def predecessor_station(to_station: str) -> str:
+    """Locked house order: ingest → loudness → pickups → leftover work."""
+    if to_station == "loudness":
+        return "ingest"
+    if to_station == "pickups":
+        return "loudness"
+    if to_station == "ingest":
+        return "ingest"
+    return "pickups"
+
+
 def _stamp_job_scene(
     result: dict[str, Any],
     scene_understanding: dict[str, Any] | None,
@@ -29,6 +44,7 @@ def _stamp_job_scene(
     project_id: str,
     to_station: str,
     source_uri: str,
+    from_station: str | None = None,
 ) -> None:
     from backend.jobs.handoff import turnover_manifest
     from backend.supervisor.station_agents.ingest_understand import (
@@ -43,7 +59,7 @@ def _stamp_job_scene(
     files = [{"ref": source_uri, "sha256": "", "bytes": 0}] if source_uri else []
     result["handoff"] = turnover_manifest(
         project_id=project_id,
-        from_station="ingest",
+        from_station=from_station or predecessor_station(to_station),
         to_station=to_station,
         files=files,
         scene=bag,
@@ -115,9 +131,7 @@ def worklist_doc(
 
 
 def inspect_estimate_micros(clip_count: int) -> int:
-    from backend.supervisor.inspect import ROSTER
-
-    return INSPECT_ESTIMATE_MICROS * len(ROSTER) * max(1, clip_count)
+    return INSPECT_ESTIMATE_MICROS * len(PROPOSE_STATIONS) * max(1, clip_count)
 
 
 def plan_finishing(
@@ -163,6 +177,7 @@ def jobs_from_notes(
             project_id=project_id,
             to_station=target,
             source_uri=source_uri,
+            from_station=predecessor_station(target),
         )
         jobs.append(
             Job(
@@ -183,11 +198,14 @@ def collect_original_refs(store: Any, project_id: str) -> list[str]:
     except Exception:
         log.exception("collect_original_refs failed project=%s", project_id)
         return refs
-    for row in rows:
-        if str(row.get("station") or "") != "ingest":
-            continue
-        if str(row.get("status") or "") != "passed":
-            continue
+    ingest = [
+        row
+        for row in rows
+        if str(row.get("station") or "") == "ingest"
+        and str(row.get("status") or "") == "passed"
+    ]
+    ingest.sort(key=lambda row: str(row.get("created_at") or ""))
+    for row in ingest:
         for ref in list(row.get("input_refs") or []):
             if ref and ref not in seen:
                 refs.append(str(ref))
@@ -256,6 +274,7 @@ def _job_from_item(
         project_id=project_id,
         to_station=station,
         source_uri=source,
+        from_station=predecessor_station(station),
     )
     return Job(
         station=station,
@@ -277,6 +296,202 @@ def _deps_cleared(item: dict[str, Any], items: list[dict[str, Any]]) -> bool:
 
 
 CLEANUP_STATIONS = ("loudness", "pickups")
+PROPOSE_STATIONS = (
+    "delivery",
+    "dub",
+    "extend",
+    "corrections",
+    "relight",
+    "coverage",
+    "camera_language",
+)
+_PICTURE_SUFFIXES = (".mp4", ".mov", ".mkv", ".webm", ".m4v")
+
+
+def _cleanup_row(
+    *,
+    item_id: str,
+    station: str,
+    shot_id: str,
+    source_uri: str,
+    bag: dict[str, Any],
+    blocked_by: list[str],
+    upload_index: int,
+) -> dict[str, Any]:
+    args: dict[str, Any] = {}
+    row = {
+        "id": item_id,
+        "station": station,
+        "status": "waiting",
+        "impact": "high",
+        "kind": "defect",
+        "summary": (
+            "Mandatory mix"
+            if station == "loudness"
+            else "Mandatory repair when damage is real"
+        ),
+        "shot_id": shot_id,
+        "source_uri": source_uri,
+        "upload_index": upload_index,
+        "cost_estimate_micros": int(DEFAULT_COST_MICROS.get(station, 0)),
+        "proposal": {"kind": "station_job", "station": station, "args": args},
+        "blocked_by": list(blocked_by),
+        "phase": "cleanup",
+        "scene_understanding": dict(bag),
+        "ingested": bag.get("ingested"),
+        "spoken_words": bag.get("spoken_words"),
+        "scene": bag.get("scene"),
+    }
+    return row
+
+
+def mandatory_cleanup_items(
+    *,
+    shots: list[tuple[str, str, int]],
+    scene_by_shot: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Always mix, then repair. Leftover stations are not in this bag."""
+    ordered = sorted(shots, key=lambda row: int(row[2]))
+    items: list[dict[str, Any]] = []
+    prev_loud = ""
+    for shot_id, uri, index in ordered:
+        bag = scene_by_shot.get(shot_id) if isinstance(scene_by_shot, dict) else None
+        if not isinstance(bag, dict):
+            bag = {}
+        loud_id = f"loudness::{shot_id}"
+        pick_id = f"pickups::{shot_id}"
+        loud_blocked = [prev_loud] if prev_loud else []
+        items.append(
+            _cleanup_row(
+                item_id=loud_id,
+                station="loudness",
+                shot_id=shot_id,
+                source_uri=uri,
+                bag=bag,
+                blocked_by=loud_blocked,
+                upload_index=index,
+            )
+        )
+        items.append(
+            _cleanup_row(
+                item_id=pick_id,
+                station="pickups",
+                shot_id=shot_id,
+                source_uri=uri,
+                bag=bag,
+                blocked_by=[loud_id],
+                upload_index=index,
+            )
+        )
+        prev_loud = loud_id
+    return items
+
+
+def cleanup_finished(items: list[dict[str, Any]]) -> bool:
+    cleanup = [
+        row
+        for row in items
+        if str(row.get("phase") or "") == "cleanup"
+        or str(row.get("station") or "") in CLEANUP_STATIONS
+    ]
+    if not cleanup:
+        return False
+    return all(str(row.get("status") or "") not in _BLOCKING for row in cleanup)
+
+
+def picture_mix_uri(job: Job) -> str | None:
+    artifact = str((job.result or {}).get("artifact_ref") or "")
+    if not artifact:
+        return None
+    lower = artifact.lower()
+    if any(lower.endswith(suffix) for suffix in _PICTURE_SUFFIXES):
+        return artifact
+    return None
+
+
+def proposal_clip_uri(items: list[dict[str, Any]], shot_id: str, original: str) -> str:
+    """Prefer the post-pickup picture, then the mix, then the original."""
+    for station in ("pickups", "loudness"):
+        for item in items:
+            if str(item.get("station") or "") != station:
+                continue
+            if str(item.get("shot_id") or "") != shot_id:
+                continue
+            artifact = str(item.get("artifact_ref") or "")
+            if artifact and any(
+                artifact.lower().endswith(suffix) for suffix in _PICTURE_SUFFIXES
+            ):
+                return artifact
+            source = str(item.get("source_uri") or "")
+            if source and station == "pickups":
+                return source
+    return original
+
+
+def collect_spine_note(job: Job) -> dict[str, Any] | None:
+    result = job.result or {}
+    note = str(result.get("handoff_orchestrator_note") or "").strip()
+    if not note:
+        return None
+    return {
+        "shot_id": str(result.get("shot_id") or ""),
+        "job_id": job.id,
+        "station": job.station,
+        "note": note,
+        "spoken_words": result.get("spoken_words"),
+        "scene": result.get("scene"),
+    }
+
+
+def apply_cleanup_artifacts(doc: dict[str, Any], job: Job) -> dict[str, Any]:
+    """Point pickups at a picture mix; stamp continuation onto the next shot."""
+    items = list(doc.get("items") or [])
+    result = job.result or {}
+    worklist_item = str(result.get("worklist_item") or "")
+    shot_id = ""
+    for item in items:
+        if str(item.get("job_id") or "") == job.id or (
+            worklist_item and str(item.get("id") or "") == worklist_item
+        ):
+            artifact = str(result.get("artifact_ref") or "")
+            if artifact:
+                item["artifact_ref"] = artifact
+            shot_id = str(item.get("shot_id") or result.get("shot_id") or "")
+            break
+    mix = picture_mix_uri(job) if job.station == "loudness" else None
+    if mix and shot_id:
+        for item in items:
+            if (
+                str(item.get("station") or "") == "pickups"
+                and str(item.get("shot_id") or "") == shot_id
+            ):
+                item["source_uri"] = mix
+    if (
+        job.station == "loudness"
+        and job.status == "passed"
+        and shot_id
+        and result.get("target_lufs") is not None
+    ):
+        order = doc.get("shot_order") if isinstance(doc.get("shot_order"), dict) else {}
+        current = order.get(shot_id)
+        next_shot = ""
+        if current is not None:
+            nxt = int(current) + 1
+            for sid, idx in order.items():
+                if int(idx) == nxt:
+                    next_shot = str(sid)
+                    break
+        if next_shot:
+            for item in items:
+                if str(item.get("id") or "") == f"loudness::{next_shot}":
+                    proposal = dict(item.get("proposal") or {})
+                    args = dict(proposal.get("args") or {})
+                    args["previous_target_lufs"] = float(result["target_lufs"])
+                    args["continuation"] = True
+                    proposal["args"] = args
+                    item["proposal"] = proposal
+    doc["items"] = items
+    return doc
 
 
 def apply_cleanup_sequence(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -388,10 +603,18 @@ def on_finishing_terminal(
     doc["items"] = items
     if not matched:
         return doc
+    spine_note = collect_spine_note(job)
+    if spine_note is not None:
+        spine = list(doc.get("orchestrator_spine") or [])
+        spine.append(spine_note)
+        doc["orchestrator_spine"] = spine
+    apply_cleanup_artifacts(doc, job)
     doc["spent_micros"] = int(doc.get("spent_micros") or 0) + int(job.cost_micros or 0)
     remaining = _remaining(doc)
     if remaining <= 0:
-        waiting = any(str(i.get("status") or "") == "waiting" for i in items)
+        waiting = any(
+            str(i.get("status") or "") == "waiting" for i in doc.get("items") or []
+        )
         doc["status"] = "waiting_for_budget" if waiting else "idle"
         return doc
     return dispatch_next(doc, queue=queue, project_id=project_id)

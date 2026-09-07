@@ -91,3 +91,13 @@ def test_run_agent_call_builds_typed_config(monkeypatch) -> None:
     # No tools passed → the SDK normalizes to None (empty list equally
     # valid); the contract is "no tools kwarg", not "an empty tool list".
     assert config.tools in (None, [])
+
+
+def test_gemini_look_treats_deadline_as_transient() -> None:
+    from backend.supervisor.otel_ai import gemini_transient
+
+    assert gemini_transient(RuntimeError("504 DEADLINE_EXCEEDED")) is True
+    assert gemini_transient(RuntimeError("503 UNAVAILABLE")) is True
+    assert gemini_transient(RuntimeError("429 RESOURCE_EXHAUSTED")) is True
+    assert gemini_transient(TimeoutError("The read operation timed out")) is True
+    assert gemini_transient(RuntimeError("400 INVALID_ARGUMENT")) is False

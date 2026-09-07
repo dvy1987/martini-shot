@@ -229,6 +229,7 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
                     return
             try:
                 from backend.supervisor.finishing_loop import (
+                    cleanup_finished,
                     on_finishing_terminal,
                     refresh_final_refs,
                 )
@@ -247,6 +248,18 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
                         queue=app.state.queue,
                         project_id=job.project_id,
                     )
+                    if cleanup_finished(updated.get("items") or []) and not updated.get(
+                        "proposals_started"
+                    ):
+                        from backend.api.finish import run_proposal_phase
+
+                        updated = run_proposal_phase(
+                            updated,
+                            settings=cfg,
+                            store=store,
+                            queue=app.state.queue,
+                            hub=hub,
+                        )
                     refresh_final_refs(updated, store)
                     save_worklist(store, job.project_id, updated)
                     hub.publish(

@@ -50,22 +50,23 @@ RANK_SCHEMA: dict[str, Any] = {
 }
 
 ORCHESTRATOR_PROMPT = """You are the finishing orchestrator for Martini Shot.
-Specialist station agents already looked at the clips. You now have the
-complete bag of their proposals. Your job is to THINK:
+Specialist station agents already looked at the clips AFTER mix and pickups.
+You now have the complete bag of their proposals plus orchestrator_spine
+messages from ingest/handoff. THINK:
 
-- Weigh impact vs cost vs story. Unhearable audio or unreadable faces usually
+- Weigh impact vs cost vs story. Unreadable faces or a broken line usually
   outrank cosmetic craft — unless a specialist's note makes a real case otherwise.
-- Name dependencies. Example: mix a scene before extending it so generated
-  picture/sound matches hearable dialogue. Example: do not run two generative
-  picture edits on the same shot at once; sequence them.
-- Independent clips, or sound vs picture that do not overwrite the same file,
-  may run in parallel (no dependency).
+- Name dependencies. Example: two generative picture edits on the same shot
+  must wait on each other. Independent clips may run together.
+- Read orchestrator_spine. Restored script/scene is truth — do not invent a
+  different line. If ingest never happened and cannot restore, do not invent
+  dialogue; drop work on that shot that needs a script.
 - Do not invent a station, a shot, or a job that is not in the candidate list.
 - Empty notes are attendance holes, not work. ok / leave-it notes are not
   candidates — never turn them into jobs.
 - kind=defect is required. Spend it before kind=improvement (nice-to-have).
 - When the envelope is tight, drop low improvements first. Dropped work waits.
-- Spend never becomes a picture job.
+- Spend never becomes a picture job. Mix and pickups already ran.
 
 IDs are "station::shot_id". Return JSON only.
 """
@@ -110,6 +111,8 @@ def run_rank_agent(
     *,
     shot_order: dict[str, int],
     remaining_micros: int,
+    scene_by_shot: dict[str, Any] | None = None,
+    orchestrator_spine: list[dict[str, Any]] | None = None,
 ) -> RankPlan:
     """One billed thinking-HIGH call over the complete bag of inspect notes."""
     from backend.supervisor.otel_ai import run_agent_call
@@ -117,12 +120,14 @@ def run_rank_agent(
     candidates = _candidates(notes)
     if not candidates:
         return RankPlan(ordered=[], reason="no needs_work")
-    prompt = (
-        f"{ORCHESTRATOR_PROMPT}\n"
-        f"remaining_micros: {remaining_micros}\n"
-        f"shot_order_earlier_first: {json.dumps(shot_order)}\n"
-        f"candidates:\n{json.dumps(candidates, indent=2)}\n"
-    )
+    payload = {
+        "remaining_micros": remaining_micros,
+        "shot_order_earlier_first": shot_order,
+        "candidates": candidates,
+        "scene_by_shot": scene_by_shot or {},
+        "orchestrator_spine": list(orchestrator_spine or []),
+    }
+    prompt = f"{ORCHESTRATOR_PROMPT}\n{json.dumps(payload, indent=2, default=str)}\n"
     print(
         "finishing rank estimate: billed orchestrator call "
         f"(thinking HIGH) remaining_micros={remaining_micros}",
@@ -152,6 +157,8 @@ def rank_complete_bag(
     shot_order: dict[str, int],
     remaining_micros: int,
     adk_text: str = "",
+    scene_by_shot: dict[str, Any] | None = None,
+    orchestrator_spine: list[dict[str, Any]] | None = None,
 ) -> RankPlan:
     """Honor the ADK orchestrator JSON when present; else billed ranker.
 
@@ -171,5 +178,7 @@ def rank_complete_bag(
             notes,
             shot_order=shot_order,
             remaining_micros=remaining_micros,
+            scene_by_shot=scene_by_shot,
+            orchestrator_spine=orchestrator_spine,
         )
     return fallback_plan(notes, shot_order=shot_order)

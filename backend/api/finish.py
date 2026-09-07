@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import replace
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -20,15 +19,18 @@ from backend.jobs.queue import FirestoreLeaseQueue
 from backend.shots import lifecycle as shots
 from backend.supervisor.finishing_loop import (
     DEFAULT_BUDGET_MICROS,
+    PROPOSE_STATIONS,
     assemble_final,
     collect_original_refs,
     dispatch_next,
     inspect_estimate_micros,
     items_from_rank,
+    mandatory_cleanup_items,
+    proposal_clip_uri,
     refresh_final_refs,
     worklist_doc,
 )
-from backend.supervisor.inspect import ROSTER, attendance_rows
+from backend.supervisor.inspect import attendance_rows
 from backend.supervisor.inspect_impl import run_inspect
 from backend.supervisor.rank_impl import rank_complete_bag
 from backend.supervisor.worklist import load_worklist, reorder_items, save_worklist
@@ -119,7 +121,7 @@ def _run_attendance(
         project_id=project_id,
         budget_micros=budget_micros,
     )
-    for station in ROSTER:
+    for station in PROPOSE_STATIONS:
         notes.append(
             run_inspect(
                 station,
@@ -157,13 +159,10 @@ def _finish_once(
         _publish(hub, project_id, doc)
         return doc
 
-    all_notes: list[Any] = []
     source_by_shot: dict[str, str] = {}
     shot_order: dict[str, int] = {}
-    from backend.supervisor.clip_preview import ClipPreviewCache
-
-    preview_cache = ClipPreviewCache(settings)
     scene_by_shot: dict[str, Any] = {}
+    shots_for_cleanup: list[tuple[str, str, int]] = []
     for index, source_uri in enumerate(originals):
         shot_id = shots.ensure_shot(store, project_id=project_id, title=source_uri)
         source_by_shot[shot_id] = source_uri
@@ -176,10 +175,96 @@ def _finish_once(
             project_id=project_id,
             budget_micros=budget_micros,
         )
-        scene_by_shot[shot_id] = {
+        bag = {
             "ingested": context.get("ingested"),
             "spoken_words": context.get("spoken_words"),
             "scene": context.get("scene"),
+        }
+        scene_by_shot[shot_id] = bag
+        shots_for_cleanup.append((shot_id, source_uri, index))
+
+    items = mandatory_cleanup_items(
+        shots=shots_for_cleanup, scene_by_shot=scene_by_shot
+    )
+    doc = worklist_doc(
+        project_id=project_id,
+        budget_micros=budget_micros,
+        original_refs=originals,
+        attendance=[n.to_doc() for n in attendance_rows([])],
+        ranked=[],
+        items=items,
+        final_refs=assemble_final(original_refs=originals, jobs=[]),
+        status="running",
+        spent_micros=0,
+    )
+    doc["scene_by_shot"] = scene_by_shot
+    doc["shot_order"] = shot_order
+    doc["source_by_shot"] = source_by_shot
+    doc["proposals_started"] = False
+    doc["phase"] = "cleanup"
+    doc["orchestrator_spine"] = list(doc.get("orchestrator_spine") or [])
+    doc = dispatch_next(doc, queue=queue, project_id=project_id)
+    refresh_final_refs(doc, store)
+    save_worklist(store, project_id, doc)
+    _publish(hub, project_id, doc)
+    return doc
+
+
+def run_proposal_phase(
+    doc: dict[str, Any],
+    *,
+    settings: Settings,
+    store: FirestoreStore,
+    queue: FirestoreLeaseQueue,
+    hub: EventHub,
+) -> dict[str, Any]:
+    """After every mix+pickups job: leftover Gemini looks, spend prices, rank."""
+    from dataclasses import replace
+
+    from backend.supervisor.clip_preview import ClipPreviewCache
+    from backend.supervisor.rank import note_key
+    from backend.supervisor.station_agents.spend_pricing import (
+        apply_prices,
+        decide_spend_pricing,
+    )
+
+    if doc.get("proposals_started"):
+        return doc
+    doc["proposals_started"] = True
+    doc["phase"] = "propose"
+    project_id = str(doc.get("project_id") or "")
+    budget_micros = int(doc.get("budget_micros") or 0)
+    remaining = budget_micros - int(doc.get("spent_micros") or 0)
+    source_by_shot = dict(doc.get("source_by_shot") or {})
+    shot_order = dict(doc.get("shot_order") or {})
+    scene_by_shot = dict(doc.get("scene_by_shot") or {})
+    items = list(doc.get("items") or [])
+    ordered_shots = sorted(shot_order.items(), key=lambda row: int(row[1]))
+    print(
+        "finishing inspect estimate: "
+        f"${inspect_estimate_micros(max(1, len(ordered_shots))) / 1_000_000:.2f} "
+        f"({inspect_estimate_micros(max(1, len(ordered_shots)))} micros) "
+        f"leftover looks after pickups project={project_id}",
+        flush=True,
+    )
+    preview_cache = ClipPreviewCache(settings)
+    all_notes: list[Any] = []
+    for shot_id, index in ordered_shots:
+        original = source_by_shot.get(shot_id, "")
+        clip_uri = proposal_clip_uri(items, shot_id, original)
+        bag = scene_by_shot.get(shot_id) if isinstance(scene_by_shot, dict) else {}
+        if not isinstance(bag, dict):
+            bag = {}
+        context = {
+            "clip_uri": clip_uri,
+            "shot_id": shot_id,
+            "project_id": project_id,
+            "budget_micros": remaining,
+            "upload_index": int(index),
+            "upload_count": len(ordered_shots),
+            "ingested": bag.get("ingested"),
+            "spoken_words": bag.get("spoken_words"),
+            "scene": bag.get("scene"),
         }
         notes: list[Any]
         try:
@@ -189,14 +274,14 @@ def _finish_once(
                 settings, context, preview_cache=preview_cache
             )
         except Exception:
-            log.exception("ADK Runner failed; billed python inspect fallback")
+            log.exception("ADK leftover looks failed; billed python inspect fallback")
             notes = _run_attendance(
                 settings,
                 store=store,
-                source_uri=source_uri,
+                source_uri=clip_uri,
                 shot_id=shot_id,
                 project_id=project_id,
-                budget_micros=budget_micros,
+                budget_micros=remaining,
                 preview_cache=preview_cache,
             )
         for note in notes:
@@ -204,19 +289,40 @@ def _finish_once(
                 note = replace(note, shot_id=shot_id)
             all_notes.append(note)
 
+    candidates = [
+        {
+            "id": note_key(note),
+            "station": note.station,
+            "shot_id": note.shot_id,
+            "impact": note.impact,
+            "kind": note.kind,
+            "summary": note.summary,
+            "cost_estimate_micros": note.cost_estimate_micros,
+        }
+        for note in all_notes
+        if note.status == "needs_work" and note.proposal
+    ]
+    try:
+        prices, _cost = decide_spend_pricing(
+            settings, candidates=candidates, remaining_micros=remaining
+        )
+        apply_prices(all_notes, prices)
+    except Exception:
+        log.exception("spend pricing failed; station defaults remain advice only")
+
+    spine = list(doc.get("orchestrator_spine") or [])
     try:
         from backend.supervisor.adk_finishing import run_orchestrator_rank_sync
 
         plan = run_orchestrator_rank_sync(
             settings,
             all_notes,
-            remaining_micros=budget_micros,
+            remaining_micros=remaining,
             shot_order=shot_order,
             scene_by_shot=scene_by_shot,
+            orchestrator_spine=spine,
         )
-        if not plan.ordered and any(
-            note.status == "needs_work" and note.proposal for note in all_notes
-        ):
+        if not plan.ordered and candidates:
             raise RuntimeError("ADK orchestrator returned no order")
     except Exception:
         log.exception("ADK orchestrator rank failed; billed rank fallback")
@@ -224,24 +330,28 @@ def _finish_once(
             settings,
             all_notes,
             shot_order=shot_order,
-            remaining_micros=budget_micros,
+            remaining_micros=remaining,
+            scene_by_shot=scene_by_shot,
+            orchestrator_spine=spine,
         )
-    items = items_from_rank(
+    proposed = items_from_rank(
         plan, source_by_shot=source_by_shot, scene_by_shot=scene_by_shot
     )
-    doc = worklist_doc(
-        project_id=project_id,
-        budget_micros=budget_micros,
-        original_refs=originals,
-        attendance=[n.to_doc() for n in all_notes],
-        ranked=[item for item in items],
-        items=items,
-        final_refs=assemble_final(original_refs=originals, jobs=[]),
-        status="running",
-        spent_micros=0,
-    )
+    for row in proposed:
+        shot_id = str(row.get("shot_id") or "")
+        original = source_by_shot.get(shot_id, "")
+        row["source_uri"] = proposal_clip_uri(items, shot_id, original)
+        row["phase"] = "propose"
+    cleanup = [
+        row
+        for row in items
+        if str(row.get("phase") or "") == "cleanup"
+        or str(row.get("station") or "") in {"loudness", "pickups"}
+    ]
+    doc["items"] = cleanup + proposed
+    doc["attendance"] = [n.to_doc() for n in all_notes]
+    doc["ranked"] = list(proposed)
     doc["rank_reason"] = plan.reason
-    doc["scene_by_shot"] = scene_by_shot
     doc = dispatch_next(doc, queue=queue, project_id=project_id)
     refresh_final_refs(doc, store)
     save_worklist(store, project_id, doc)

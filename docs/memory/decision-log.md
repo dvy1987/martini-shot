@@ -1,5 +1,32 @@
 # Decision Log
 
+## 2026-09-07 - Walk-away: mix then pickups, then leftover Gemini looks, then orchestrator
+Status: active
+Scope: finishing loop, ADK propose team, spend pricing, orchestrator rank
+Confidence: high
+Tags: finishing, orchestrator, spend, handoff, edd
+
+### Decision
+Ingest job checks the file. Ingest agent watches and writes script + scene.
+Loudness then pickups **always run as jobs** (upload order; shot N mix waits
+on shot N−1). After **every** clip finishes pickups, leftover station agents
+watch the updated clips in that same order (Gemini). Spend **prices each**
+leftover suggestion (Gemini). The orchestrator then ranks by impact,
+**named dependencies**, and remaining money, and it **reads**
+`handoff_orchestrator_note` / ingest spine messages in that billed call.
+A Python sort is crash fallback only. Live evals: `finishing_rank_quality`
+(added post-cleanup + spine rows) and `spend_pricing_judgment`.
+
+### Context
+Owner: leftover agents must not all start with ingest. Clips arrive in
+upload sequence with metadata. Orchestrator uses complex judgment including
+dependencies. Handoff already writes spine notes; the boss must process them.
+
+### Revisit When
+Live rank or spend-pricing 3-run mean < 0.8.
+
+---
+
 ## 2026-09-07 - Extend/Corrections looker: must / nice / leave
 Status: active
 Scope: finish_extend + finish_corrections inspect

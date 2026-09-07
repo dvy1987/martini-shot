@@ -9,7 +9,7 @@ from backend.supervisor.adk_finishing import (
     build_finishing_team,
     build_station_agent,
 )
-from backend.supervisor.inspect import ROSTER
+from backend.supervisor.finishing_loop import PROPOSE_STATIONS
 
 
 def test_finishing_team_is_parallel_then_orchestrator() -> None:
@@ -19,9 +19,11 @@ def test_finishing_team_is_parallel_then_orchestrator() -> None:
     parallel, boss = root.sub_agents
     assert parallel.name == "finishing_attendance"
     assert [child.name for child in parallel.sub_agents] == [
-        f"finish_{station}" for station in ROSTER
+        f"finish_{station}" for station in PROPOSE_STATIONS
     ]
-    assert len(parallel.sub_agents) == 11
+    assert "finish_ingest" not in [child.name for child in parallel.sub_agents]
+    assert "finish_loudness" not in [child.name for child in parallel.sub_agents]
+    assert "finish_pickups" not in [child.name for child in parallel.sub_agents]
     assert boss.name == ORCHESTRATOR_NAME
     assert "gemini" in str(boss.model).lower() or boss.model
 

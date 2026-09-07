@@ -247,3 +247,25 @@ def test_repairs_by_running_ingest_look_when_never_watched() -> None:
     assert "ingest" in result.orchestrator_note.lower()
     meta = shots.get_shot(store, shot_id) or {}
     assert (meta.get("scene_understanding") or {}).get("ingested") is True
+
+
+def test_sequence_skip_blocks_pickups_from_ingest() -> None:
+    manifest = {
+        **MANIFEST_OK,
+        "from_station": "ingest",
+        "to_station": "pickups",
+        "scene": _scene(),
+    }
+    validator = HandoffValidator.without_store()
+    result = validator.validate(
+        manifest,
+        delivered(),
+        job_id="job-x",
+        require_scene=True,
+        delivered_scene=_scene(),
+    )
+    assert result.passed is False
+    assert "SEQUENCE_SKIP" in result.codes
+    assert "predecessor" in result.orchestrator_note.lower() or "skipped" in (
+        result.orchestrator_note.lower()
+    )

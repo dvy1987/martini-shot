@@ -1,5 +1,6 @@
 # Project Memory Index
 
+| 2026-09-07 22:10 | handoff | agent-handoffs.md#2026-09-07-22:10 | current | walk-away, orchestrator, spend, finishing | Mix then pickups jobs; leftover Gemini looks; orchestrator ranks with spine notes |
 | 2026-09-07 20:41 | handoff | agent-handoffs.md#2026-09-07-20:41 | current | ingest-adk, handoff, finishing | Ingest ADK look + handoff repair; fields on every agent; owner commit+push |
 | 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-1738 | current | d-9, omni, stage-1a, coverage | D-9 Omni 6/6 draft+master PASS; Stage 1a stations in tree; make check blocked on 74% coverage |
 | 2026-09-07 | state | current-state.md | current | d-9, stage-1a | D-9 live Omni EDD green; CI-lite coverage gap remains |

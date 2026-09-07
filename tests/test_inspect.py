@@ -231,7 +231,8 @@ def test_inspect_dataset_covers_extend_and_corrections_three_buckets() -> None:
     sign = by_id["fi-07"]
     assert sign["expected"]["kind"] == "defect"
     cup = by_id["fi-09"]
-    assert cup["expected"]["kind"] == "improvement"
+    assert cup["expected"]["status"] == "ok"
+    assert cup["expected"]["kind"] == "none"
     clean = by_id["fi-13"]
     assert clean["station"] == "corrections"
     assert clean["expected"]["status"] == "ok"

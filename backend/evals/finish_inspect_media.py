@@ -122,7 +122,7 @@ def ensure_inspect_clips(
             raise RuntimeError(f"unknown inspect clips: {sorted(unknown)}")
     work.mkdir(parents=True, exist_ok=True)
     kitchen = table = cafe = florist = chalkboard = None
-    if _want(needed, "dies_mid_thought", "extra_air"):
+    if _want(needed, "dies_mid_thought"):
         kitchen = _download(settings, KITCHEN, work / "src-kitchen.mp4")
     if _want(
         needed,
@@ -137,7 +137,7 @@ def ensure_inspect_clips(
         table = _download(settings, TABLE, work / "src-table.mp4")
     if _want(needed, "signage_closed"):
         cafe = _download(settings, CAFE_SIGN, work / "src-cafe.mp4")
-    if _want(needed, "clean_picture"):
+    if _want(needed, "clean_picture", "extra_air"):
         florist = _download(settings, FLORIST, work / "src-florist.mp4")
     if _want(needed, "chalkboard_opnn"):
         chalkboard = _download(settings, CHALKBOARD, work / "src-chalkboard.mp4")
@@ -187,8 +187,10 @@ def ensure_inspect_clips(
         clips["dies_mid_thought"] = cut
 
     if _want(needed, "extra_air"):
-        assert kitchen is not None
-        clips["extra_air"] = _copy_clip(kitchen, work / "extra_air.mp4")
+        assert florist is not None
+        dest = work / "extra_air.mp4"
+        dest.write_bytes(florist.read_bytes())
+        clips["extra_air"] = dest
 
     if _want(needed, "complete_shot"):
         assert table is not None
