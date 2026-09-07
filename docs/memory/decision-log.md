@@ -1,5 +1,37 @@
 # Decision Log
 
+## 2026-09-07 - Full Stage 1a is required for the hackathon demo (Amendment A11)
+Status: active
+Scope: demo release
+Confidence: high
+Tags: stage-1a, demo, scope, edd, ux
+
+### Decision
+The demo release comprises Stage 1 **and the full non-stretch Stage 1a
+roadmap**: D-10 Corrections, E-1 Relight Studio, D-11 Draft-first
+orchestration, D-12 Coverage, D-15 Revision Room, and D-16 Camera Language.
+The former requirement that full Stage 1a await G3 is removed for these tasks;
+G3 and G3a become integrated release gates. The demo must support both a
+hero-shot creative journey and an episode-level revision journey.
+
+### Constraints
+- Features remain separate domain pipelines; they reuse shared H-0, AL-1,
+  lease-queue, real GCS/Firestore, `run_agent_call`, Grafana MCP/OTel, and
+  frontend HTTP/SSE primitives rather than duplicating them.
+- Every generative capability is EDD-first with real Gemini/Vertex calls,
+  numeric thresholds, prompt-hardening iterations, and archived three-run
+  evidence. Every feature must be exposed in the running UX.
+- Remaining Stage 1a eval/demo spend is capped at $50. Batches over $5 still
+  print their estimate and require `--yes` (C-7.2); exceeding $50 requires a
+  new owner approval.
+- D-13 Transition Forge and D-14 Versioning remain stretch; Stage 2+ does not
+  enter the demo scope.
+
+### Revisit trigger
+If the remaining $50 envelope is exhausted before integrated G3/G3a, the
+owner decides whether to expand the envelope or reduce scope by explicit
+amendment; no feature is silently downgraded to an eval-only claim.
+
 ## 2026-09-04 - Omni-vs-Veo: Omni on Vertex WORKS — becomes primary video path (owner request)
 Status: active (supersedes the same-day "blocked on credentials" entry below)
 Scope: D-9 Extend, dub/render features, ADR 0002 model pinning

@@ -1,0 +1,27 @@
+{
+  "station": "delivery",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-03.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-03-es-ES-delivery",
+  "status": "failed",
+  "attempts": 2,
+  "cost_micros": 0,
+  "error": "404 GET https://storage.googleapis.com/download/storage/v1/b/martini-shot-media/o/gs%3A%2F%2Fmartini-shot-media%2Fe3%2Fep-03.mp4?alt=media: No such object: martini-shot-media/gs://martini-shot-media/e",
+  "created_at": "2026-09-07T03:43:26.478Z",
+  "updated_at": "2026-09-07T05:39:18.695Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T05:44:17.270Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "language": "es-ES",
+    "episode_id": "ep-03",
+    "script": "El control de gasto ha pausado la ingestione temporalmente.",
+    "shot_id": "shot-ep03-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [],
+  "runner_error": "404 GET https://storage.googleapis.com/download/storage/v1/b/martini-shot-media/o/gs%3A%2F%2Fmartini-shot-media%2Fe3%2Fep-03.mp4?alt=media: No such object: martini-shot-media/gs://martini-shot-media/e"
+}

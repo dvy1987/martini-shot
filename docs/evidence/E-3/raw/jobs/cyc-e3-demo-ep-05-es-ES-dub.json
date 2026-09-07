@@ -1,0 +1,28 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-05.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-05-es-ES-dub",
+  "status": "failed",
+  "attempts": 2,
+  "cost_micros": 0,
+  "error": "unknown station 'dub'",
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T05:40:26.807Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T05:45:25.683Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "language": "es-ES",
+    "episode_id": "ep-05",
+    "script": "El doblaje en tres idiomas pasa el control de calidad.",
+    "ssml": "<speak>El doblaje en tres idiomas pasa el control de calidad.</speak>",
+    "shot_id": "shot-ep05-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [],
+  "runner_error": "unknown station 'dub'"
+}

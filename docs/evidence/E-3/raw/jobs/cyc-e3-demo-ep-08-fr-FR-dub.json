@@ -1,0 +1,28 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-08.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-08-fr-FR-dub",
+  "status": "failed",
+  "attempts": 2,
+  "cost_micros": 0,
+  "error": "unknown station 'dub'",
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T05:42:28.781Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T05:47:27.782Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "language": "fr-FR",
+    "episode_id": "ep-08",
+    "script": "Pret pour la revision finale du lot complet.",
+    "ssml": "<speak>Pret pour la revision finale du lot complet.</speak>",
+    "shot_id": "shot-ep08-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [],
+  "runner_error": "unknown station 'dub'"
+}
