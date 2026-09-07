@@ -1,7 +1,7 @@
 # Project Knowledge Graph Index
 
-Generated: 2026-09-07T05:58:43.901320+00:00
-Mode: **application** | Nodes: 489 | Edges: 442
+Generated: 2026-09-07T06:02:36.213158+00:00
+Mode: **application** | Nodes: 492 | Edges: 443
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root), backend, docs, frontend, scripts, tests → indexing entire repository (skills + code + docs + memory).
 
@@ -14,17 +14,17 @@ Mode: **application** | Nodes: 489 | Edges: 442
 - config (.agents/ROUTING.md, tsconfig, pyproject, etc.)
 - top-level directories
 
-EXTRACTED: 289 | INFERRED: 153
+EXTRACTED: 291 | INFERRED: 152
 
 ## Hub nodes
-- check_thresholds.py (module)
+- firestore.py (module)
 - venture-exploration
 - memory
 - models.py (module)
 - memory-capture
 - universal-skill-creator
+- test_shot_locking.py (module)
 - improve-skills
-- test_extend_qc.py (module)
 
 ## Communities
 
@@ -37,24 +37,24 @@ EXTRACTED: 289 | INFERRED: 153
 **context** (1): context-engineering
 **core** (4): inversion, ooda, quickstart, socratic
 **create** (1): create-agent-prompt
-**customer** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
-  … +56 more
 **deep** (1): deep-thinking
-**dependency** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deploy** (1): deploy-anywhere
 **deprecate** (1): deprecate-skill
 **eval** (3): eval-judge, eval-output, eval-rubric-design
 **fault** (1): fault-localize
 **first** (1): first-principles
-**frontend** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **git** (1): git-workflow-and-versioning
 **incremental** (1): incremental-implementation
 **issue** (1): issue-sync
 **knowledge** (1): knowledge-graph
+**motion** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **performance** (1): performance-optimization
 **pr** (1): pr-authoring
 **pre** (1): pre-mortem
+**retroactive** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
+  … +56 more
 **run** (1): run-trace
+**safe** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **second** (1): second-order
 **secure** (4): secure-skill, secure-skill-content-sanitization, secure-skill-repo-ingestion, secure-skill-runtime
 **shipping** (1): shipping-and-launch
@@ -69,9 +69,9 @@ EXTRACTED: 289 | INFERRED: 153
 - **config**: 3
 - **directory**: 10
 - **doc**: 58
-- **handoff**: 17
+- **handoff**: 18
 - **memory**: 9
-- **module**: 268
+- **module**: 270
 - **package**: 1
 - **skill**: 123
 

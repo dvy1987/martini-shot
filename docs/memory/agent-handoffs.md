@@ -1,5 +1,22 @@
 # Agent Handoffs
 
+## 2026-09-07 06:10 - Multi-agent runtime gap closure
+
+### Done
+- Production deliberations now inject real Verification and Post Supervisor Gemini synthesis callbacks.
+- Model synthesis is restricted to partitioning existing verified candidates; it cannot invent or mutate an H-0 action.
+- Daily Spend Control admission is transactionally reserved, and detached cycle outcomes are consumed and logged.
+- Updated stale runtime evidence; non-terminal signal routes are explicitly deferred with reasons.
+
+### Deferred
+- ACT remains deliberately unactivated until owner-approved live rehearsal. Stage 1a domain pipelines follow.
+
+### Next Agent Should Know
+- Real-service integration tests require configured GCP credentials; deterministic contracts pass locally.
+
+### Working Tree
+- Runtime gap closure ready to commit on `cursor/full-stage-1a-demo-be5d`.
+
 ## 2026-09-07 05:55 - Full Stage 1a demo scope baseline
 
 ### Done

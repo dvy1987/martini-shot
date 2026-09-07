@@ -2,6 +2,7 @@
 
 | Date | Type | File | Status | Tags | Summary |
 |---|---|---|---|---|---|
+| 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-0610 | current | h1, h0b, runtime | Production verifier/synthesis wiring, transactional daily-cap reservations, task lifecycle observation, and explicit deferred signals |
 | 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-0555 | current | a11, stage-1a, demo | Scope baseline for the six-operation Stage 1a demo, including immutable request plan and $100 envelope |
 | 2026-09-07 | scope+decision | ../plans/2026-08-26-post-command-tasks.md + ../specs/2026-08-26-post-command-feature-spec.md + decision-log.md (A11) | active | a11, stage-1a, demo, edd, ux | Full non-stretch Stage 1a is part of the hackathon demo: six agent-assisted, manually initiable creative workflows, a $100 remaining spend envelope, and integrated G3/G3a gates |
 | 2026-09-06 | spec+plan+decision | ../specs/2026-09-06-agentic-stations-design.md + decision-log.md (A10) + ../adr/0004-dub-timefit-and-agentic-qc.md | current | a10, agentic-stations, dub-qc, orchestrator, edd | A10 approved: 8 bespoke station agents + batch orchestrator; StationDecision contract; A10-1 Dub QC DONE (eval green, docs/evidence/E-2); task rows A10-1..A10-4 in tasks plan |

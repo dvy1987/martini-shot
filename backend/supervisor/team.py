@@ -40,6 +40,15 @@ _DELIBERATION_TRIGGERS = {
 # Firestore existence check. Firestore check is the durable idempotency
 # layer; this set just avoids duplicate in-flight cycles.
 _in_flight: set[str] = set()
+DEFERRED_SIGNAL_REASONS = {
+    "stuck_lease": "requires a durable lease-expiry event source",
+    "crash_recovered": "requires worker recovery event emission",
+    "qc_breach": "requires QC-report event emission",
+    "spend_breach": "requires Spend Control event emission",
+    "runaway": "requires Spend Control runaway event emission",
+    "daily_budget": "requires Spend Control daily-budget event emission",
+    "dub_breach": "requires Dub QC event emission",
+}
 
 
 def production_specialists(
@@ -102,6 +111,25 @@ def production_specialists(
     }
 
 
+def production_verifier(settings: Settings) -> Any:
+    """Return the real Verification Agent for production deliberations.
+
+    Keeping this explicit prevents `run_deliberation_cycle` from selecting its
+    test-only permissive default verifier when a worker signal creates a
+    deliberation cycle.
+    """
+    from backend.supervisor.agents.verification import verify
+
+    return lambda case, findings: verify(case, findings, settings)
+
+
+def production_synthesizer(settings: Settings) -> Any:
+    """Return the real Post Supervisor synthesis stage for production."""
+    from backend.supervisor.agents.post_supervisor import synthesize
+
+    return lambda case, findings, verdict: synthesize(case, findings, verdict, settings)
+
+
 def maybe_deliberate(
     job: Job,
     *,
@@ -147,6 +175,8 @@ def maybe_deliberate(
                 jobs_col="pc-jobs",
                 approvals_col="pc-approvals",
                 specialists=production_specialists(store, settings),
+                verifier=production_verifier(settings),
+                synthesizer=production_synthesizer(settings),
                 annotator=annotator,
                 autonomy_mode=load_autonomy_mode(store),
                 cycle_id=cycle_id,
@@ -168,4 +198,17 @@ def maybe_deliberate(
     except RuntimeError:
         _in_flight.discard(cycle_id)
         return None  # no running loop (e.g. shutdown) — skip, don't raise
+
+    def _observe_completion(completed: asyncio.Task[dict[str, Any]]) -> None:
+        """Consume detached failures so the runtime has one logged outcome,
+        rather than an unobserved-task warning during worker shutdown."""
+        if completed.cancelled():
+            log.info("signal-fired deliberation cancelled cycle_id=%s", cycle_id)
+            return
+        try:
+            completed.result()
+        except Exception:
+            log.exception("signal-fired deliberation task failed cycle_id=%s", cycle_id)
+
+    task.add_done_callback(_observe_completion)
     return task

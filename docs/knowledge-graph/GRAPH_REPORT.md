@@ -1,21 +1,21 @@
 # Knowledge Graph Report
 
-Generated: 2026-09-07T05:58:43.901320+00:00
-Mode: application | Nodes: 489 | Edges: 442
+Generated: 2026-09-07T06:02:36.213158+00:00
+Mode: application | Nodes: 492 | Edges: 443
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root), backend, docs, frontend, scripts, tests → indexing entire repository (skills + code + docs + memory).
 
 ## God nodes (skills + modules)
-- check_thresholds.py (module)
+- firestore.py (module)
 - venture-exploration
 - memory
 - models.py (module)
 - memory-capture
 - universal-skill-creator
+- test_shot_locking.py (module)
 - improve-skills
-- test_extend_qc.py (module)
-- feature-spec
 - app.py (module)
+- feature-spec
 
 ## Surprising cross-community connections
 - skill-finder → universal-skill-creator (invokes: skill ↔ universal)
@@ -31,12 +31,12 @@ Mode: application | Nodes: 489 | Edges: 442
 - How does skill-finder (skill) connect to universal-skill-creator (universal)?
 - How does library-skill (library) connect to generate-changelog (generate)?
 - How does library-skill (library) connect to codebase-understanding (codebase)?
-- What depends on check_thresholds.py (module), and what does check_thresholds.py (module) invoke?
+- What depends on firestore.py (module), and what does firestore.py (module) invoke?
 - What depends on venture-exploration, and what does venture-exploration invoke?
 - What depends on memory, and what does memory invoke?
 
 ## Provenance
 - Authoritative invokes: 0
-- EXTRACTED: 289 | INFERRED: 153
+- EXTRACTED: 291 | INFERRED: 152
 
 Query: `python3 .agents/skills/knowledge-graph/scripts/query_graph.py path <A> <B>`

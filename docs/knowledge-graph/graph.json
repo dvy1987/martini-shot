@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "generated_at": "2026-09-07T05:58:43.901320+00:00",
+  "generated_at": "2026-09-07T06:02:36.213158+00:00",
   "mode": "application",
   "mode_reason": "application label: 123 skills in .agents/skills plus source under (root), backend, docs, frontend, scripts, tests → indexing entire repository (skills + code + docs + memory).",
   "scan_layers": [
@@ -14,33 +14,33 @@
   ],
   "root": "/workspace",
   "stats": {
-    "nodes": 489,
-    "edges": 442,
+    "nodes": 492,
+    "edges": 443,
     "authoritative_edges": 0,
-    "extracted_edges": 289,
-    "inferred_edges": 153,
+    "extracted_edges": 291,
+    "inferred_edges": 152,
     "node_types": {
       "config": 3,
       "directory": 10,
       "doc": 58,
-      "handoff": 17,
+      "handoff": 18,
       "memory": 9,
-      "module": 268,
+      "module": 270,
       "package": 1,
       "skill": 123
     }
   },
   "god_nodes": [
-    "check_thresholds.py (module)",
+    "firestore.py (module)",
     "venture-exploration",
     "memory",
     "models.py (module)",
     "memory-capture",
     "universal-skill-creator",
+    "test_shot_locking.py (module)",
     "improve-skills",
-    "test_extend_qc.py (module)",
-    "feature-spec",
-    "app.py (module)"
+    "app.py (module)",
+    "feature-spec"
   ],
   "surprising_connections": [
     {
@@ -104,19 +104,12 @@
     "How does skill-finder (skill) connect to universal-skill-creator (universal)?",
     "How does library-skill (library) connect to generate-changelog (generate)?",
     "How does library-skill (library) connect to codebase-understanding (codebase)?",
-    "What depends on check_thresholds.py (module), and what does check_thresholds.py (module) invoke?",
+    "What depends on firestore.py (module), and what does firestore.py (module) invoke?",
     "What depends on venture-exploration, and what does venture-exploration invoke?",
     "What depends on memory, and what does memory invoke?"
   ],
   "communities": {
-    "agent": [
-      "agent-launcher",
-      "agent-observability",
-      "agent-run-retro",
-      "agent-system-architecture",
-      "runtime-learning-loop"
-    ],
-    "customer": [
+    "retroactive": [
       "adversarial-hat",
       "agent-builder",
       "agent-loom-sync",
@@ -184,25 +177,14 @@
       "validate-skills",
       "venture-exploration"
     ],
-    "core": [
-      "inversion",
-      "ooda",
-      "quickstart",
-      "socratic"
+    "code": [
+      "code-review-crsp",
+      "code-simplification"
     ],
-    "browser": [
-      "browser-testing-with-devtools"
+    "source": [
+      "source-driven-development"
     ],
-    "fault": [
-      "fault-localize"
-    ],
-    "pre": [
-      "pre-mortem"
-    ],
-    "spec": [
-      "spec-crosscheck"
-    ],
-    "frontend": [
+    "motion": [
       "design-direction",
       "design-review",
       "design-system",
@@ -211,12 +193,23 @@
       "motion-animation",
       "svg-creation"
     ],
-    "technical": [
-      "technical-debt-audit"
+    "app": [
+      "app-security-hardening"
     ],
-    "code": [
-      "code-review-crsp",
-      "code-simplification"
+    "shipping": [
+      "shipping-and-launch"
+    ],
+    "agent": [
+      "agent-launcher",
+      "agent-observability",
+      "agent-run-retro",
+      "agent-system-architecture",
+      "runtime-learning-loop"
+    ],
+    "eval": [
+      "eval-judge",
+      "eval-output",
+      "eval-rubric-design"
     ],
     "secure": [
       "secure-skill",
@@ -224,81 +217,88 @@
       "secure-skill-repo-ingestion",
       "secure-skill-runtime"
     ],
-    "dependency": [
+    "api": [
+      "api-and-interface-design",
+      "api-deprecation-and-migration"
+    ],
+    "pr": [
+      "pr-authoring"
+    ],
+    "safe": [
       "debug-and-fix",
       "dependency-mapping",
       "dynamic-routing",
       "safe-change",
       "structured-planning"
     ],
-    "deep": [
-      "deep-thinking"
-    ],
-    "create": [
-      "create-agent-prompt"
-    ],
-    "context": [
-      "context-engineering"
+    "deprecate": [
+      "deprecate-skill"
     ],
     "ci": [
       "ci-cd-and-automation"
     ],
-    "deprecate": [
-      "deprecate-skill"
+    "performance": [
+      "performance-optimization"
     ],
     "test": [
       "test-driven-development"
     ],
-    "eval": [
-      "eval-judge",
-      "eval-output",
-      "eval-rubric-design"
+    "second": [
+      "second-order"
     ],
-    "run": [
-      "run-trace"
+    "technical": [
+      "technical-debt-audit"
     ],
-    "tool": [
-      "tool-finder"
+    "pre": [
+      "pre-mortem"
+    ],
+    "spec": [
+      "spec-crosscheck"
+    ],
+    "core": [
+      "inversion",
+      "ooda",
+      "quickstart",
+      "socratic"
+    ],
+    "create": [
+      "create-agent-prompt"
     ],
     "knowledge": [
       "knowledge-graph"
     ],
-    "first": [
-      "first-principles"
-    ],
-    "source": [
-      "source-driven-development"
-    ],
-    "api": [
-      "api-and-interface-design",
-      "api-deprecation-and-migration"
-    ],
-    "second": [
-      "second-order"
+    "git": [
+      "git-workflow-and-versioning"
     ],
     "incremental": [
       "incremental-implementation"
     ],
-    "performance": [
-      "performance-optimization"
+    "run": [
+      "run-trace"
     ],
-    "shipping": [
-      "shipping-and-launch"
+    "deep": [
+      "deep-thinking"
+    ],
+    "browser": [
+      "browser-testing-with-devtools"
+    ],
+    "first": [
+      "first-principles"
+    ],
+    "tool": [
+      "tool-finder"
+    ],
+    "context": [
+      "context-engineering"
+    ],
+    "issue": [
+      "issue-sync"
     ],
     "deploy": [
       "deploy-anywhere"
     ],
-    "git": [
-      "git-workflow-and-versioning"
-    ],
-    "app": [
-      "app-security-hardening"
-    ],
-    "pr": [
-      "pr-authoring"
-    ],
-    "issue": [
-      "issue-sync"
+    "fault": [
+      "fault-localize"
     ]
   },
   "nodes": [
@@ -1831,6 +1831,14 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_agents_post_supervisor_py",
+      "label": "post_supervisor.py",
+      "type": "module",
+      "path": "backend/supervisor/agents/post_supervisor.py",
+      "community": "backend",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_agents_reliability_investigator_py",
       "label": "reliability_investigator.py",
       "type": "module",
@@ -3287,6 +3295,14 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_post_supervisor_py",
+      "label": "test_post_supervisor.py",
+      "type": "module",
+      "path": "tests/test_post_supervisor.py",
+      "community": "tests",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_present_py",
       "label": "test_present.py",
       "type": "module",
@@ -3924,6 +3940,13 @@
       "id": "memory_docs_memory_agent_handoffs_md",
       "label": "agent-handoffs",
       "type": "memory",
+      "path": "docs/memory/agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_06_10_multi_agent_runtime_gap_closure",
+      "label": "2026-09-07 06:10 - Multi-agent runtime gap closure",
+      "type": "handoff",
       "path": "docs/memory/agent-handoffs.md",
       "community": "memory"
     },
@@ -5137,7 +5160,7 @@
     },
     {
       "source": "module_backend_api_app_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5146,7 +5169,7 @@
     },
     {
       "source": "module_backend_api_events_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5155,7 +5178,7 @@
     },
     {
       "source": "module_backend_api_google_auth_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5164,7 +5187,7 @@
     },
     {
       "source": "module_backend_api_main_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5173,7 +5196,7 @@
     },
     {
       "source": "module_backend_api_present_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5182,7 +5205,7 @@
     },
     {
       "source": "module_backend_api_spine_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5191,7 +5214,7 @@
     },
     {
       "source": "module_backend_approvals_init_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5200,7 +5223,7 @@
     },
     {
       "source": "module_backend_approvals_commands_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5209,7 +5232,7 @@
     },
     {
       "source": "module_backend_approvals_machine_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5218,7 +5241,7 @@
     },
     {
       "source": "module_backend_approvals_sweeper_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5227,7 +5250,7 @@
     },
     {
       "source": "module_backend_core_firestore_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5236,7 +5259,7 @@
     },
     {
       "source": "module_backend_core_gcs_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5245,7 +5268,7 @@
     },
     {
       "source": "module_backend_core_generative_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5254,7 +5277,7 @@
     },
     {
       "source": "module_backend_core_otel_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5263,7 +5286,7 @@
     },
     {
       "source": "module_backend_jobs_handoff_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5272,7 +5295,7 @@
     },
     {
       "source": "module_backend_jobs_queue_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5281,7 +5304,7 @@
     },
     {
       "source": "module_backend_jobs_worker_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5290,7 +5313,7 @@
     },
     {
       "source": "module_backend_shots_lifecycle_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5299,7 +5322,7 @@
     },
     {
       "source": "module_backend_stations_delivery_evaluate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5308,7 +5331,7 @@
     },
     {
       "source": "module_backend_stations_delivery_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5317,7 +5340,7 @@
     },
     {
       "source": "module_backend_stations_dubbing_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5326,7 +5349,7 @@
     },
     {
       "source": "module_backend_stations_extend_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5335,7 +5358,7 @@
     },
     {
       "source": "module_backend_stations_ingest_classify_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5344,7 +5367,7 @@
     },
     {
       "source": "module_backend_stations_ingest_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5353,7 +5376,7 @@
     },
     {
       "source": "module_backend_stations_loudness_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5362,7 +5385,7 @@
     },
     {
       "source": "module_backend_stations_pickups_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5371,7 +5394,7 @@
     },
     {
       "source": "module_backend_stations_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5380,7 +5403,7 @@
     },
     {
       "source": "module_backend_stations_spend_act_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5389,7 +5412,7 @@
     },
     {
       "source": "module_backend_stations_spend_control_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5398,7 +5421,7 @@
     },
     {
       "source": "module_backend_stations_spend_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5407,7 +5430,7 @@
     },
     {
       "source": "module_backend_supervisor_agent_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5416,7 +5439,7 @@
     },
     {
       "source": "module_backend_supervisor_agents_delivery_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5425,7 +5448,7 @@
     },
     {
       "source": "module_backend_supervisor_agents_finding_schema_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5434,7 +5457,7 @@
     },
     {
       "source": "module_backend_supervisor_agents_localization_investigator_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5442,8 +5465,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_agents_post_supervisor_py",
+      "target": "module_backend_core_firestore_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/supervisor/agents/post_supervisor.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_agents_reliability_investigator_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5452,7 +5484,7 @@
     },
     {
       "source": "module_backend_supervisor_agents_spend_guardian_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5461,7 +5493,7 @@
     },
     {
       "source": "module_backend_supervisor_agents_verification_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5470,7 +5502,7 @@
     },
     {
       "source": "module_backend_supervisor_annotate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5479,7 +5511,7 @@
     },
     {
       "source": "module_backend_supervisor_autonomy_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5488,7 +5520,7 @@
     },
     {
       "source": "module_backend_supervisor_budget_loop_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5497,7 +5529,7 @@
     },
     {
       "source": "module_backend_supervisor_case_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5506,7 +5538,7 @@
     },
     {
       "source": "module_backend_supervisor_deliberation_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5515,7 +5547,7 @@
     },
     {
       "source": "module_backend_supervisor_mcp_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5524,7 +5556,7 @@
     },
     {
       "source": "module_backend_supervisor_otel_ai_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5533,7 +5565,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_init_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5542,7 +5574,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_base_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5551,7 +5583,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_caption_remediation_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5560,7 +5592,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_continuity_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5569,7 +5601,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_creative_finishing_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5578,7 +5610,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_delivery_strategy_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5587,7 +5619,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_dub_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5596,7 +5628,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_extend_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5605,7 +5637,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_ingest_triage_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5614,7 +5646,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_loudness_strategy_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5623,7 +5655,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_orchestrator_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5632,7 +5664,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_pickups_vision_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5641,7 +5673,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_spend_steward_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5650,7 +5682,7 @@
     },
     {
       "source": "module_backend_supervisor_station_agents_visual_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5659,7 +5691,7 @@
     },
     {
       "source": "module_backend_supervisor_team_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5668,7 +5700,7 @@
     },
     {
       "source": "module_backend_supervisor_tools_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5695,7 +5727,7 @@
     },
     {
       "source": "module_scripts_caption_remediation_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5704,7 +5736,7 @@
     },
     {
       "source": "module_scripts_continuity_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5713,7 +5745,7 @@
     },
     {
       "source": "module_scripts_creative_finishing_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5722,7 +5754,7 @@
     },
     {
       "source": "module_scripts_delivery_qc_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5731,7 +5763,7 @@
     },
     {
       "source": "module_scripts_delivery_strategy_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5740,7 +5772,7 @@
     },
     {
       "source": "module_scripts_dub_qc_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5749,7 +5781,7 @@
     },
     {
       "source": "module_scripts_e3_dry_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5758,7 +5790,7 @@
     },
     {
       "source": "module_scripts_e3_run_worker_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5767,7 +5799,7 @@
     },
     {
       "source": "module_scripts_e3_seed_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5776,7 +5808,7 @@
     },
     {
       "source": "module_scripts_extend_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5785,7 +5817,7 @@
     },
     {
       "source": "module_scripts_extend_qc_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5794,7 +5826,7 @@
     },
     {
       "source": "module_scripts_g1_gate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5803,7 +5835,7 @@
     },
     {
       "source": "module_scripts_g1_make_slate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5812,7 +5844,7 @@
     },
     {
       "source": "module_scripts_g2_gate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5821,7 +5853,7 @@
     },
     {
       "source": "module_scripts_ingest_triage_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5830,7 +5862,7 @@
     },
     {
       "source": "module_scripts_loudness_strategy_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5839,7 +5871,7 @@
     },
     {
       "source": "module_scripts_make_dub_fixtures_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5848,7 +5880,7 @@
     },
     {
       "source": "module_scripts_orchestrator_planning_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5857,7 +5889,7 @@
     },
     {
       "source": "module_scripts_otel_smoke_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5866,7 +5898,7 @@
     },
     {
       "source": "module_scripts_pickups_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5875,7 +5907,7 @@
     },
     {
       "source": "module_scripts_pickups_vision_qc_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5884,7 +5916,7 @@
     },
     {
       "source": "module_scripts_probe_fr03_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5893,7 +5925,7 @@
     },
     {
       "source": "module_scripts_probe_fr03_hear_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5902,7 +5934,7 @@
     },
     {
       "source": "module_scripts_probe_tts_rate_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5911,7 +5943,7 @@
     },
     {
       "source": "module_scripts_ranking_quality_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5920,7 +5952,7 @@
     },
     {
       "source": "module_scripts_reliability_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5929,7 +5961,7 @@
     },
     {
       "source": "module_scripts_shadow_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5938,7 +5970,7 @@
     },
     {
       "source": "module_scripts_spend_guardian_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5947,7 +5979,7 @@
     },
     {
       "source": "module_scripts_spend_steward_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5956,7 +5988,7 @@
     },
     {
       "source": "module_scripts_verification_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5965,7 +5997,7 @@
     },
     {
       "source": "module_scripts_visual_qc_eval_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5974,7 +6006,7 @@
     },
     {
       "source": "module_tests_chaos_worker_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5983,7 +6015,7 @@
     },
     {
       "source": "module_tests_test_api_resilience_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -5992,7 +6024,7 @@
     },
     {
       "source": "module_tests_test_app_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6001,7 +6033,7 @@
     },
     {
       "source": "module_tests_test_approval_executor_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6010,7 +6042,7 @@
     },
     {
       "source": "module_tests_test_approval_sweeper_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6019,7 +6051,7 @@
     },
     {
       "source": "module_tests_test_approval_sweeper_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6028,7 +6060,7 @@
     },
     {
       "source": "module_tests_test_budget_loop_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6037,7 +6069,7 @@
     },
     {
       "source": "module_tests_test_budget_loop_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6046,7 +6078,7 @@
     },
     {
       "source": "module_tests_test_caption_remediation_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6055,7 +6087,7 @@
     },
     {
       "source": "module_tests_test_captions_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6064,7 +6096,7 @@
     },
     {
       "source": "module_tests_test_config_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6073,7 +6105,7 @@
     },
     {
       "source": "module_tests_test_deliberation_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6082,7 +6114,7 @@
     },
     {
       "source": "module_tests_test_delivery_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6091,7 +6123,7 @@
     },
     {
       "source": "module_tests_test_delivery_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6100,7 +6132,7 @@
     },
     {
       "source": "module_tests_test_delivery_strategy_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6109,7 +6141,7 @@
     },
     {
       "source": "module_tests_test_dub_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6118,7 +6150,7 @@
     },
     {
       "source": "module_tests_test_dubbing_run_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6127,7 +6159,7 @@
     },
     {
       "source": "module_tests_test_errors_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6136,7 +6168,7 @@
     },
     {
       "source": "module_tests_test_events_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6145,7 +6177,7 @@
     },
     {
       "source": "module_tests_test_extend_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6154,7 +6186,7 @@
     },
     {
       "source": "module_tests_test_finding_schema_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6163,7 +6195,7 @@
     },
     {
       "source": "module_tests_test_firestore_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6172,7 +6204,7 @@
     },
     {
       "source": "module_tests_test_g1_ingest_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6181,7 +6213,7 @@
     },
     {
       "source": "module_tests_test_g2_stations_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6190,7 +6222,7 @@
     },
     {
       "source": "module_tests_test_g2_stations_integration_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6199,7 +6231,7 @@
     },
     {
       "source": "module_tests_test_gcs_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6208,7 +6240,7 @@
     },
     {
       "source": "module_tests_test_handoff_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6217,7 +6249,7 @@
     },
     {
       "source": "module_tests_test_handoff_annotation_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6226,7 +6258,7 @@
     },
     {
       "source": "module_tests_test_ingest_checksum_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6235,7 +6267,7 @@
     },
     {
       "source": "module_tests_test_ingest_probe_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6244,7 +6276,7 @@
     },
     {
       "source": "module_tests_test_ingest_triage_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6253,7 +6285,7 @@
     },
     {
       "source": "module_tests_test_jobs_models_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6262,7 +6294,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_chaos_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6271,7 +6303,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6280,7 +6312,7 @@
     },
     {
       "source": "module_tests_test_logging_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6289,7 +6321,7 @@
     },
     {
       "source": "module_tests_test_loudness_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6298,7 +6330,7 @@
     },
     {
       "source": "module_tests_test_loudness_strategy_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6307,7 +6339,7 @@
     },
     {
       "source": "module_tests_test_media_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6316,7 +6348,7 @@
     },
     {
       "source": "module_tests_test_models_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6325,7 +6357,7 @@
     },
     {
       "source": "module_tests_test_orchestrator_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6334,7 +6366,7 @@
     },
     {
       "source": "module_tests_test_otel_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6343,7 +6375,7 @@
     },
     {
       "source": "module_tests_test_otel_ai_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6352,7 +6384,7 @@
     },
     {
       "source": "module_tests_test_otel_ai_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6361,7 +6393,7 @@
     },
     {
       "source": "module_tests_test_otel_auth_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6370,7 +6402,7 @@
     },
     {
       "source": "module_tests_test_pickups_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6379,7 +6411,7 @@
     },
     {
       "source": "module_tests_test_pickups_vision_qc_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6388,7 +6420,7 @@
     },
     {
       "source": "module_tests_test_present_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6397,7 +6429,7 @@
     },
     {
       "source": "module_tests_test_reliability_investigator_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6406,7 +6438,7 @@
     },
     {
       "source": "module_tests_test_settings_route_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6415,7 +6447,7 @@
     },
     {
       "source": "module_tests_test_shot_locking_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6424,7 +6456,7 @@
     },
     {
       "source": "module_tests_test_shot_locking_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6433,7 +6465,7 @@
     },
     {
       "source": "module_tests_test_spend_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6442,7 +6474,7 @@
     },
     {
       "source": "module_tests_test_spend_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6451,7 +6483,7 @@
     },
     {
       "source": "module_tests_test_spend_adversarial_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6460,7 +6492,7 @@
     },
     {
       "source": "module_tests_test_spend_guardian_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6469,7 +6501,7 @@
     },
     {
       "source": "module_tests_test_spend_steward_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6478,7 +6510,7 @@
     },
     {
       "source": "module_tests_test_station_agents_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6487,7 +6519,7 @@
     },
     {
       "source": "module_tests_test_supervisor_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6496,7 +6528,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6505,7 +6537,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6514,7 +6546,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6523,7 +6555,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_py",
-      "target": "module_tests_test_extend_qc_py",
+      "target": "module_tests_test_shot_locking_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6532,7 +6564,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_integration_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6541,7 +6573,7 @@
     },
     {
       "source": "module_tests_test_team_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6550,7 +6582,7 @@
     },
     {
       "source": "module_tests_test_verification_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6559,7 +6591,7 @@
     },
     {
       "source": "module_tests_test_worker_py",
-      "target": "module_backend_evals_check_thresholds_py",
+      "target": "module_backend_core_firestore_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -6802,25 +6834,7 @@
     },
     {
       "source": "doc_docs_pending_work_md",
-      "target": "module_backend_supervisor_team_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs/pending-work.md",
-      "provenance": "doc-path"
-    },
-    {
-      "source": "doc_docs_pending_work_md",
-      "target": "module_backend_supervisor_deliberation_py",
-      "relation": "references",
-      "confidence": "INFERRED",
-      "confidence_score": 0.7,
-      "source_file": "docs/pending-work.md",
-      "provenance": "doc-path"
-    },
-    {
-      "source": "doc_docs_pending_work_md",
-      "target": "module_backend_supervisor_station_agents_orchestrator_py",
+      "target": "module_backend_supervisor_agents_post_supervisor_py",
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.7,
@@ -6830,6 +6844,15 @@
     {
       "source": "doc_docs_pending_work_md",
       "target": "module_backend_supervisor_case_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs/pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_team_py",
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.7,
@@ -7846,7 +7869,7 @@
     },
     {
       "source": "doc_docs_evidence_h_1_h_1g_md",
-      "target": "module_backend_supervisor_budget_loop_py",
+      "target": "module_backend_api_app_py",
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.7,
@@ -7942,6 +7965,15 @@
       "confidence_score": 0.7,
       "source_file": "docs/evidence/G1/README.md",
       "provenance": "doc-path"
+    },
+    {
+      "source": "handoff_2026_09_07_06_10_multi_agent_runtime_gap_closure",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/memory/agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
     },
     {
       "source": "handoff_2026_09_07_05_55_full_stage_1a_demo_scope_baseline",
