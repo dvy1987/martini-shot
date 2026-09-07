@@ -84,6 +84,47 @@ def truncate_speech_wav(wav: bytes, ms: int) -> bytes:
     return out.getvalue()
 
 
+def source_wav(data: bytes, *, ffmpeg_bin: str = "ffmpeg") -> bytes:
+    """Any real source container → the LINEAR16 24 kHz mono WAV the timing
+    measurement and the agent contract require (Chirp 3 HD output is 24 kHz
+    mono — rates must match for the cross-correlation). WAV input passes
+    through unchanged; anything else is decoded by the real ffmpeg and
+    fails loud on garbage (C-1.1)."""
+    if data[:4] == b"RIFF":
+        return data
+    import subprocess
+
+    result = subprocess.run(
+        [
+            ffmpeg_bin,
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            "pipe:0",
+            "-map",
+            "0:a",
+            "-ar",
+            "24000",
+            "-ac",
+            "1",
+            "-c:a",
+            "pcm_s16le",
+            "-f",
+            "wav",
+            "pipe:1",
+        ],
+        input=data,
+        capture_output=True,
+        check=True,
+    )
+    if not result.stdout:
+        raise RuntimeError(
+            f"ffmpeg decoded no audio from source: {result.stderr[:200]!r}"
+        )
+    return result.stdout
+
+
 def atempo_wav(wav: bytes, tempo: float, *, ffmpeg_bin: str = "ffmpeg") -> bytes:
     """Deterministic waveform time-stretch (ffmpeg atempo) — how a studio
     time-compresses a dub to picture. Scales duration by 1/tempo EXACTLY

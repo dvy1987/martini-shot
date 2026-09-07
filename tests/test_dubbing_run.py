@@ -14,6 +14,7 @@ import wave
 
 import pytest
 
+from backend.stations.dubbing.qc import source_wav
 from backend.stations.dubbing.run import (
     DUB_TOLERANCE_MS,
     final_status,
@@ -21,6 +22,62 @@ from backend.stations.dubbing.run import (
 )
 
 SAMPLE_RATE = 24000
+
+
+def _mp4_bytes() -> bytes:
+    """Real MP4 (AAC) via the real ffmpeg — the E-3 batch's actual source
+    container (fixtures are labeled synthetic input, C-1.3)."""
+    wav = _tone_wav(0.5)
+    import subprocess
+    import tempfile
+    from pathlib import Path
+
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "src.wav"
+        dst = Path(tmp) / "src.mp4"
+        src.write_bytes(wav)
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-y",
+                "-i",
+                str(src),
+                "-c:a",
+                "aac",
+                str(dst),
+            ],
+            check=True,
+        )
+        return dst.read_bytes()
+
+
+def test_source_wav_passes_wav_through():
+    """Already-WAV input is returned unchanged (no re-encode drift)."""
+    wav = _tone_wav(0.5)
+    assert source_wav(wav) == wav
+
+
+def test_source_wav_decodes_mp4_to_24k_mono():
+    """A real source clip (MP4 container) decodes to the LINEAR16 24 kHz
+    mono WAV the timing measurement and the agent require — the E-3 batch
+    feeds MP4s, and a wave-module failure here would bill TTS then die."""
+    decoded = source_wav(_mp4_bytes())
+    with wave.open(io.BytesIO(decoded), "rb") as w:
+        assert w.getframerate() == SAMPLE_RATE
+        assert w.getnchannels() == 1
+        assert w.getsampwidth() == 2
+        assert w.getnframes() > 0
+
+
+def test_source_wav_fails_loud_on_garbage():
+    """Non-audio bytes fail loud (C-1.1) — never silently become silence."""
+    import subprocess
+
+    with pytest.raises(subprocess.CalledProcessError):
+        source_wav(b"not audio at all")
 
 
 def _tone_wav(seconds: float) -> bytes:

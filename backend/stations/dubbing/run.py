@@ -22,7 +22,7 @@ from backend.core.generative import tts_synthesize
 from backend.jobs.models import Job
 from backend.jobs.telemetry import job_span, log, record_job, timed
 from backend.shots import lifecycle as shots
-from backend.stations.dubbing.qc import atempo_wav, measure_timing
+from backend.stations.dubbing.qc import atempo_wav, measure_timing, source_wav
 from backend.supervisor.station_agents.dub_qc import decide_dub
 
 STATION = "dub"
@@ -106,7 +106,13 @@ def run_dub(job: Job, gcs: GCSMedia, store: FirestoreStore, settings: Settings) 
             if not language:
                 raise ValueError("dub requires result.language (e.g. 'es')")
 
-            original_wav = gcs.download_bytes(source_uri)
+            # The source may be any real container (the E-3 batch feeds
+            # MP4s) — decode to the contract WAV before measuring. The dub
+            # ref points at the ORIGINAL clip, not a pre-extracted stem.
+            original_wav = source_wav(
+                gcs.download_bytes(source_uri),
+                ffmpeg_bin=settings.ffmpeg_bin or "ffmpeg",
+            )
             agent_costs: list[int] = []
             tts_cost = 0
 
