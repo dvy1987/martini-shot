@@ -43,6 +43,7 @@
 | 2026-09-07 | feature-spec + implementation-plan + architectural-decision-log | docs/plans/2026-08-26-post-command-tasks.md, docs/specs/2026-08-26-post-command-feature-spec.md, docs/memory/decision-log.md (A11) | Scope amendment for the complete Stage 1a demo release: six independently agentic creative workflows, mandatory manual UX paths, real-model EDD, shared H-0 execution, and a $100 remaining spend envelope |
 | 2026-09-07 | memory-handoff | docs/memory/agent-handoffs.md, docs/memory/current-state.md, docs/memory/project-index.md | Durable scope baseline before the Stage 1a implementation commits |
 | 2026-09-07 | test-driven-development | tests/test_post_supervisor.py, tests/test_team.py, tests/test_budget_loop.py | RED→GREEN for production Verification Agent and Post Supervisor synthesis injection, non-inventive synthesis selection, explicit signal deferrals, and transactional daily-cap reservation |
+| 2026-09-07 | eval-pipeline + eval-rubric-design + test-driven-development | tests/test_corrections.py, backend/stations/corrections/run.py | Began D-10 EDD/TDD slice: correction prompts require explicit intent and carry protected-subject and continuity constraints |
 
 ## Standing context pointers for any executing agent
 - Mission briefing: `ideas/AO-STATION-MAP.md` (read FIRST; Amendments A1–A3 binding)

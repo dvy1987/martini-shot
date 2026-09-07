@@ -1,5 +1,19 @@
 # Agent Handoffs
 
+## 2026-09-07 06:20 - D-10 correction guard started
+
+### Done
+- Added the first D-10 TDD slice: correction prompts reject blank intent and preserve explicit subject and continuity constraints.
+
+### Deferred
+- The actual queued Omni edit, H-0 command, EDD dataset/rubric, API, and drawer controls remain required before D-10 can be called complete.
+
+### Next Agent Should Know
+- The prompt function is `backend/stations/corrections/run.py::build_correction_prompt`; it deliberately does not infer a target from an ambiguous brief.
+
+### Working Tree
+- D-10 prompt guard and regression test ready to commit.
+
 ## 2026-09-07 06:10 - Multi-agent runtime gap closure
 
 ### Done
