@@ -1,5 +1,27 @@
 # Agent Handoffs
 
+## 2026-09-07 (late) - A10 complete; E-3 batch queued (96 jobs live); Stage 1a handoff
+
+### Done
+- A10 amendment FULLY delivered: 9 station agents (Dub QC, Batch Orchestrator, Ingest Triage, Loudness Strategy, Caption Remediation, Delivery Strategy, Extend QC, Spend Steward, Pickups Vision QC) - all EDD gates 3-run green, evidence in `docs/evidence/A10-*/`, pushed through `f879888`.
+- E-3 demo batch: manifest approved (8 eps x es-ES/fr-FR/de-DE = 24 items x 4 stations = **96 REAL jobs submitted** to Firestore lease queue, ~$0.10 est, owner-approved). Sources uploaded to `gs://martini-shot-media/e3/`. Dry-run + seed evidence in `docs/evidence/E-3/`. **Worker has NOT run - jobs are queued, first action for next agent.**
+- Shared API-resilience layer `backend/core/api_resilience.py` + 9 tests green (jittered exponential backoff, Retry-After honored, 429+5xx transient, fail-loud 4xx). Call-site rewiring NOT done - see plan Workstream A1.
+- Owner directives active: (1) API hygiene is SYSTEMIC - all outbound calls route through `call_with_resilience`; (2) keep ALL raw outputs for the demo - archive to `docs/evidence/E-3/raw/`; (3) credits low - cheapest step that advances the plan.
+
+### Next Agent Should Know
+- **Read `docs/plans/2026-09-07-stage1a-completion-plan.md` FIRST - it is the complete execution plan through Stage 1a completion** (E-3 run + raw archive, H-1h/i/j agents with hard gates, G3, FE dub pair). Written for a cheap-model executor: explicit commands and pitfalls included.
+- 96 jobs in queue: process via `scripts/e3_run_worker.py` (create per plan A2, mirrors g2_gate.py import style) or the API lifespan worker. Do not re-seed.
+- Stage 1a remainder: only H-1h/i/j agents missing; datasets + thresholds already seeded on disk.
+- PowerShell 5.1: no `&&`; pre-commit runs ruff-format (format before add); git exit-1 on stderr noise is cosmetic - verify with `git log -1`.
+
+### Revisit Triggers
+- Jobs stuck non-terminal >30 min -> check worker lease + transient 429 handling (A1 wrapper should absorb; persistent = real failure, record honestly).
+- Eval miss -> tune prompt ONLY on real miss; ordered decision ladder if tuning overshoots (spend_steward.py pattern).
+- Budget error on TTS/Veo -> stop, report cost, ask owner.
+
+### Working Tree
+- Everything committed + pushed at handoff (HEAD past `e433398`, includes E-3 seed artifacts + resilience layer + this handoff).
+
 ## 2026-09-02 06:30 - Rest-of-sprint P1-P3 + G2; push pending
 
 ### Done
@@ -167,7 +189,8 @@ Owner ran Replit Agent on Steps 1–2 on Replit and pulled 5 commits (0fa6f58..0
 
 ## 2026-09-06 — E-2 Dub QC station COMPLETE: agentic, eval-green, evidence pushed
 Commits: 7abdb5f (station+agents+tests), 3ea25b8 (eval evidence). A10 slice 1 of 5 done.
-**What exists:** ackend/stations/dubbing/{qc,run}.py + README; ackend/supervisor/station_agents/{base,dub_qc}.py (StationDecision contract: mandatory reason, explicit override vs deterministic_suggestion, proposals gated to H-0 REGISTRY_COMMANDS); un_agent_call gained udio=(bytes,mime) inline part + 300s HTTP timeout + bounded 429 retry (one call stalled 10+min; one 429 swallowed silently); eval scripts/dub_qc_eval.py with HONEST accounting (failed judgment = recall miss, never excluded - C-3.5).
+**What exists:** ackend/stations/dubbing/{qc,run}.py + README; ackend/supervisor/station_agents/{base,dub_qc}.py (StationDecision contract: mandatory reason, explicit override vs deterministic_suggestion, proposals gated to H-0 REGISTRY_COMMANDS); 
+un_agent_call gained udio=(bytes,mime) inline part + 300s HTTP timeout + bounded 429 retry (one call stalled 10+min; one 429 swallowed silently); eval scripts/dub_qc_eval.py with HONEST accounting (failed judgment = recall miss, never excluded - C-3.5).
 **Live gates (docs/evidence/E-2/):** 3 runs, timing MAE 4.8/8.0/9.9ms (gate <=45), truncation recall 1.0 (gate >=0.9), ~.07/run.
 **Load-bearing lessons (do not re-learn):** (1) Chirp 3 HD speakingRate/prosody response is NONLINEAR (0.8 -> 1.34x, probe scripts/probe_tts_rate.py) - re-render fitting cannot hit 45ms; the fix is ONE render + ffmpeg tempo stretch (qc.atempo_wav), exact and free. (2) TTS tails have breath/noise above naive amplitude floors AND sentence-final words below any floor - tail cuts remove silence, not words; the honest truncation-defect mutation is a hard EOF mid-speech (qc.truncate_speech_wav, 10%-of-loudest-50ms-RMS floor). Verified with real transcription probes (scripts/probe_fr03_hear.py): the agent heard "Prise 3" and was RIGHT to call the tail-cut dub clean - the dataset was the defect. (3) The dub agent needs the REFERENCE LINE in the prompt to detect missing content. (4) wave module: ffmpeg piped WAVs carry streaming headers (nframes=0xFFFFFFFF) - read to EOF, never copy nframes. (5) Full pytest suite takes ~32min (real Firestore) - use file-scoped runs; 2 pre-existing failures from H-1e commit 8f46e89 were fixed in 7abdb5f (model-ID comment in generative.py; apply_verdict now keeps actionless-but-claimed findings, drops only findings whose actions were ALL vetoed).
 **Next (A10 order):** Batch Orchestrator Agent (E-3 dep) -> strategists (ingest/loudness/captions/delivery) -> retrofits (extend/pickups/spend) -> E-3 manifest + cost estimate -> G3 evidence -> FE playable dub pair. H-1h-i-j agent builds still pending. Parked: OAuth owner one-timer (5min, pre-demo).
