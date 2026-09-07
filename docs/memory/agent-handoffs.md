@@ -1,5 +1,27 @@
 # Agent Handoffs
 
+## 2026-09-07 (late, session 2) - Stage 1a agents COMPLETE (live EDD); A1 done; E-3 run unblocked
+
+### Done
+- **H-1h / H-1i / H-1j ALL BUILT + LIVE EDD GATES GREEN** (commit `3544d5c`): continuity.py, creative_finishing.py, visual_qc.py in `backend/supervisor/station_agents/` + eval scripts `scripts/<agent>_eval.py`. Each: 3 consecutive live Vertex runs, accuracy 1.0/1.0/1.0 (gate >=0.8). Evidence `docs/evidence/H-1h|H-1i|H-1j/`. HARD GATES in code (not prompt): locked_cut_overwrite (coerces locked-cut retry -> logged abstention), draft_first (master w/o passing draft coerced to draft tier), no_metrics_no_pass + all-bars (breach/self-report distrust; promote impossible w/o clean real metrics). cf-02 dataset row has NO alternates_context (eval uses `row.get(...) or {}` — harness bug caught BEFORE billing, zero wasted calls).
+- **A1 DONE** (`d5c8587`): all 4 raw urlopen sites in generative.py + run_agent_call in otel_ai.py routed through `call_with_resilience` via `_resilient_urlopen` (whole urlopen+read = one try-unit). Inline retry loops deleted.
+- **Dub MP4 defect caught pre-run** (`162f011`): E-3 sources are MP4s but run_dub fed raw bytes to wave-based measure_timing — every dub job would bill TTS then die. Proven with real ffmpeg probe, fixed TDD: `source_wav()` in dubbing/qc.py decodes any container -> 24kHz mono LINEAR16 (WAV passes through). 8/8 tests in test_dubbing_run.py.
+- `scripts/e3_run_worker.py` written (lint-clean): drives the 96 seeded job ids via process_job_id (NO re-seed), up to 3 passes for queue requeues, archives per-job JSONs + batch_summary to `docs/evidence/E-3/raw/`, exit 1 if non-terminal.
+- Full pytest suite was started but KILLED mid-run (~35%) per owner redirect; next agent runs `make check`. Targeted: dub tests 8/8, ruff+mypy clean on all touched files.
+
+### Next Agent Should Know
+- **FIRST ACTION: run the E-3 batch** — `.venv\Scripts\python.exe scripts\e3_run_worker.py` (96 real jobs, ~$0.10 pre-approved). Dub jobs are the 24 billable ones. Then A3: archive raw outputs (dub WAVs from GCS `projects/<project>/dubs/<job>.<lang>.wav` refs in job results) + write `docs/evidence/E-3/README.md`. Then G3 (Workstream C of the Stage 1a plan) — all three H-1 agents are DONE, only G3 evidence + FE dub pair remain for Stage 1a.
+- New unit tests for the three agents were NOT written as files (owner redirect; sanity-checked via inline parse/gate assertions instead). If `make check` needs coverage: test schema validation, fence-tolerant parse, one run_agent_call per invocation, and the three hard gates (patterns in test_station_agents.py).
+- Live-eval pattern proven: cheap model + ordered decision ladder in prompt + hard gate in code = 1.0 accuracy first try on all three suites.
+
+### Revisit Triggers
+- Jobs stuck non-terminal >30 min -> lease/429 (A1 wrapper now absorbs transients).
+- Eval miss -> prompt rule only on real miss; ordered ladder if tuning overshoots.
+- Budget error on TTS/Veo -> stop, report cost, ask owner.
+
+### Working Tree
+- All committed + pushed at `162f011` (main == origin/main).
+
 ## 2026-09-07 (late) - A10 complete; E-3 batch queued (96 jobs live); Stage 1a handoff
 
 ### Done
