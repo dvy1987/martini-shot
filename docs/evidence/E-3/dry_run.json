@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-07",
+  "manifest": "fixtures\\e3_batch\\manifest.json",
+  "approved": false,
+  "gate_refused_unapproved": true,
+  "items_expanded": 0,
+  "jobs_expanded": 0,
+  "chains": {},
+  "duplicate_ids": false,
+  "estimate": {
+    "jobs": 24,
+    "total_micros": 101640,
+    "per_job_micros": 4235,
+    "total_usd": 0.1
+  },
+  "note": "dry-run only: no TTS, no agent calls, no writes (C-7.2)"
+}

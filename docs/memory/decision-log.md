@@ -346,3 +346,28 @@ defect is a hard EOF mid-speech (	runcate_speech_wav), not a tail cut.
   ("Prise trois." is a complete sentence until compared to the script).
 - ffmpeg piped WAVs carry streaming headers (nframes=0xFFFFFFFF): WAV readers must
   read to EOF, never copy nframes (_read_wav, 	runcate_wav).
+
+---
+
+## 2026-09-07 - A10 delivered: 9 agentic station layers, all EDD gates green
+
+Type: decision (execution record, amendment A10 complete)
+
+### Decision
+The full A10 amendment landed in two days: A10-1 Dub QC (done earlier), A10-2
+Batch Orchestrator, A10-3 four measurement-station strategists, A10-4 three
+retrofits. Nine agents total, each: dataset seeded BEFORE tuning, one metered
+flash call, StationDecision contract, deterministic suggestion riding along
+(differences = explicit logged overrides), visible fallbacks, 3-run live EDD
+evidence at >= 0.8 (most at 1.0).
+
+### Consequences
+- Prompt tuning lessons are now a reusable playbook (H-1b loop on real
+  responses): vibe rules swing models - use explicit ordered decision ladders;
+  historical context can outshine a binding threshold (mark what is
+  illustrative); meter-integrity must be unconditional and first; fixture
+  reality must match labels (SMPTE test patterns honestly read as defects).
+- `run_agent_call` supports audio AND images inline - one instrumented site.
+- Spend Steward: deterministic triggers remain the only START authority; the
+  agent picks among allowed responses; enforcement path unchanged (C-4.3).
+- Next: E-3 batch manifest + owner-approved billable run (C-7.2), G3 gate.
