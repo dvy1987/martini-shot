@@ -1,5 +1,28 @@
 # Agent Handoffs
 
+## 2026-09-07 05:55 - Full Stage 1a demo scope baseline
+
+### Done
+- Confirmed Amendment A11 is reflected in the canonical task plan and feature spec.
+- Corrected the durable decision record to the owner-approved $100 remaining Stage 1a eval/demo envelope.
+- Indexed the active scope and logged its planning provenance.
+
+### Decisions
+- Stage 1 plus D-10, E-1, D-11, D-12, D-15, and D-16 is the demo release; G3/G3a are integrated gates.
+- Each Stage 1a operation requires its own agent, live-model EDD, manual UX path, H-0 execution path, alternate, and Grafana audit.
+
+### Deferred
+- Implementation begins with the multi-agent runtime gaps, then the six Stage 1a vertical slices.
+
+### Next Agent Should Know
+- Do not edit `/opt/cursor/artifacts/plans/plan.md`; it is the immutable request reference. The canonical project artifacts are under `docs/`.
+
+### Revisit Triggers
+- $100 envelope exhaustion requires an explicit owner decision; batches above $5 require `--yes`.
+
+### Working Tree
+- Scope-record documentation changes ready to commit on `cursor/full-stage-1a-demo-be5d`.
+
 ## 2026-09-07 (late, session 2) - Stage 1a agents COMPLETE (live EDD); A1 done; E-3 run unblocked
 
 ### Done

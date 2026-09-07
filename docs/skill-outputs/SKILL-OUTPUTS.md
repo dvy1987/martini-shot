@@ -40,6 +40,8 @@
 
 | 2026-09-02 | implementation-plan | docs/plans/2026-09-02-h0b-budgeted-supervisor-plan.md | Engineering plan for H-0b budgeted autonomy loop (owner ruling in decision-log); flags 2 open engineering decisions (continuity remove-autonomy, per-night action-count cap) not covered by the ruling |
 | 2026-09-03 | deep-thinking (critical review) + implementation-plan + architectural-decision-log | docs/plans/2026-09-03-multiagent-supervisor-plan.md, decision-log.md (A9), tasks file (H-1a..H-1j), H-0b addendum | Critically reviewed a second agent's multi-agent proposal against real repo state (grep-verified no ADK `Runner` usage anywhere) and installed SDK capabilities (`google-genai==2.20.0` structured output + callable tools, version-checked); kept the specialist-team shape, changed invocation mechanism (direct-call extension of proven B-3 pattern, not new ADK Runner), deferred Localization Agent to E-2, made Verification a hard filter. H-0b amended in place, owner rulings preserved verbatim |
+| 2026-09-07 | feature-spec + implementation-plan + architectural-decision-log | docs/plans/2026-08-26-post-command-tasks.md, docs/specs/2026-08-26-post-command-feature-spec.md, docs/memory/decision-log.md (A11) | Scope amendment for the complete Stage 1a demo release: six independently agentic creative workflows, mandatory manual UX paths, real-model EDD, shared H-0 execution, and a $100 remaining spend envelope |
+| 2026-09-07 | memory-handoff | docs/memory/agent-handoffs.md, docs/memory/current-state.md, docs/memory/project-index.md | Durable scope baseline before the Stage 1a implementation commits |
 
 ## Standing context pointers for any executing agent
 - Mission briefing: `ideas/AO-STATION-MAP.md` (read FIRST; Amendments A1–A3 binding)

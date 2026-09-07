@@ -21,14 +21,14 @@ hero-shot creative journey and an episode-level revision journey.
 - Every generative capability is EDD-first with real Gemini/Vertex calls,
   numeric thresholds, prompt-hardening iterations, and archived three-run
   evidence. Every feature must be exposed in the running UX.
-- Remaining Stage 1a eval/demo spend is capped at $50. Batches over $5 still
-  print their estimate and require `--yes` (C-7.2); exceeding $50 requires a
+- Remaining Stage 1a eval/demo spend is capped at $100. Batches over $5 still
+  print their estimate and require `--yes` (C-7.2); exceeding $100 requires a
   new owner approval.
 - D-13 Transition Forge and D-14 Versioning remain stretch; Stage 2+ does not
   enter the demo scope.
 
 ### Revisit trigger
-If the remaining $50 envelope is exhausted before integrated G3/G3a, the
+If the remaining $100 envelope is exhausted before integrated G3/G3a, the
 owner decides whether to expand the envelope or reduce scope by explicit
 amendment; no feature is silently downgraded to an eval-only claim.
 
