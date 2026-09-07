@@ -63,6 +63,18 @@ def main() -> int:
     queue = FirestoreLeaseQueue(store)
     gcs = get_gcs(settings)
 
+    requeued = 0
+    for job_id in job_ids:
+        current = queue.get(job_id)
+        if current is not None and current.status in {
+            "failed",
+            "throttled",
+            "needs_human",
+        }:
+            if queue.requeue(job_id):
+                requeued += 1
+    print(f"requeued {requeued} previously-failed jobs", flush=True)
+
     # Pass 1..N: process every non-terminal job. Later passes catch jobs the
     # queue requeued (attempts remaining) without exceeding its retry policy.
     results: dict[str, dict] = {}

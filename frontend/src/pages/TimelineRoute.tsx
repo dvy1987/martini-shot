@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getJob, getProject, listDeliberations, listProjectShots, listProjects } from "@/api/endpoints";
+import { getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
 import AlternatesLane from "@/components/AlternatesLane";
 import EmptyState from "@/components/EmptyState";
+import FinishBar from "@/components/FinishBar";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
 import TimelineBoard from "@/components/TimelineBoard";
+import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
 import { toggleStatus } from "@/lib/lens";
 import type { Job, JobStatus } from "@/types/api";
@@ -110,6 +112,12 @@ export default function TimelineRoute({
     queryKey: ["shots", selectedProjectId],
     queryFn: () => listProjectShots(selectedProjectId ?? ""),
     enabled: selectedProjectId !== null,
+  });
+  const worklistQuery = useQuery({
+    queryKey: ["worklist", selectedProjectId],
+    queryFn: () => getWorklist(selectedProjectId ?? ""),
+    enabled: selectedProjectId !== null,
+    retry: false,
   });
 
   const handleJobSelection = useCallback(
@@ -247,6 +255,16 @@ export default function TimelineRoute({
         </label>
       </div>
 
+      {selectedProjectId ? (
+        <FinishBar
+          projectId={selectedProjectId}
+          onFinished={() => {
+            void projectQuery.refetch();
+            void worklistQuery.refetch();
+          }}
+        />
+      ) : null}
+
       {projectQuery.isPending || !selectedProjectId ? <TimelineSkeleton /> : null}
 
       {projectQuery.isError
@@ -301,6 +319,17 @@ export default function TimelineRoute({
 
       {projectQuery.isSuccess && selectedProjectId ? (
         <AlternatesLane shots={shotsQuery.data ?? []} />
+      ) : null}
+
+      {selectedProjectId ? (
+        <WorklistPanel
+          worklist={worklistQuery.data ?? null}
+          onReorder={(order) => {
+            void patchWorklist(selectedProjectId, order).then(() => {
+              void worklistQuery.refetch();
+            });
+          }}
+        />
       ) : null}
 
       {lensOpen || jobs.length === 0 ? <StatusLegend /> : null}

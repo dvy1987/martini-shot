@@ -63,7 +63,15 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: scene_loudness_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: caption_remediation_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: caption_write_judgment
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
@@ -83,7 +91,35 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: corrections_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: corrections_quality
+    metric: mean_output_flicker
+    threshold: 0.02
+    comparison: "<"
   - name: extend_quality
     metric: mean_output_flicker
     threshold: 0.02
     comparison: "<"
+  - name: extend_omni_primary
+    metric: omni_render_rate
+    threshold: 1.0
+    comparison: ">="
+  - name: finishing_inspect_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: finishing_rank_quality
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: ingest_transcript_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: ingest_scene_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="

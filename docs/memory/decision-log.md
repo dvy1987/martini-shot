@@ -1,5 +1,295 @@
 # Decision Log
 
+## 2026-09-07 - Finishing inspect EDD is a real watch, cap $20
+Status: active
+Scope: finishing inspect eval
+Confidence: high
+Tags: finishing, edd, inspect, c-7.2
+
+### Decision
+If the product needs judgment, Gemini is called. If Gemini is wired, it is
+tuned with live EDD — real clips, real frames/audio, real Vertex calls. Owner
+raised this exam’s spend cap to **$20**. Do not skip a billed judgment eval
+to save a few dollars, and do not substitute a written vignette for a look.
+
+### Context
+Owner: skipping `finishing_inspect_eval.py` without asking was wrong. Vignette-
+only scoring is not EDD for a watch.
+
+### Revisit When
+Live 3-run mean_case_accuracy < 0.8.
+
+---
+
+## 2026-09-07 - Finishing rank is a thinking orchestrator, not a sort key
+Status: active
+Scope: finishing orchestrator
+Confidence: high
+Tags: finishing, rank, adk, edd
+
+### Decision
+The finishing boss is a billed Gemini call over the **complete** bag of station
+notes. It weighs tradeoffs and names dependencies. Python only refuses invented
+stations / empty rows, and honors `blocked_by` at dispatch. The old high→low
+sort is crash-fallback only. Live rank eval (not the comparator) is the gate.
+
+### Context
+Owner rejected treating a 12/12 code-sort exam as “ranking.” “How can you
+prioritize without intelligence weighing pros/cons and identifying
+dependencies.”
+
+### Revisit When
+Live `finishing_rank_quality` 3-run mean is below 0.8.
+
+---
+
+## 2026-09-07 - Walk-away finishing (billed looks, taste, high/medium/low)
+Status: active
+Scope: finishing orchestrator + every existing station inspect
+Confidence: high
+Tags: finishing, adk, inspect, rank, walk-away
+
+### Decision
+Upload clips, set **$50**, walk away. Every roster station takes a **billed look**.
+Agents propose **defects and quality/taste** (consistent-but-too-dark faces counts).
+Impact is **high / medium / low**. Rank is must-hear/must-see, then defect before
+taste, then earlier in the cut, then cheaper. Auto-enqueue; `needs_human` only
+when the station cannot act. Budget mid-job pauses; final = originals + **passed**
+only. Google ADK `Runner` actually runs the team.
+
+### Context
+Owner approved the finishing plan and ruled billed looks OK, three impact bands,
+minimize human stops, and less conservative station agents.
+
+### Rationale
+A defect-only look leaves a dark-but-consistent scene unfixed. A two-band rank
+cannot separate “dies mid-thought” from “optional dolly.”
+
+### Alternatives Considered
+- Skip billed inspect to save money: rejected (owner).
+- high/low only: rejected (owner asked for medium).
+- Propose-only / needs_human on quiet: rejected (auto-enqueue mix).
+
+### Revisit When
+Live inspect 3-run eval is below 0.8, or ADK Runner fails in production.
+
+---
+
+## 2026-09-07 - Scene-aware loudness mix (not a single TV number)
+Status: active
+Scope: loudness station + batch orchestrator + Loudness Strategist
+Confidence: high
+Tags: loudness, e-3, scene-class, dub
+
+### Decision
+Loudness hears the **dub** (not only the picture soundtrack), classifies the
+scene (silence / whisper / talk / shout / crash / explosion), mixes toward
+that level, and re-measures. Whisper is one example: a bang or a crash of
+pans should sit **louder** than talk. Dialogue stays easy to hear. The show
+stays in one family. `needs_human` only if the mix still misses.
+
+### Context
+E-3 loudness jobs flagged `fail_quiet` and stopped. The meter was reading the
+picture track and never turning the volume. Owner asked for scene-fitting
+levels, not “everything to −16” and not whisper-only.
+
+### Rationale
+A single streaming target treats an explosion at talk level as a pass. The
+product is a mixer: listen, pick the fitting number, apply, check again.
+
+### Alternatives Considered
+- Keep measure-only + needs_human: rejected (owner: actually fix it).
+- Whisper duck only: rejected (owner: louder events too).
+- Always −16 LUFS: rejected (kills scene dynamics).
+
+### Revisit When
+- Stem remix (dialogue vs music) lands; today imbalance is still `fix_stem`.
+- Delivery should consume the mixed artifact instead of the picture URI.
+
+### Consequences
+- Orchestrator stamps `dub_job_id` on loudness jobs.
+- Station applies ffmpeg `loudnorm` and writes an ALTERNATE.
+- New eval suite `scene_loudness_judgment` (bar >= 0.8).
+
+## 2026-09-07 - Eval footage: generate original clips with the real deficit
+Status: active
+Scope: generative evals (Omni/Veo)
+Confidence: high
+Tags: edd, omni, fixtures, recitation, d-9, d-10
+
+### Decision
+If a public-domain or third-party clip fails Omni because Google treats it as
+an ownership / copying / infringement refusal, generate **new original clips
+that still have the defect the feature must fix**, then run live EDD and
+fix the feature. Do not pass on color-bar/gradient stand-ins. Do not silently
+switch models to hide the miss. If Omni cannot be called, stop and tell the
+owner.
+
+### Context
+BBB grove/clearing `recitation` refusals led an agent to use ffmpeg gradient
+clips for a “green” D-10 quality eval. The owner rejected that tape. A later
+D-9 recheck passed when Omni generated original café scenes and extended them.
+
+### Rationale
+The eval must exercise the product problem (signage, extend, relight, …), not
+a clip that is easy for the model because it contains nothing to fix.
+
+### Alternatives Considered
+- Keep using BBB and call the feature blocked: rejected (filter ≠ product bug).
+- Gradient/colorbar INPUT as the quality tape: rejected by owner.
+- Silent Veo fallback so the suite still “passes”: rejected.
+
+### Revisit When
+- Google’s filter starts refusing **our own generated** clips the same way, or
+  the owner supplies a preferred original-footage library for evals.
+
+### Consequences
+- Binding text in root `AGENTS.md`, `backend/AGENTS.md`, and
+  `.cursor/rules/eval-footage.mdc`.
+- Follow-on ruling the same day: Veo fallback only after Omni EDD on original
+  deficit clips; Omni-fail / Veo-success must always be disclosed to the owner
+  (see next entry).
+
+## 2026-09-07 - Veo fallback is last; Omni-fail / Veo-success must be told
+Status: superseded
+Superseded by: 2026-09-07 - Product Veo fallback vs eval-only original clips
+Scope: generative evals and station fallbacks
+Confidence: high
+Tags: omni, veo, edd, disclosure
+
+### Decision
+Add a Veo fallback **only after** original deficit clips have been generated
+and the feature has been EDD-tested on Omni. During development and evals, if
+Omni fails and Veo succeeds on the same work, **tell the owner immediately**
+(clip, Omni error, Veo finished). Never present that as an Omni pass.
+
+### Context
+D-9’s 2026-09-04 eval mixed Omni (gradient) and Veo (BBB) under one green
+score; the owner would not have seen a systemic Omni miss.
+
+### Rationale
+Fallback keeps the operator unblocked. Silence about Omni failure hides outages.
+(Clarified later: generating original clips is **eval-only**; product Veo
+fallback is always the right operator behavior.)
+
+### Alternatives Considered
+- Keep silent Veo fallback in evals: rejected.
+- Never allow Veo: rejected; it is allowed **after** Omni EDD, with disclosure.
+
+### Revisit When
+- Owner wants evals Omni-only with no product fallback, or Omni refusals on
+  original generated clips become the common case.
+
+### Consequences
+- Agents must surface Omni-fail / Veo-success in chat and in `docs/evidence/`.
+- Station jobs must keep recording `render_model`.
+
+## 2026-09-07 - Product Veo fallback vs eval-only original clips
+Status: active
+Scope: generative stations and evals
+Confidence: high
+Tags: omni, veo, product, edd
+
+### Decision
+**Product:** Omni first; if Omni fails, fall back to Veo. That is correct
+product behavior. **Development/eval only:** if Omni refuses a public-domain
+clip for ownership/infringement, generate original clips that still have the
+real defect and prove Omni there. Generating a new clip is not what the
+product does for the operator. An eval must not count Veo success as an Omni
+pass; tell the owner if that happens during development.
+
+### Context
+The “generate original clips / Veo last” wording was being read as “the
+product should not Veo-fallback.” The owner clarified the opposite for the
+shipped product.
+
+### Rationale
+Operators must not be stuck when Omni refuses. Evals must still catch a
+broken Omni path.
+
+### Alternatives Considered
+- Fail the operator job if Omni fails: rejected.
+- Count Veo-finished evals as Omni quality passes: rejected.
+
+### Revisit When
+- Owner wants product Omni-only (no Veo), or wants evals to accept Veo as
+  an equivalent quality pass.
+
+### Consequences
+- Stations keep Omni→Veo fallback and record `omni_fallback`.
+- `scripts/extend_eval.py` still fails the suite if Veo rendered.
+
+## 2026-09-07 - Stage 1a is built one live-EDD feature at a time
+Status: active
+Scope: demo execution order
+Confidence: high
+Tags: stage-1a, edd, sequencing, d-10
+
+### Decision
+Build and fully EDD-verify one Stage 1a feature end-to-end before starting
+the next. Start with D-10 Corrections. Do not scaffold remaining backends
+and run live evals later.
+
+### Context
+Owner reversed an earlier "scaffold all six, eval afterward" leaning.
+Cloud-Agent eval artifacts are not live (no GCP). Remaining eval/demo spend
+is owner-capped; C-7.2 still requires a printed estimate and `--yes` above $5.
+
+### Rationale
+A half-wired Relight/Coverage/Camera surface without a green Corrections
+eval is demo risk. One finished drawer journey (agent + manual + H-0 +
+alternate + live numbers) is worth more than six incomplete scaffolds.
+
+### Alternatives Considered
+- Scaffold backend job/H-0/API for all six first, live EDD afterward: rejected.
+- Parallelize two features: deferred until D-10 is eval-green in the running UX.
+
+### Revisit When
+- D-10 live judgment + quality gates are green and the Corrections drawer is
+  in the running product, or the remaining eval envelope cannot fund the
+  next feature's three-run quality batch.
+
+### Consequences
+- Next feature (E-1 Relight) does not start until D-10 evidence exists.
+- Leftover scaffolds from the reversed approach are inert until their turn;
+  they must not be treated as done.
+
+## 2026-09-07 - Full Stage 1a is required for the hackathon demo (Amendment A11)
+Status: active
+Scope: demo release
+Confidence: high
+Tags: stage-1a, demo, scope, edd, ux
+
+### Decision
+The demo release comprises Stage 1 **and the full non-stretch Stage 1a
+roadmap**: D-10 Corrections, E-1 Relight Studio, D-11 Draft-first
+orchestration, D-12 Coverage, D-15 Revision Room, and D-16 Camera Language.
+The former requirement that full Stage 1a await G3 is removed for these tasks;
+G3 and G3a become integrated release gates. The demo must support both a
+hero-shot creative journey and an episode-level revision journey.
+
+### Constraints
+- Features remain separate domain pipelines; they reuse shared H-0, AL-1,
+  lease-queue, real GCS/Firestore, `run_agent_call`, Grafana MCP/OTel, and
+  frontend HTTP/SSE primitives rather than duplicating them.
+- Every generative capability is EDD-first with real Gemini/Vertex calls,
+  numeric thresholds, prompt-hardening iterations, and archived three-run
+  evidence. Every feature must be exposed in the running UX through both an
+  agent-assisted and a manual user-initiated route. Six distinct domain agents
+  are required: Corrections, Relight, Draft-First, Coverage, Revision Room,
+  and Camera Language; the Creative Orchestrator selects relevant agents and
+  makes the final whole-video improvement decision.
+- Remaining Stage 1a eval/demo spend is capped at $100. Batches over $5 still
+  print their estimate and require `--yes` (C-7.2); exceeding $100 requires a
+  new owner approval.
+- D-13 Transition Forge and D-14 Versioning remain stretch; Stage 2+ does not
+  enter the demo scope.
+
+### Revisit trigger
+If the remaining $100 envelope is exhausted before integrated G3/G3a, the
+owner decides whether to expand the envelope or reduce scope by explicit
+amendment; no feature is silently downgraded to an eval-only claim.
+
 ## 2026-09-04 - Omni-vs-Veo: Omni on Vertex WORKS — becomes primary video path (owner request)
 Status: active (supersedes the same-day "blocked on credentials" entry below)
 Scope: D-9 Extend, dub/render features, ADR 0002 model pinning

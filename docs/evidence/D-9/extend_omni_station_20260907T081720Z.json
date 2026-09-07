@@ -1,0 +1,41 @@
+{
+  "suite": "extend_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 0.0034,
+  "omni_render_rate": 1.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "n": 1,
+  "renders_completed": 1,
+  "pass": true,
+  "fail_reason": "",
+  "stopped": false,
+  "records": [
+    {
+      "scene_id": "florist-tulips",
+      "prompt": "A small florist shop. A person in an apron arranges yellow tulips in a clear glass vase on a wooden counter. Warm late-afternoon window light. Camera does not move. Eight seconds.",
+      "project_id": "proj-d9-omni-20260907t081720z",
+      "start_maker": "omni",
+      "start_model": "gemini-omni-1.1-flash-preview",
+      "start_shape": "omni_text_only",
+      "source_uri": "gs://martini-shot-media/original-probes/20260907T081720Z-florist-tulips.mp4",
+      "start_bytes": 2417796,
+      "shot_id": "shot-b814b43dabd2",
+      "approval_id": "ap-6354e21cf122",
+      "approval_status": "resolved",
+      "job_id": "ext-ap-6354e21cf122",
+      "job_status": "passed",
+      "cost_micros": 700000,
+      "flicker": 0.0034,
+      "qc_decision": "pass",
+      "alternate_id": "alt-0ba8c589d922",
+      "artifact_ref": "gs://martini-shot-media/projects/proj-d9-omni-20260907t081720z/extends/ext-ap-6354e21cf122.mp4",
+      "render_model": "gemini-omni-1.1-flash-preview",
+      "omni_fallback": false,
+      "omni_error": "",
+      "interaction_id": "l3OeaoPQMbm2i9sPxPGO8Ak",
+      "alternate_status": "draft",
+      "alternate_op": "extend"
+    }
+  ]
+}

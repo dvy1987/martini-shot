@@ -121,3 +121,9 @@ def decide_dub(
     )
     decision = parse_dub_decision(response["text"], measurements)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("dub", context)

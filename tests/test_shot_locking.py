@@ -282,6 +282,7 @@ def test_api_lock_route_proposes_through_h0_never_flips_directly(env) -> None:
                     "op": "extend",
                     "artifact_ref": "gs://b/alt-a.mp4",
                     "eval_scores": {"flicker": 0.11, "judge": 4.4},
+                    "tier": "draft",
                     "status": "draft",
                     "created_at": row["alternates"][0]["created_at"],
                 }

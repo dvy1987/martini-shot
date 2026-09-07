@@ -1,0 +1,18 @@
+{
+  "pass": true,
+  "model": "gemini-omni-1.1-flash-preview",
+  "prompt": "A person at a wooden cafe table looks at a small monitor. Morning light. They speak one short sentence. Camera does not move. Eight seconds.",
+  "interaction_id": "SnSeauGiE7nRi9sP8q6b6Qc",
+  "bytes": 2668735,
+  "cost_estimate_micros": 800000,
+  "keys": [
+    "e3/ep-01.mp4",
+    "e3/ep-02.mp4",
+    "e3/ep-03.mp4",
+    "e3/ep-04.mp4",
+    "e3/ep-05.mp4",
+    "e3/ep-06.mp4",
+    "e3/ep-07.mp4",
+    "e3/ep-08.mp4"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "suite": "scene_loudness_judgment",
+  "runs": 3,
+  "gate": {
+    "threshold": 0.8,
+    "comparison": ">="
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 1.0,
+      "hits": 8,
+      "n": 8,
+      "cost_micros": 45896,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.875,
+      "hits": 7,
+      "n": 8,
+      "cost_micros": 46170,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.875,
+      "hits": 7,
+      "n": 8,
+      "cost_micros": 41851,
+      "pass": true
+    }
+  ],
+  "cost_micros": 133917,
+  "cost_usd": 0.1339,
+  "pass": true
+}

@@ -1,0 +1,57 @@
+{
+  "station": "delivery",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-07.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-07-fr-FR-delivery",
+  "status": "needs_human",
+  "attempts": 1,
+  "cost_micros": 0,
+  "error": "delivery_fail",
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T09:05:50.978Z",
+  "lease_owner": null,
+  "lease_expires_at": null,
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "lufs": -25.3,
+    "language": "fr-FR",
+    "episode_id": "ep-07",
+    "delivery": {
+      "violations": [
+        {
+          "rule_id": "DEL-006",
+          "message": "loudness -25.3 (fail_quiet)"
+        },
+        {
+          "rule_id": "DEL-007",
+          "message": "captions required but missing"
+        }
+      ],
+      "destination": "streaming",
+      "verdict": "fail",
+      "profile": {
+        "container": "mp4",
+        "captions_required": true,
+        "bitrate_max_kbps": 20000,
+        "fps_max": 30.0,
+        "ar": "16:9",
+        "codec": "h264",
+        "fps_min": 23.0,
+        "loudness_target_lufs": -16.0
+      }
+    },
+    "script": "La telemetrie fait partie du produit, pas une annexe.",
+    "shot_id": "shot-ep07-01",
+    "batch_id": "e3-demo"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:27:12.948Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

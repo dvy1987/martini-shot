@@ -148,3 +148,9 @@ def decide_pickups_vision_qc(
     )
     decision = parse_vision_decision(response["text"], report)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("pickups", context)

@@ -1,0 +1,28 @@
+{
+  "batch": "e3-demo",
+  "seed": "docs/evidence/E-3/seed.json",
+  "jobs_total": 96,
+  "status_counts": {
+    "passed": 47,
+    "needs_human": 49
+  },
+  "by_station": {
+    "delivery": {
+      "needs_human": 24
+    },
+    "dub": {
+      "passed": 23,
+      "needs_human": 1
+    },
+    "ingest": {
+      "passed": 24
+    },
+    "loudness": {
+      "needs_human": 24
+    }
+  },
+  "total_cost_micros": 119908,
+  "passes_used": 3,
+  "gcs_bucket": "martini-shot-media",
+  "per_job_results": "docs/evidence/E-3/raw/jobs/"
+}

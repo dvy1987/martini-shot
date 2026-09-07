@@ -95,4 +95,18 @@ describe("AlternatesLane", () => {
 
     expect(screen.getByText(/no generated clips yet/i)).toBeInTheDocument();
   });
+
+  it("exposes Extend and Corrections on an open shot and blocks them on a locked cut", () => {
+    render(<AlternatesLane shots={shots} />);
+
+    expect(screen.getByRole("form", { name: /extend/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /propose extend/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /corrections/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/locked cut — extend is blocked/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/locked cut — corrections are blocked/i),
+    ).toBeInTheDocument();
+  });
 });

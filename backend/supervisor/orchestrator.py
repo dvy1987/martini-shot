@@ -29,8 +29,9 @@ BATCH_STATIONS: tuple[str, ...] = ("ingest", "dub", "loudness", "delivery")
 _ORDER = {station: i for i, station in enumerate(BATCH_STATIONS)}
 
 # Cost model (C-6.4 integer micros). TTS: Chirp 3 HD list $30/1M chars.
-# Dub QC agent: measured flash-tier cost ~2,500 micros per judgment (E-2
-# eval actuals). Ingest/loudness/delivery: deterministic stations, ~0.
+# Dub QC agent + Loudness Strategist listen: measured flash-tier cost
+# ~2,500 micros per judgment each (E-2 / scene-loudness). Ingest/delivery:
+# deterministic stations, ~0.
 TTS_MICROS_PER_CHAR = 30
 AGENT_JUDGMENT_MICROS = 2_500
 
@@ -116,7 +117,8 @@ def estimate_batch_cost(items: list[dict[str, Any]]) -> dict[str, Any]:
         for language in item.get("languages") or []:
             jobs += 1
             chars = len(str((item.get("scripts") or {}).get(str(language)) or ""))
-            total += chars * TTS_MICROS_PER_CHAR + AGENT_JUDGMENT_MICROS
+            # TTS + Dub QC listen + Loudness Strategist listen (C-7.2).
+            total += chars * TTS_MICROS_PER_CHAR + 2 * AGENT_JUDGMENT_MICROS
     return {
         "jobs": jobs,
         "total_micros": total,
@@ -141,11 +143,39 @@ def build_batch_jobs(items: list[dict[str, Any]]) -> list["Job"]:
             "language": item["language"],
             "script": item["script"],
             "shot_id": item["shot_id"],
+            "ingest_job_id": batch_job_id(
+                item["batch_id"],
+                item["episode_id"],
+                item["language"],
+                "ingest",
+            ),
         }
         for station in chain:
             result = dict(context)
             if station == "dub":
                 result["ssml"] = f"<speak>{item['script']}</speak>"
+            if station == "loudness":
+                # Station resolves the dub WAV at run time (picture URI stays
+                # on input_refs for ingest/delivery).
+                result["dub_job_id"] = batch_job_id(
+                    item["batch_id"],
+                    item["episode_id"],
+                    item["language"],
+                    "dub",
+                )
+            if station == "delivery":
+                result["dub_job_id"] = batch_job_id(
+                    item["batch_id"],
+                    item["episode_id"],
+                    item["language"],
+                    "dub",
+                )
+                result["loudness_job_id"] = batch_job_id(
+                    item["batch_id"],
+                    item["episode_id"],
+                    item["language"],
+                    "loudness",
+                )
             jobs.append(
                 Job(
                     station=station,

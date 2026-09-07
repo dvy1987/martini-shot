@@ -1,0 +1,13 @@
+{
+  "scene_id": "kitchen-cooks",
+  "prompt": "Two cooks in a small restaurant kitchen. One chops onions on a wooden board. The other stirs a steaming pan. They keep working the whole time. Eight seconds.",
+  "project_id": "proj-d9-live-20260907t084354z",
+  "start_maker": "omni",
+  "start_model": "gemini-omni-1.1-flash-preview",
+  "start_shape": "reused",
+  "source_uri": "gs://martini-shot-media/original-probes/20260907T083210Z-kitchen-cooks.mp4",
+  "shot_id": "shot-b1e370b83ea0",
+  "approval_id": "ap-dfe969274a6b",
+  "pass": false,
+  "error": "RetryError: Timeout of 120.0s exceeded, last exception: ('Connection aborted.', TimeoutError('The write operation timed out'))"
+}

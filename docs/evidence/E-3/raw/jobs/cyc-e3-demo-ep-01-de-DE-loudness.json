@@ -1,0 +1,39 @@
+{
+  "station": "loudness",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-01.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-01-de-DE-loudness",
+  "status": "needs_human",
+  "attempts": 1,
+  "cost_micros": 0,
+  "error": "fail_quiet",
+  "created_at": "2026-09-07T03:43:26.478Z",
+  "updated_at": "2026-09-07T08:30:55.722Z",
+  "lease_owner": null,
+  "lease_expires_at": null,
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "lufs": -25.3,
+    "me_present": false,
+    "script": "Willkommen bei Martini Shot, dem Postproduktions-Cockpit.",
+    "lra": 20.7,
+    "true_peak_dbtp": -10.9,
+    "shot_id": "shot-ep01-01",
+    "batch_id": "e3-demo",
+    "episode_id": "ep-01",
+    "stems": "balanced",
+    "verdict": "fail_quiet",
+    "language": "de-DE",
+    "target_lufs": -16.0
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:25:00.940Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

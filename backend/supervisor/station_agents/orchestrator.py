@@ -35,6 +35,7 @@ SCHEMA: dict[str, Any] = {
 
 
 def build_planning_prompt(item: dict[str, Any], *, default_chain: list[str]) -> str:
+    caption_note = _caption_loudness_note(item.get("context"))
     return (
         "You are the Batch Orchestrator agent for Martini Shot. Plan the "
         "station chain for ONE episode×language item of an approved batch "
@@ -42,7 +43,9 @@ def build_planning_prompt(item: dict[str, Any], *, default_chain: list[str]) -> 
         f"- episode: {item.get('episode_id')}\n"
         f"- language: {item.get('language')}\n"
         f"- line: {item.get('script') or '(n/a)'}\n"
-        f"- batch context: {item.get('context') or '(none)'}\n\n"
+        f"- batch context: {item.get('context') or '(none)'}\n"
+        f"{caption_note}"
+        f"{_scene_understanding_note(item.get('context'))}"
         "Station vocabulary (the ONLY stations a batch may route through, in "
         "fixed order): ingest → dub → loudness → delivery.\n"
         f"Deterministic default chain (advisory): {default_chain}\n\n"
@@ -50,13 +53,49 @@ def build_planning_prompt(item: dict[str, Any], *, default_chain: list[str]) -> 
         "- ingest proves + registers the source; if the context shows this "
         "source already passed ingest upstream, ingest is redundant — skip it.\n"
         "- dub renders THIS language's line; always required for a dub item.\n"
-        "- loudness must always measure the NEW dub audio (a prior master's "
-        "pass says nothing about it).\n"
+        "- loudness must always HEAR the NEW dub (not the picture "
+        "soundtrack), classify the scene (whisper, talk, shout, crash, "
+        "explosion — not only 'make everything TV-loud'), mix toward that "
+        "level, and re-measure. A prior master's pass says nothing about "
+        "this dub.\n"
         "- delivery builds the destination pack; always the last step.\n"
         "You may NOT invent stations or reorder — only trim with a stated "
         "reason. When in doubt, keep the default chain.\n\n"
         'Respond ONLY with JSON: {"agent": "orchestrator", "chain": [...], '
         '"reason": "...", "confidence": "low|medium|high"}.'
+    )
+
+
+def _caption_loudness_note(context: Any) -> str:
+    """Captions may flag quiet speech; silence is not a mix miss."""
+    if not isinstance(context, dict):
+        return ""
+    if context.get("audio_too_quiet") and context.get("has_speech"):
+        return (
+            "- captions heard spoken words that are too quiet: do not skip "
+            "loudness — keep loudness in the chain so the mix can be retried.\n\n"
+        )
+    if context.get("has_speech") is False:
+        return (
+            "- captions report no spoken words. Quiet room tone is not a "
+            "loudness miss — do not treat silence as a mix failure.\n\n"
+        )
+    return ""
+
+
+def _scene_understanding_note(context: Any) -> str:
+    """Original-clip watch lives on the shot; planning must see it."""
+    if not isinstance(context, dict):
+        return ""
+    meta = context.get("scene_understanding")
+    if not isinstance(meta, dict):
+        return ""
+    words = str(meta.get("spoken_words") or "").strip() or "(none)"
+    scene = str(meta.get("scene") or "").strip() or "(none)"
+    return (
+        f"- scene understanding (shot metadata): spoken words: {words}; "
+        f"scene: {scene}. Pass this to later stations; do not re-guess "
+        "what was said.\n\n"
     )
 
 

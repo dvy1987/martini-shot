@@ -1,0 +1,26 @@
+{
+  "batch": "e3-demo",
+  "seed": "docs/evidence/E-3/seed.json",
+  "jobs_total": 96,
+  "status_counts": {
+    "failed": 96
+  },
+  "by_station": {
+    "delivery": {
+      "failed": 24
+    },
+    "dub": {
+      "failed": 24
+    },
+    "ingest": {
+      "failed": 24
+    },
+    "loudness": {
+      "failed": 24
+    }
+  },
+  "total_cost_micros": 0,
+  "passes_used": 3,
+  "gcs_bucket": "martini-shot-media",
+  "per_job_results": "docs/evidence/E-3/raw/jobs/"
+}

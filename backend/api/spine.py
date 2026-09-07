@@ -56,6 +56,56 @@ class ExtendIn(BaseModel):
     prompt: str | None = Field(default=None)
 
 
+class CorrectIn(BaseModel):
+    source_uri: str
+    intent: str
+    reason: str | None = Field(default=None)
+    protected_subjects: list[str] = Field(default_factory=list)
+    continuity_constraints: list[str] = Field(default_factory=list)
+    consult_agent: bool = True
+
+
+class RelightIn(BaseModel):
+    source_uri: str
+    preset: str
+    reason: str | None = Field(default=None)
+
+
+class CoverageIn(BaseModel):
+    source_uri: str
+    angle: str
+    intent: str
+    reference_uris: list[str]
+    reason: str | None = Field(default=None)
+
+
+class CameraLanguageIn(BaseModel):
+    source_uri: str
+    movement: str
+    reference_style: str | None = Field(default=None)
+    reason: str | None = Field(default=None)
+
+
+class RenderMasterIn(BaseModel):
+    op: str
+    source_uri: str | None = Field(default=None)
+    reason: str | None = Field(default=None)
+    intent: str | None = Field(default=None)
+    preset: str | None = Field(default=None)
+    angle: str | None = Field(default=None)
+    movement: str | None = Field(default=None)
+
+
+class ScriptVersionIn(BaseModel):
+    text: str
+    based_on_version_id: str | None = Field(default=None)
+
+
+class RegenerateSpansIn(BaseModel):
+    spans: list[dict[str, Any]]
+    reason: str | None = Field(default=None)
+
+
 class SettingsIn(BaseModel):
     """Partial body for PATCH /settings (H-0b round-trip): the autonomy
     toggle and the nightly envelope. Only provided fields move."""
@@ -270,6 +320,7 @@ def install_spine_routes(
                 "op": row.get("op"),
                 "artifact_ref": row.get("artifact_ref"),
                 "eval_scores": row.get("eval_scores"),
+                "tier": row.get("tier") or "draft",
                 "status": row.get("status"),
                 "created_at": row.get("created_at"),
             }
@@ -289,6 +340,7 @@ def install_spine_routes(
                 "locked_by": row.get("locked_by"),
                 "current_alternate_id": row.get("current_alternate_id"),
                 "created_at": row.get("created_at"),
+                "scene_understanding": row.get("scene_understanding"),
                 "alternates": _alternate_rows(str(row.get("shot_id") or row.get("id"))),
             }
             for row in rows
@@ -306,6 +358,7 @@ def install_spine_routes(
             "locked": bool(doc.get("locked")),
             "locked_by": doc.get("locked_by"),
             "current_alternate_id": doc.get("current_alternate_id"),
+            "scene_understanding": doc.get("scene_understanding"),
             "alternates": _alternate_rows(shot_id),
         }
 
@@ -371,6 +424,236 @@ def install_spine_routes(
                         "project_id": project_id,
                         "source_uri": body.source_uri,
                         **({"prompt": body.prompt} if body.prompt else {}),
+                    },
+                },
+            },
+        )
+        return {"approval_id": approval_id, "status": "proposed"}
+
+    def _require_source(uri: str) -> str:
+        if not uri.startswith("gs://"):
+            raise HTTPException(
+                status_code=400, detail="source_uri must be a gs:// URI"
+            )
+        return uri
+
+    def _propose_shot_command(
+        shot_id: str, *, name: str, title: str, detail: str, args: dict[str, Any]
+    ) -> dict[str, Any]:
+        if shots.get_shot(store, shot_id) is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        project_id = _shot_project(store, shot_id)
+        approval_id = propose_approval(
+            store,
+            {
+                "project_id": project_id,
+                "kind": "fix",
+                "title": title,
+                "detail": detail,
+                "command": {
+                    "name": name,
+                    "args": {"shot_id": shot_id, "project_id": project_id, **args},
+                },
+            },
+        )
+        return {"approval_id": approval_id, "status": "proposed"}
+
+    @app.post("/api/v1/shots/{shot_id}/correct")
+    def propose_correct(shot_id: str, body: CorrectIn) -> dict[str, Any]:
+        """D-10: propose a bounded Omni correction. The Corrections Agent
+        judges the brief first (abstain on locked/ambiguous/injection);
+        H-0 still executes. Output is always a draft alternate."""
+        shot = shots.get_shot(store, shot_id)
+        if shot is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        intent = body.intent.strip()
+        if not intent:
+            raise HTTPException(
+                status_code=400, detail="correction requires explicit intent"
+            )
+        source_uri = _require_source(body.source_uri)
+        locked = bool(shot.get("locked"))
+        brief = {
+            "intent": intent,
+            "protected_subjects": body.protected_subjects,
+            "continuity_constraints": body.continuity_constraints,
+            "locked": locked,
+            "shot_id": shot_id,
+            "project_id": _shot_project(store, shot_id),
+            "source_uri": source_uri,
+        }
+        agent_rationale = body.reason or intent
+        agent_decision = "propose_correction"
+        agent_cost_micros = 0
+        from backend.supervisor.station_agents.corrections import suggestion_for_brief
+
+        if suggestion_for_brief(brief) == "abstain":
+            raise HTTPException(
+                status_code=409,
+                detail="correction refused: locked, ambiguous, or injective brief",
+            )
+        if body.consult_agent and settings is not None:
+            from backend.supervisor.station_agents.corrections import decide_corrections
+
+            decision, agent_cost_micros = decide_corrections(settings, brief=brief)
+            agent_rationale = decision.reason
+            agent_decision = decision.decision
+            if decision.decision == "abstain":
+                raise HTTPException(status_code=409, detail=decision.reason)
+        proposed = _propose_shot_command(
+            shot_id,
+            name="correct_shot",
+            title=f"Correct shot {shot_id}",
+            detail=agent_rationale,
+            args={
+                "source_uri": source_uri,
+                "intent": intent,
+                "protected_subjects": body.protected_subjects,
+                "continuity_constraints": body.continuity_constraints,
+            },
+        )
+        return {
+            **proposed,
+            "agent": {
+                "name": "corrections",
+                "decision": agent_decision,
+                "rationale": agent_rationale,
+                "cost_micros": agent_cost_micros,
+            },
+        }
+
+    @app.post("/api/v1/shots/{shot_id}/relight")
+    def propose_relight(shot_id: str, body: RelightIn) -> dict[str, Any]:
+        return _propose_shot_command(
+            shot_id,
+            name="relight_shot",
+            title=f"Relight shot {shot_id}",
+            detail=body.reason or body.preset,
+            args={
+                "source_uri": _require_source(body.source_uri),
+                "preset": body.preset,
+            },
+        )
+
+    @app.post("/api/v1/shots/{shot_id}/coverage")
+    def propose_coverage(shot_id: str, body: CoverageIn) -> dict[str, Any]:
+        if not body.reference_uris:
+            raise HTTPException(status_code=400, detail="reference_uris required")
+        for uri in body.reference_uris:
+            _require_source(uri)
+        return _propose_shot_command(
+            shot_id,
+            name="generate_coverage",
+            title=f"Coverage for shot {shot_id}",
+            detail=body.reason or body.intent,
+            args={
+                "source_uri": _require_source(body.source_uri),
+                "angle": body.angle,
+                "intent": body.intent,
+                "reference_uris": body.reference_uris,
+            },
+        )
+
+    @app.post("/api/v1/shots/{shot_id}/camera-language")
+    def propose_camera_language(shot_id: str, body: CameraLanguageIn) -> dict[str, Any]:
+        args: dict[str, Any] = {
+            "source_uri": _require_source(body.source_uri),
+            "movement": body.movement,
+        }
+        if body.reference_style:
+            args["reference_style"] = body.reference_style
+        return _propose_shot_command(
+            shot_id,
+            name="apply_camera_language",
+            title=f"Camera language for shot {shot_id}",
+            detail=body.reason or body.movement,
+            args=args,
+        )
+
+    @app.post("/api/v1/shots/{shot_id}/master")
+    def propose_master(shot_id: str, body: RenderMasterIn) -> dict[str, Any]:
+        args: dict[str, Any] = {"op": body.op}
+        if body.source_uri:
+            args["source_uri"] = _require_source(body.source_uri)
+        for key in ("intent", "preset", "angle", "movement"):
+            value = getattr(body, key)
+            if value:
+                args[key] = value
+        return _propose_shot_command(
+            shot_id,
+            name="render_master",
+            title=f"Master render for shot {shot_id}",
+            detail=body.reason or body.op,
+            args=args,
+        )
+
+    @app.get("/api/v1/projects/{project_id}/scripts")
+    def list_scripts(project_id: str) -> list[dict[str, Any]]:
+        from backend.revision import alignment as revision
+
+        rows = store.list_where(revision.VERSIONS, "project_id", project_id)
+        rows.sort(key=lambda row: int(row.get("version_number") or 0))
+        return rows
+
+    @app.post("/api/v1/projects/{project_id}/scripts")
+    def create_script_version(project_id: str, body: ScriptVersionIn) -> dict[str, Any]:
+        from backend.revision import alignment as revision
+        from backend.revision.alignment import StaleVersionError
+
+        try:
+            version = revision.create_version(
+                store,
+                project_id=project_id,
+                text=body.text,
+                based_on_version_id=body.based_on_version_id,
+            )
+        except StaleVersionError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        previous_id = body.based_on_version_id
+        diffs: list[dict[str, Any]] = []
+        affected: list[dict[str, Any]] = []
+        if previous_id:
+            previous = store.get_doc(revision.VERSIONS, previous_id) or {}
+            span_diffs = revision.diff_spans(str(previous.get("text") or ""), body.text)
+            diffs = [
+                {
+                    "start": item.start,
+                    "end": item.end,
+                    "kind": item.kind,
+                    "old_text": item.old_text,
+                    "new_text": item.new_text,
+                }
+                for item in span_diffs
+            ]
+            affected = revision.affected_spans(
+                span_diffs, revision.get_alignment(store, previous_id)
+            )
+        return {**version, "diffs": diffs, "affected": affected}
+
+    @app.post("/api/v1/projects/{project_id}/scripts/{version_id}/regenerate")
+    def propose_regenerate(
+        project_id: str, version_id: str, body: RegenerateSpansIn
+    ) -> dict[str, Any]:
+        from backend.revision import alignment as revision
+
+        version = store.get_doc(revision.VERSIONS, version_id)
+        if version is None or str(version.get("project_id")) != project_id:
+            raise HTTPException(status_code=404, detail="no such script version")
+        if not body.spans:
+            raise HTTPException(status_code=400, detail="spans required")
+        approval_id = propose_approval(
+            store,
+            {
+                "project_id": project_id,
+                "kind": "fix",
+                "title": f"Regenerate spans for {version_id}",
+                "detail": body.reason or "",
+                "command": {
+                    "name": "regenerate_affected_spans",
+                    "args": {
+                        "project_id": project_id,
+                        "version_id": version_id,
+                        "spans": body.spans,
                     },
                 },
             },
@@ -497,3 +780,8 @@ def install_spine_routes(
                 "X-Accel-Buffering": "no",
             },
         )
+
+    if settings is not None:
+        from backend.api.finish import install_finish_routes
+
+        install_finish_routes(app, queue=queue, store=store, hub=hub, settings=settings)

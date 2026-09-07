@@ -98,7 +98,7 @@ def test_batch_job_ids_are_deterministic_and_unique():
 
 def test_estimate_costs_every_item_language_before_any_billable_run():
     estimate = estimate_batch_cost(MANIFEST["items"])
-    # 3 item×language pairs; each pays TTS characters + one agent judgment.
+    # 3 item×language pairs; each pays TTS + Dub QC listen + Loudness listen.
     assert estimate["jobs"] == 3
     assert estimate["total_micros"] > 0
     assert estimate["per_job_micros"] == pytest.approx(
@@ -159,6 +159,14 @@ def test_build_batch_jobs_one_job_per_chain_station(tmp_path):
     assert dub.result["shot_id"] == "shot-ep-01"
     assert dub.result["language"] == "es-ES"
     assert dub.result["batch_id"] == "batch-demo-01"
+    delivery = jobs[3]
+    assert delivery.station == "delivery"
+    assert delivery.result["loudness_job_id"] == batch_job_id(
+        "batch-demo-01", "ep-01", "es-ES", "loudness"
+    )
+    assert delivery.result["dub_job_id"] == batch_job_id(
+        "batch-demo-01", "ep-01", "es-ES", "dub"
+    )
 
 
 def test_build_batch_jobs_is_idempotent_across_calls(tmp_path):
@@ -205,6 +213,48 @@ def test_planning_prompt_carries_item_context_and_vocabulary():
     assert "ep-01" in prompt and "es-ES" in prompt
     assert "ingest" in prompt and "dub" in prompt
     assert "trim" in prompt.lower() or "advis" in prompt.lower()
+
+
+def test_planning_prompt_keeps_loudness_when_captions_heard_quiet_speech():
+    from backend.supervisor.station_agents.orchestrator import build_planning_prompt
+
+    prompt = build_planning_prompt(
+        {
+            "episode_id": "ep-01",
+            "language": "es-ES",
+            "script": "Hola.",
+            "context": {
+                "audio_too_quiet": True,
+                "has_speech": True,
+                "lufs": -25.3,
+                "from_agent": "caption_write",
+            },
+        },
+        default_chain=["ingest", "dub", "loudness", "delivery"],
+    )
+    assert "too quiet" in prompt.lower()
+    assert "do not skip loudness" in prompt.lower()
+    assert "spoken" in prompt.lower() or "speech" in prompt.lower()
+
+
+def test_planning_prompt_does_not_treat_silence_as_a_loudness_miss():
+    from backend.supervisor.station_agents.orchestrator import build_planning_prompt
+
+    prompt = build_planning_prompt(
+        {
+            "episode_id": "ep-01",
+            "language": "es-ES",
+            "script": "",
+            "context": {
+                "audio_too_quiet": False,
+                "has_speech": False,
+                "lufs": -38.0,
+                "from_agent": "caption_write",
+            },
+        },
+        default_chain=["ingest", "dub", "loudness", "delivery"],
+    )
+    assert "no spoken" in prompt.lower() or "not a loudness miss" in prompt.lower()
 
 
 def test_plan_item_accepts_valid_agent_chain_and_marks_override():

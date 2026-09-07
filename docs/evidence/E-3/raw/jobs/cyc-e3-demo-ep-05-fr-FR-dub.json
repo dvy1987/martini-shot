@@ -1,0 +1,56 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-05.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-05-fr-FR-dub",
+  "status": "needs_human",
+  "attempts": 1,
+  "cost_micros": 8216,
+  "error": "dub_qc_flagged",
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T08:54:05.138Z",
+  "lease_owner": null,
+  "lease_expires_at": null,
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "agent": {
+      "decision": "re_render",
+      "proposal": {},
+      "reason": "The audio is cut off at the very end, truncating the final word 'qualit\u00e9' mid-word as 'qualit'.",
+      "confidence": "high",
+      "overridden": true,
+      "agent": "dub_qc",
+      "deterministic_advice": ""
+    },
+    "episode_id": "ep-05",
+    "fit_tempo": 0.375,
+    "script": "Le doublage en trois langues passe le controle qualite.",
+    "fit_applied": false,
+    "batch_id": "e3-demo",
+    "shot_id": "shot-ep05-01",
+    "measurements": {
+      "verdict": "flagged",
+      "source_duration_ms": 8000,
+      "dub_duration_ms": 3000,
+      "tolerance_ms": 45,
+      "sync_offset_ms": 1480,
+      "duration_delta_ms": -5000
+    },
+    "alternate_id": "alt-763e41632e93",
+    "agent_cost_micros": 4016,
+    "artifact_ref": "gs://martini-shot-media/projects/batch/dubs/cyc-e3-demo-ep-05-fr-FR-dub.fr-FR.wav",
+    "re_rendered": true,
+    "language": "fr-FR",
+    "ssml": "<speak>Le doublage en trois langues passe le controle qualite.</speak>"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:26:30.756Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

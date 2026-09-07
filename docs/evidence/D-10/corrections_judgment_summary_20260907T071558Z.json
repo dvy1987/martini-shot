@@ -1,0 +1,35 @@
+{
+  "suite": "corrections_judgment",
+  "runs": 3,
+  "gate": {
+    "threshold": 0.8,
+    "comparison": ">="
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 1.0,
+      "hits": 6,
+      "n": 6,
+      "cost_micros": 14105,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 1.0,
+      "hits": 6,
+      "n": 6,
+      "cost_micros": 12747,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 1.0,
+      "hits": 6,
+      "n": 6,
+      "cost_micros": 15311,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

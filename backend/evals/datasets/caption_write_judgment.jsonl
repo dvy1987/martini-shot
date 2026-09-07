@@ -1,0 +1,8 @@
+{"id": "write-01", "script": "Hola, este es un doblaje.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "Happy path: short Spanish line; wrap/time only, meaning preserved."}
+{"id": "write-02", "script": "Bienvenido a Martini Shot, la cabina de posproduccion.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "Happy path: E-3-length Spanish welcome line."}
+{"id": "write-03", "script": "Le doublage en trois langues passe le controle qualite.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "French line; must keep every word including qualite."}
+{"id": "write-04", "script": "This single caption line is far longer than forty-two characters allows so it must wrap.", "duration_s": 10.0, "expected": {"decision": "write"}, "notes": "Edge: long English line must wrap to <=42 chars/line and stay readable."}
+{"id": "write-05", "script": "Yes.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "Edge: tiny word still needs min duration 5/6 s."}
+{"id": "write-06", "script": "", "duration_s": 8.0, "expected": {"decision": "needs_human"}, "notes": "Known-bad: empty script and no audio in this row — cannot invent dialogue."}
+{"id": "write-07", "script": "First sentence is spoken. Second sentence follows after a breath.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "Two sentences; may split cues; must not drop either sentence."}
+{"id": "write-08", "script": "Willkommen bei Martini Shot.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "German E-3 line; meaning preserved."}

@@ -2,9 +2,14 @@
   "suite": "extend_quality",
   "metric": "mean_output_flicker",
   "threshold": 0.02,
-  "mean_output_flicker": 0.00465,
-  "n": 3,
-  "renders_completed": 3,
-  "all_annotated": true,
-  "pass": true
+  "mean_output_flicker": 0.0052,
+  "omni_render_rate": 1.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "n": 6,
+  "drafts": 3,
+  "masters": 3,
+  "renders_completed": 6,
+  "pass": true,
+  "fail_reason": "",
+  "stopped": false
 }

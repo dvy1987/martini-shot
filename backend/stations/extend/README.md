@@ -7,10 +7,11 @@ gate (0.02) → the render is recorded as a DRAFT **alternate** (AL-1) — never
 an overwrite of any cut. Breaching drafts land as `needs_human` with their
 scores attached, so the evidence trail shows what was spent on them.
 
-**Model:** `gemini-omni-1.1-flash-preview` primary, `veo-3.1-fast-generate-001`
-automatic fallback (`backend/core/models.py`; `render_model` is recorded on
-every job doc and the eval table in `docs/evidence/D-9/README.md` proves both
-paths live). Omni proven call shape: gs:// media URI +
+**Model:** `gemini-omni-1.1-flash-preview` primary. If Omni fails, **Veo
+fallback is the correct product behavior** (owner 2026-09-07). The job still
+records `render_model`, `omni_fallback`, and `omni_error`. Evals must not
+count a Veo-finished row as an Omni pass; during development the owner must
+be told. Omni proven call shape: gs:// media URI +
 `generation_config.video_config.task`, no `response_format` (the G0/Omni-probe
 finding). Prompts follow the docs' simple style (elaborate prompts cause
 generation refusals). Veo fallback contract (proven 2026-09-04): the
@@ -21,8 +22,9 @@ duration, and `video.mimeType`; output is inline base64 (or GCS URI).
 **Real services:** Vertex Agent Platform (Omni), GCS, Firestore, Grafana
 annotations (via the H-0 approval transition + the worker's `annotate_job`).
 
-**Cost:** draft-first, integer micros (`estimate_extend_cost_micros`: ~$0.10/s
-at 720p, ~1/3 at 360p, ceil per second — Vertex bills per output second).
+**Cost:** first render is a 360p draft; a 720p master is a separate
+QC'd job via `render_master` after the draft clears flicker 0.02.
+Integer micros (`estimate_extend_cost_micros`).
 
 **Watch items:**
 - 2026-09-04 ~20:30 Vertex began refusing Omni video ops with `recitation` on

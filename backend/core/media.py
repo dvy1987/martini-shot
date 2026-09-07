@@ -5,6 +5,7 @@ FFMPEG_BIN/FFPROBE_BIN. No subprocess shortcuts, no fallback engines.
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 from pathlib import Path
 
@@ -130,6 +131,36 @@ class FFmpeg:
             raise RuntimeError(f"frame extraction failed: {result.stderr[:400]!r}")
         return sorted(out_dir.glob("frame-*.png"))
 
+    def extract_wav(self, path: Path | str) -> bytes:
+        """Decode the soundtrack to LINEAR16 WAV for a listen-capable agent."""
+        path = Path(path)
+        out = path.with_suffix(".watch.wav")
+        result = self._run(
+            [
+                self.ffmpeg_bin,
+                "-v",
+                "error",
+                "-y",
+                "-i",
+                str(path),
+                "-vn",
+                "-acodec",
+                "pcm_s16le",
+                "-ar",
+                "16000",
+                "-ac",
+                "1",
+                str(out),
+            ],
+            timeout=120,
+        )
+        if result.returncode != 0 or not out.exists():
+            raise RuntimeError(f"audio extract failed: {result.stderr[:400]!r}")
+        try:
+            return out.read_bytes()
+        finally:
+            out.unlink(missing_ok=True)
+
     def reassemble(self, frames: list[Path], out_path: Path | str, fps: float) -> None:
         if not frames:
             raise ValueError("no frames to reassemble")
@@ -224,6 +255,98 @@ class FFmpeg:
                 if value is not None:
                     return value
         raise RuntimeError(f"band ebur128 not parsed: {stderr[-400:]!r}")
+
+    def apply_loudnorm(
+        self,
+        src: Path | str,
+        dst: Path | str,
+        *,
+        integrated_lufs: float,
+        true_peak_dbtp: float = -1.5,
+    ) -> None:
+        """Two-pass ffmpeg loudnorm toward an integrated target (then re-measure)."""
+        src_path = Path(src)
+        dst_path = Path(dst)
+        filt = (
+            f"loudnorm=I={integrated_lufs}:TP={true_peak_dbtp}:LRA=11:print_format=json"
+        )
+        measure = self._run(
+            [
+                self.ffmpeg_bin,
+                "-hide_banner",
+                "-i",
+                str(src_path),
+                "-af",
+                filt,
+                "-f",
+                "null",
+                "-",
+            ],
+            timeout=300,
+        )
+        measured = _loudnorm_measured(measure.stderr.decode("utf-8", "replace"))
+        if not _loudnorm_is_mixable(measured):
+            raise RuntimeError(
+                "loudnorm cannot mix silent or unmeterable audio "
+                f"(input_i={measured.get('input_i')!r}, "
+                f"target_offset={measured.get('target_offset')!r})"
+            )
+        apply_filt = (
+            f"loudnorm=I={integrated_lufs}:TP={true_peak_dbtp}:LRA=11:"
+            f"measured_I={measured['input_i']}:"
+            f"measured_LRA={measured['input_lra']}:"
+            f"measured_TP={measured['input_tp']}:"
+            f"measured_thresh={measured['input_thresh']}:"
+            f"offset={measured['target_offset']}:"
+            "linear=true"
+        )
+        probe = self.probe(src_path)
+        args = [
+            self.ffmpeg_bin,
+            "-hide_banner",
+            "-y",
+            "-i",
+            str(src_path),
+            "-af",
+            apply_filt,
+        ]
+        if probe.get("codec"):
+            args.extend(["-c:v", "copy"])
+        args.append(str(dst_path))
+        result = self._run(args, timeout=300)
+        if result.returncode != 0 or not dst_path.exists():
+            raise RuntimeError(
+                f"loudnorm apply failed: {result.stderr.decode('utf-8', 'replace')[-400:]!r}"
+            )
+
+
+def _loudnorm_is_mixable(measured: dict[str, str]) -> bool:
+    for key in ("input_i", "target_offset"):
+        try:
+            if not math.isfinite(float(measured[key])):
+                return False
+        except (TypeError, ValueError, KeyError):
+            return False
+    return True
+
+
+def _loudnorm_measured(stderr: str) -> dict[str, str]:
+    """Parse the JSON blob ffmpeg loudnorm prints on the measure pass."""
+    start, end = stderr.rfind("{"), stderr.rfind("}")
+    if start < 0 or end <= start:
+        raise RuntimeError(f"loudnorm json missing: {stderr[-400:]!r}")
+    payload = json.loads(stderr[start : end + 1])
+    required = (
+        "input_i",
+        "input_lra",
+        "input_tp",
+        "input_thresh",
+        "target_offset",
+    )
+    missing = [key for key in required if key not in payload]
+    if missing:
+        raise RuntimeError(f"loudnorm json missing keys {missing}: {payload!r}")
+    return {key: str(payload[key]) for key in required}
 
 
 def get_media(settings: object) -> FFmpeg:  # typed via Settings import cycle-safe

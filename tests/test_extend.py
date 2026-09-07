@@ -17,7 +17,17 @@ from __future__ import annotations
 import pytest
 
 
-def test_extend_cost_estimate_uses_price_table() -> None:
+def test_omni_transport_timeout_is_retryable() -> None:
+    from backend.core.generative import is_omni_transport_timeout
+
+    assert is_omni_transport_timeout(TimeoutError("The write operation timed out"))
+    assert is_omni_transport_timeout(
+        RuntimeError(
+            "RetryError: Timeout of 120.0s exceeded, last exception: "
+            "('Connection aborted.', TimeoutError('The write operation timed out'))"
+        )
+    )
+    assert not is_omni_transport_timeout(RuntimeError("recitation"))
     from backend.core.generative import estimate_extend_cost_micros
 
     # 720p ~= $0.10/s -> 100_000 micros per second; Vertex bills per output
@@ -59,13 +69,20 @@ def test_extend_station_is_dispatched() -> None:
 
 
 def test_extend_draft_qc_gate() -> None:
-    from backend.stations.extend.run import FLICKER_GATE, draft_qc_decision
+    from backend.stations.extend.run import (
+        FLICKER_GATE,
+        draft_qc_decision,
+        resolution_for_tier,
+    )
 
     assert FLICKER_GATE == 0.02
     assert draft_qc_decision(0.0031) == "pass"
     assert draft_qc_decision(0.0199) == "pass"
     assert draft_qc_decision(0.02) == "needs_human"
     assert draft_qc_decision(0.5) == "needs_human"
+    assert resolution_for_tier("draft") == "360p"
+    assert resolution_for_tier("master") == "720p"
+    assert resolution_for_tier("") == "360p"
 
 
 def test_veo_payload_extraction() -> None:
@@ -153,6 +170,7 @@ def test_extend_proposal_approve_enqueues_real_job(env, run_id, monkeypatch) -> 
         assert job_doc["station"] == "extend"
         assert job_doc["status"] == "queued"
         assert job_doc["result"]["shot_id"] == shot_id
+        assert job_doc["result"]["tier"] == "draft"
         assert job_doc["input_refs"][0].startswith("gs://")
 
         # Idempotent redrive: submitting the same deterministic id must not
@@ -174,3 +192,82 @@ def test_extend_proposal_approve_enqueues_real_job(env, run_id, monkeypatch) -> 
         )
         media = client.get("/api/v1/alternates/alt-missing/media", headers=headers)
         assert media.status_code == 404
+
+        shots.record_alternate(
+            env,
+            shot_id=shot_id,
+            project_id=project_id,
+            op="extend",
+            artifact_ref=f"gs://{settings.gcs_bucket}/probes/shot-01-meadow.mp4",
+            eval_scores={"flicker": 0.003},
+            tier="draft",
+        )
+        master = client.post(
+            f"/api/v1/shots/{shot_id}/master",
+            headers=headers,
+            json={
+                "op": "extend",
+                "source_uri": f"gs://{settings.gcs_bucket}/probes/shot-01-meadow.mp4",
+            },
+        )
+        assert master.status_code == 200
+        master_id = master.json()["approval_id"]
+        master_ok = client.post(
+            f"/api/v1/approvals/{master_id}/decision",
+            headers=headers,
+            json={"decision": "approve", "reason": "draft passed"},
+        )
+        assert master_ok.status_code == 200
+        master_job = env.get_doc("pc-jobs", f"mst-ext-{master_id}")
+        assert master_job is not None
+        assert master_job["station"] == "extend"
+        assert master_job["result"]["tier"] == "master"
+
+
+def _omni_record(**overrides: object) -> dict:
+    row: dict = {
+        "render_model": "gemini-omni-1.1-flash-preview",
+        "omni_fallback": False,
+        "flicker": 0.003,
+        "qc_decision": "pass",
+        "alternate_status": "draft",
+        "start_maker": "omni",
+    }
+    row.update(overrides)
+    return row
+
+
+def test_extend_quality_rejects_veo_fallback() -> None:
+    from backend.evals.extend_quality import summarize_extend_quality
+
+    omni = summarize_extend_quality([_omni_record()])
+    assert omni["pass"] is True
+    assert omni["omni_render_rate"] == 1.0
+    assert omni["mean_output_flicker"] < 0.02
+
+    veo = summarize_extend_quality(
+        [
+            _omni_record(
+                render_model="veo-3.1-fast-generate-001",
+                omni_fallback=True,
+                omni_error="recitation",
+            )
+        ]
+    )
+    assert veo["pass"] is False
+    assert veo["omni_render_rate"] == 0.0
+    assert "omni_fallback" in veo["fail_reason"]
+
+
+def test_extend_quality_rejects_flicker_breach_and_empty() -> None:
+    from backend.evals.extend_quality import summarize_extend_quality
+
+    hot = summarize_extend_quality([_omni_record(flicker=0.03)])
+    assert hot["pass"] is False
+    empty = summarize_extend_quality([])
+    assert empty["pass"] is False
+    missing_master = summarize_extend_quality(
+        [_omni_record(tier="draft")], min_drafts=1, min_masters=1
+    )
+    assert missing_master["pass"] is False
+    assert "too_few_masters" in missing_master["fail_reason"]

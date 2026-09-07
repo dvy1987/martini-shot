@@ -26,6 +26,12 @@ REGISTRY_COMMANDS: tuple[str, ...] = (
     "add_to_continuity",
     "remove_from_continuity",
     "extend_shot",
+    "correct_shot",
+    "relight_shot",
+    "generate_coverage",
+    "apply_camera_language",
+    "render_master",
+    "regenerate_affected_spans",
 )
 
 # Target contract per command (ACT-gate review fix: action correctness is
@@ -40,6 +46,18 @@ REQUIRED_ACTION_ARGS: dict[str, tuple[str, ...]] = {
     "pause_intake": ("station",),
     "resume_intake": ("station",),
     "extend_shot": ("shot_id", "project_id", "source_uri"),
+    "correct_shot": ("shot_id", "project_id", "source_uri", "intent"),
+    "relight_shot": ("shot_id", "project_id", "source_uri", "preset"),
+    "generate_coverage": (
+        "shot_id",
+        "project_id",
+        "source_uri",
+        "angle",
+        "intent",
+    ),
+    "apply_camera_language": ("shot_id", "project_id", "source_uri", "movement"),
+    "render_master": ("shot_id", "project_id", "op"),
+    "regenerate_affected_spans": ("project_id", "version_id"),
 }
 
 

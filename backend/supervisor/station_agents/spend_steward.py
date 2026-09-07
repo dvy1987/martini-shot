@@ -178,3 +178,9 @@ def decide_spend_steward(
     )
     decision = parse_steward_decision(response["text"], trigger)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("spend", context)

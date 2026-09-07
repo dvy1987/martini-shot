@@ -53,6 +53,16 @@ def test_prompt_contains_measurements_and_rules() -> None:
     assert "two-strikes" in prompt.lower()
     assert "accept_as_draft|bounded_revision|escalate" in prompt
     assert "frames_analyzed" in prompt  # meter-integrity context
+    fallback_prompt = build_prompt(
+        {
+            **HEALTHY,
+            "omni_fallback": True,
+            "omni_error": "Recitation: content blocked",
+            "render_model": "veo-3.1-fast-generate-001",
+        }
+    )
+    assert "omni_fallback: True" in fallback_prompt
+    assert "Recitation: content blocked" in fallback_prompt
 
 
 def test_parse_valid_decision() -> None:

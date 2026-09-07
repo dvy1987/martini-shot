@@ -1,0 +1,56 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-07.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-07-fr-FR-dub",
+  "status": "passed",
+  "attempts": 1,
+  "cost_micros": 4849,
+  "error": null,
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T09:05:23.445Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T09:09:47.948Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "agent": {
+      "decision": "accept",
+      "proposal": {},
+      "reason": "The full reference line is spoken clearly and naturally with no truncation, missing words, or artifacts. Overriding deterministic flag.",
+      "confidence": "high",
+      "overridden": true,
+      "agent": "dub_qc",
+      "deterministic_advice": ""
+    },
+    "episode_id": "ep-07",
+    "fit_tempo": 0.405,
+    "script": "La telemetrie fait partie du produit, pas une annexe.",
+    "fit_applied": false,
+    "batch_id": "e3-demo",
+    "shot_id": "shot-ep07-01",
+    "measurements": {
+      "verdict": "flagged",
+      "source_duration_ms": 8000,
+      "dub_duration_ms": 3240,
+      "tolerance_ms": 45,
+      "sync_offset_ms": -4480,
+      "duration_delta_ms": -4760
+    },
+    "alternate_id": "alt-006ce81f203b",
+    "agent_cost_micros": 2809,
+    "artifact_ref": "gs://martini-shot-media/projects/batch/dubs/cyc-e3-demo-ep-07-fr-FR-dub.fr-FR.wav",
+    "re_rendered": false,
+    "language": "fr-FR",
+    "ssml": "<speak>La telemetrie fait partie du produit, pas une annexe.</speak>"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:27:08.581Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

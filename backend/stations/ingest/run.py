@@ -1,6 +1,8 @@
-"""Ingest station: checksum, probe, quarantine (S1 / D-1)."""
+"""Ingest station: checksum, probe, quarantine, then watch the original (S1)."""
 
 from __future__ import annotations
+
+from typing import Any
 
 from backend.core.gcs import GCSMedia
 from backend.core.media import FFmpeg, get_media
@@ -12,8 +14,14 @@ from backend.stations.ingest.classify import classify_payload
 STATION = "ingest"
 
 
-def run_ingest(job: Job, gcs: GCSMedia, media: FFmpeg | None = None) -> Job:
-    """Checksum + probe the first input_ref. Quarantine corrupt or silent files."""
+def run_ingest(
+    job: Job,
+    gcs: GCSMedia,
+    media: FFmpeg | None = None,
+    store: Any | None = None,
+    settings: Any | None = None,
+) -> Job:
+    """Checksum + probe first. Only a healthy clip is watched for words + scene."""
     started = timed()
     outcome = "fail"
     if media is None:
@@ -30,6 +38,7 @@ def run_ingest(job: Job, gcs: GCSMedia, media: FFmpeg | None = None) -> Job:
             job.cost_micros = 0
             verdict, reason, probe = classify_payload(payload, media)
             job.result = {
+                **job.result,
                 "probe": {
                     k: probe[k]
                     for k in (
@@ -41,7 +50,7 @@ def run_ingest(job: Job, gcs: GCSMedia, media: FFmpeg | None = None) -> Job:
                         "height",
                     )
                     if k in probe
-                }
+                },
             }
             if verdict == "quarantined":
                 job.status = "quarantined"
@@ -58,6 +67,26 @@ def run_ingest(job: Job, gcs: GCSMedia, media: FFmpeg | None = None) -> Job:
                     },
                 )
                 return job
+            shot_id = str(job.result.get("shot_id") or "")
+            if settings is not None and store is not None and shot_id:
+                from backend.shots import lifecycle as shots
+                from backend.supervisor.station_agents import ingest_understand as watch
+
+                decision, cost = watch.decide_ingest_understand(
+                    settings, payload, media
+                )
+                job.cost_micros = int(cost)
+                understanding = watch.understanding_doc(decision)
+                understanding["cost_micros"] = int(cost)
+                shots.record_scene_understanding(
+                    store,
+                    shot_id,
+                    spoken_words=str(understanding.get("spoken_words") or ""),
+                    has_speech=bool(understanding.get("has_speech")),
+                    scene=str(understanding.get("scene") or ""),
+                    cost_micros=int(cost),
+                )
+                job.result["scene_understanding"] = understanding
             outcome = "pass"
             log.info(
                 "ingest checksum done",
@@ -67,6 +96,7 @@ def run_ingest(job: Job, gcs: GCSMedia, media: FFmpeg | None = None) -> Job:
                     "project_id": job.project_id,
                     "checksum_sha256": job.checksum_sha256,
                     "bytes": len(payload),
+                    "watched": bool(job.result.get("scene_understanding")),
                 },
             )
             return job

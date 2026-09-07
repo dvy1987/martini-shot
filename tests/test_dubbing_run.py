@@ -184,3 +184,13 @@ def test_dub_tolerance_matches_threshold_gate():
     # The station's default tolerance and the EDD gate (dub_timing MAE
     # ≤45 ms) must tell the same story.
     assert DUB_TOLERANCE_MS == 45
+
+
+def test_dub_station_is_dispatched():
+    """E-3 seeded jobs as station='dub'; the worker must route them."""
+    from backend.stations import run as dispatch
+    from backend.stations.dubbing.run import STATION
+
+    assert STATION == "dub"
+    assert "dub" in dispatch.STATION_NAMES
+    assert dispatch.STATION_NAMES.count("dub") == 1

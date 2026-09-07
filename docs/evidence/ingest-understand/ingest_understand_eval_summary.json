@@ -1,0 +1,43 @@
+{
+  "ingest_transcript_judgment": 0.958,
+  "ingest_scene_judgment": 1.0,
+  "mean_case_accuracy": 0.958,
+  "cost_micros": 75497,
+  "cost_usd": 0.0755,
+  "runs": [
+    {
+      "run": 1,
+      "ingest_transcript_judgment": 1.0,
+      "ingest_scene_judgment": 1.0,
+      "mean_case_accuracy": 1.0,
+      "transcript_hits": 8,
+      "scene_hits": 8,
+      "n": 8,
+      "cost_micros": 25245,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "ingest_transcript_judgment": 1.0,
+      "ingest_scene_judgment": 1.0,
+      "mean_case_accuracy": 1.0,
+      "transcript_hits": 8,
+      "scene_hits": 8,
+      "n": 8,
+      "cost_micros": 25227,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "ingest_transcript_judgment": 0.875,
+      "ingest_scene_judgment": 1.0,
+      "mean_case_accuracy": 0.875,
+      "transcript_hits": 7,
+      "scene_hits": 8,
+      "n": 8,
+      "cost_micros": 25025,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

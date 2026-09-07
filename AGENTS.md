@@ -40,11 +40,17 @@ Canonical backend pattern — every station/job handler conforms:
 ```python
 @tracer.start_as_current_span("station.loudness.run")
 async def run_loudness(job: Job) -> JobResult:
-    with metrics_duration(job.station):            # pc_job_duration_seconds
-        result = await measure(job.input_refs)     # real work, no mocks (C-1.1)
-        job.cost_micros += estimate_cost(result)   # integer micro-units (C-6.4)
-        log.info("loudness done", extra={"job_id": job.id, "station": job.station,
-                                         "project_id": job.project_id})  # C-4.2
+    with metrics_duration(job.station):  # pc_job_duration_seconds
+        result = await measure(job.input_refs)  # real work, no mocks (C-1.1)
+        job.cost_micros += estimate_cost(result)  # integer micro-units (C-6.4)
+        log.info(
+            "loudness done",
+            extra={
+                "job_id": job.id,
+                "station": job.station,
+                "project_id": job.project_id,
+            },
+        )  # C-4.2
     return JobResult(status="pass", cost_micros=job.cost_micros)
 ```
 - ruff format + ruff check; mypy (config in `mypy.ini`). UTC ISO-8601 timestamps; money as integer micro-units (C-6.4).
@@ -66,6 +72,42 @@ async def run_loudness(job: Job) -> JobResult:
 - Every generated clip is an **ALTERNATE** attached to its shot — never silently overwrite a locked cut; add/remove-from-continuity is an approval-tracked action.
 - Model choices are eval decisions: compare candidates (Omni vs Veo etc.) on the same dataset; winner recorded via ADR + JSONL evidence.
 - **Text-LLM standard (owner ruling):** every text-reasoning task (supervisor chains, morning report, suggestions, script alignment, rubric judges) runs on `gemini-3.7-flash` with thinking level HIGH; thought summaries go to logs/traces. Full pinning table: `docs/adr/0002-model-toolchain-pinning.md`; model IDs live only in `backend/core/models.py`.
+
+## Eval footage path (owner ruling 2026-09-07)
+
+**Two different jobs. Do not mix them.**
+
+**In the product:** Omni first. If Omni fails, **fall back to Veo**. That is
+the correct product behavior — the operator still gets a clip. Record
+`render_model`, `omni_fallback`, and `omni_error` on the job. Do not fail
+the operator's job just because Omni refused.
+
+**During development / eval only:** generating a new original clip is how we
+get a fair test tape when Omni refuses a public-domain or third-party clip
+for **ownership / copying / infringement** (`recitation`, third-party
+filter). That generate-new-clip step is **not** product behavior. Do **not**
+declare the feature broken, and do **not** “pass” the eval by swapping in
+color bars, gradient loops, Veo-finished rows, or any clip that lacks the
+defect the feature is supposed to fix.
+
+**Eval path (dev only):**
+1. Generate **new original clips** (Omni/Veo from a written scene) that still
+   have the **requisite deficits** — the real problem under test (e.g. a café
+   sign that must be rewritten, a shot that must keep rolling, a cup that
+   must be removed, a lighting look that must change).
+2. Run the live eval on those clips **with Omni**. If Omni fails, **stop and
+   tell the owner**. Do not call a Veo fallback an Omni pass.
+3. Use eval-driven development: dataset + numeric threshold, prompt/pipeline
+   fixes, re-run until the Omni bar passes. Archive JSONL under `docs/evidence/`.
+
+**Mandatory disclosure during development:** if Omni fails and Veo succeeds
+on the same eval row, **tell the owner immediately**, in plain language,
+with the clip, the Omni error, and that Veo finished it. Never report that
+as an “Omni pass.” A quiet eval fallback could hide a systemic Omni outage.
+The product may still use Veo so the operator is not stuck.
+
+C-7.2 still applies (print cost; `--yes` above $5). Labeled INPUT under
+`fixtures/` remains allowed (C-1.3) only when it actually carries the deficit.
 
 ## Boundaries
 

@@ -52,6 +52,7 @@ PROPOSE_ONLY = "propose_only"
 # transaction so concurrent cycles can never both pass the same check and
 # double-spend the envelope.
 RESERVATION_COL = "pc-budget-reservations"
+DAILY_RESERVATION_COL = "pc-daily-budget-reservations"
 
 
 class _EnvelopeExceeded(Exception):
@@ -94,6 +95,70 @@ def reserve_envelope(
         return True
     except _EnvelopeExceeded:
         return False
+
+
+def _daily_reservation_id(project_id: str, now: datetime) -> str:
+    return f"{project_id}:{_night_key(now)}"
+
+
+def reserve_daily_cap(
+    store: Any,
+    *,
+    project_id: str,
+    cost: int,
+    daily_cap: int,
+    base_spent: int,
+    collection: str = DAILY_RESERVATION_COL,
+    now: datetime | None = None,
+) -> bool:
+    """Atomically admit a cost against the project's daily house cap.
+
+    Completed project spend is the immutable baseline for this admission;
+    in-flight autonomy work is represented by the transactional reservation
+    ledger. This closes the race between concurrent budgeted cycles.
+    """
+    now = now or datetime.now(timezone.utc)
+    reservation_id = _daily_reservation_id(project_id, now)
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        reserved = int(doc.get("reserved_micros") or 0)
+        if base_spent + reserved + cost > daily_cap:
+            raise _EnvelopeExceeded
+        return {
+            "project_id": project_id,
+            "day": _night_key(now),
+            "reserved_micros": reserved + cost,
+            "updated_at": utc_now_iso(),
+        }
+
+    try:
+        store.transactional_update(collection, reservation_id, mutate)
+        return True
+    except _EnvelopeExceeded:
+        return False
+
+
+def reconcile_daily_cap_reservation(
+    store: Any,
+    *,
+    project_id: str,
+    delta: int,
+    collection: str = DAILY_RESERVATION_COL,
+    now: datetime | None = None,
+) -> None:
+    """Refund or book the difference between a daily reservation and cost."""
+    now = now or datetime.now(timezone.utc)
+    reservation_id = _daily_reservation_id(project_id, now)
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "project_id": project_id,
+            "day": _night_key(now),
+            "reserved_micros": max(0, int(doc.get("reserved_micros") or 0) + delta),
+            "updated_at": utc_now_iso(),
+        }
+
+    store.transactional_update(collection, reservation_id, mutate)
 
 
 def reconcile_reservation(
@@ -245,6 +310,7 @@ def run_budgeted_dispatch(
     annotator: Any | None = None,
     now: datetime | None = None,
     reservation_collection: str = RESERVATION_COL,
+    daily_reservation_collection: str = DAILY_RESERVATION_COL,
     actionable: bool = True,
 ) -> dict[str, Any]:
     """Dispatch ranked candidates down the list through H-0 until the
@@ -342,7 +408,15 @@ def run_budgeted_dispatch(
                 }
             )
             continue
-        if daily_cap > 0 and house_spent + cost > daily_cap:
+        if daily_cap > 0 and not reserve_daily_cap(
+            store,
+            project_id=project_id,
+            cost=cost,
+            daily_cap=daily_cap,
+            base_spent=house_spent,
+            collection=daily_reservation_collection,
+            now=now,
+        ):
             decisions.append(
                 {
                     **base,
@@ -360,6 +434,14 @@ def run_budgeted_dispatch(
             collection=reservation_collection,
             now=now,
         ):
+            if daily_cap > 0:
+                reconcile_daily_cap_reservation(
+                    store,
+                    project_id=project_id,
+                    delta=-cost,
+                    collection=daily_reservation_collection,
+                    now=now,
+                )
             decisions.append(
                 {
                     **base,
@@ -401,6 +483,14 @@ def run_budgeted_dispatch(
             collection=reservation_collection,
             now=now,
         )
+        if daily_cap > 0:
+            reconcile_daily_cap_reservation(
+                store,
+                project_id=project_id,
+                delta=actual - cost,
+                collection=daily_reservation_collection,
+                now=now,
+            )
         spent += actual
         house_spent += actual
         decisions.append(
@@ -487,6 +577,7 @@ async def run_budgeted_cycle(
     gate_collection: str | None = None,
     specialists: Any | None = None,
     verifier: Any | None = None,
+    synthesizer: Any | None = None,
     annotator: Any | None = None,
     now: datetime | None = None,
     cycle_id: str | None = None,
@@ -517,6 +608,7 @@ async def run_budgeted_cycle(
         deliberation_col=deliberation_col,
         specialists=specialists,
         verifier=verifier,
+        synthesizer=synthesizer,
         annotator=annotator,
         propose=False,
         cycle_id=cycle_id,

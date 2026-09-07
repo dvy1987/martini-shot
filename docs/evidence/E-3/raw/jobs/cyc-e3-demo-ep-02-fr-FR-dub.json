@@ -1,0 +1,56 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-02.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-02-fr-FR-dub",
+  "status": "passed",
+  "attempts": 1,
+  "cost_micros": 5519,
+  "error": null,
+  "created_at": "2026-09-07T03:43:26.478Z",
+  "updated_at": "2026-09-07T08:34:19.499Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T08:38:10.139Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "agent": {
+      "decision": "accept",
+      "proposal": {},
+      "reason": "The line is spoken clearly and completely, matching the reference text in full with no truncation or artifacts. Overriding the deterministic flag as the rendered dub itself is clean.",
+      "confidence": "high",
+      "overridden": true,
+      "agent": "dub_qc",
+      "deterministic_advice": ""
+    },
+    "episode_id": "ep-02",
+    "fit_tempo": 0.445,
+    "script": "La scene trois a besoin d'une prise supplementaire avant le montage.",
+    "fit_applied": false,
+    "batch_id": "e3-demo",
+    "shot_id": "shot-ep02-01",
+    "measurements": {
+      "verdict": "flagged",
+      "source_duration_ms": 8000,
+      "dub_duration_ms": 3560,
+      "tolerance_ms": 45,
+      "sync_offset_ms": -4280,
+      "duration_delta_ms": -4440
+    },
+    "alternate_id": "alt-bac69bfaa19c",
+    "agent_cost_micros": 3029,
+    "artifact_ref": "gs://martini-shot-media/projects/batch/dubs/cyc-e3-demo-ep-02-fr-FR-dub.fr-FR.wav",
+    "re_rendered": false,
+    "language": "fr-FR",
+    "ssml": "<speak>La scene trois a besoin d'une prise supplementaire avant le montage.</speak>"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:25:25.130Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

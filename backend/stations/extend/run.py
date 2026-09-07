@@ -39,6 +39,10 @@ def draft_qc_decision(flicker: float) -> str:
     return "pass" if flicker < FLICKER_GATE else "needs_human"
 
 
+def resolution_for_tier(tier: str) -> str:
+    return "720p" if tier == "master" else "360p"
+
+
 def run_extend(
     job: Job, gcs: GCSMedia, store: FirestoreStore, settings: Settings
 ) -> Job:
@@ -61,20 +65,29 @@ def run_extend(
                 or build_extend_prompt(str(job.result.get("shot_title") or shot_id))
             )
 
-            # Omni primary, Veo fallback (decision log 2026-09-04): a
-            # service-side refusal on Omni (e.g. the 2026-09-04 recitation
-            # wave) degrades to a real Veo render rather than failing the
-            # job. Which model rendered is recorded on the job and the
-            # alternate's evidence trail.
+            # Product (owner 2026-09-07): Omni first; if Omni fails, Veo
+            # fallback is the correct operator behavior. Record
+            # omni_fallback + omni_error so evals/dev can still see an Omni
+            # miss and must not count this as an Omni pass.
+            omni_fallback = False
+            omni_error_text = ""
             try:
                 render = omni_extend(settings, input_uri=source_uri, prompt=prompt)
                 render_model = str(render.get("model") or OMNI_MODEL)
             except Exception as omni_error:
+                omni_fallback = True
+                omni_error_text = (
+                    f"{type(omni_error).__name__}: {str(omni_error)[:240]}"
+                )
                 log.warning(
-                    "omni extend unavailable (%s: %s); falling back to Veo",
-                    type(omni_error).__name__,
-                    str(omni_error)[:160],
-                    extra={"job_id": job.id, "station": STATION},
+                    "OMNI FAILED, VEO FALLBACK: %s",
+                    omni_error_text,
+                    extra={
+                        "job_id": job.id,
+                        "station": STATION,
+                        "project_id": job.project_id,
+                        "omni_fallback": True,
+                    },
                 )
                 render = veo_extend(settings, input_uri=source_uri, prompt=prompt)
                 render_model = str(render.get("model") or VEO_MODEL)
@@ -95,6 +108,8 @@ def run_extend(
                 tmp.unlink(missing_ok=True)
             flicker = float(score.get("flicker_score") or 1.0)
             decision = draft_qc_decision(flicker)
+            tier = str(job.result.get("tier") or "draft")
+            resolution = resolution_for_tier(tier)
 
             # The render is an ALTERNATE attached to its shot (AL-1) — a
             # breached draft is still recorded, flagged needs_human, so the
@@ -107,22 +122,26 @@ def run_extend(
                 op="extend",
                 artifact_ref=artifact_ref,
                 eval_scores={"flicker": flicker},
+                tier=tier,
             )
 
-            # Draft-tier cost estimate (C-6.4/C-7.1): Vertex bills per output
-            # second at 720p; cap at the 7s extend window.
             analyzed_s = float(score.get("frames_analyzed") or 0) / 8.0
-            job.cost_micros = estimate_extend_cost_micros(min(7.0, analyzed_s) or 7.0)
+            job.cost_micros = estimate_extend_cost_micros(
+                min(7.0, analyzed_s) or 7.0, resolution=resolution
+            )
             job.result = {
                 **job.result,
                 "alternate_id": alternate_id,
                 "artifact_ref": artifact_ref,
                 "render_model": render_model,
+                "omni_fallback": omni_fallback,
+                "omni_error": omni_error_text,
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
                 "qc_decision": decision,
                 "interaction_id": render.get("interaction_id"),
                 "prompt": prompt,
+                "tier": tier,
             }
             if decision != "pass":
                 job.status = "needs_human"
@@ -140,6 +159,9 @@ def run_extend(
                     "alternate_id": alternate_id,
                     "flicker": flicker,
                     "qc_decision": decision,
+                    "render_model": render_model,
+                    "omni_fallback": omni_fallback,
+                    "tier": tier,
                 },
             )
             return job

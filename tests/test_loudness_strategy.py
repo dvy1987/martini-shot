@@ -86,6 +86,30 @@ def test_parse_valid_decision() -> None:
     assert decision.decision == "apply_limiter"
 
 
+def test_parse_will_not_accept_an_explosion_sitting_at_talk_level() -> None:
+    """Live miss scene-05: classified explosion but accepted because -16
+    matched the old TV target. A bang at talk level must be mixed louder."""
+    bang = {
+        **REPORT,
+        "lufs_integrated": -16.0,
+        "verdict_streaming": "pass",
+        "stem_diagnosis": "balanced",
+    }
+    text = json.dumps(
+        {
+            "agent": "loudness_strategy",
+            "decision": "accept",
+            "streaming_route": "accept",
+            "broadcast_route": "block",
+            "scene_class": "explosion",
+            "target_lufs": -9.0,
+            "reason": "integrated matches streaming -16",
+            "confidence": "high",
+        }
+    )
+    assert parse_strategy_decision(text, bang).decision == "apply_limiter"
+
+
 def test_parse_tolerates_fences() -> None:
     text = (
         "```json\n"

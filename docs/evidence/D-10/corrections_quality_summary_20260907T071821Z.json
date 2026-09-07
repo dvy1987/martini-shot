@@ -1,0 +1,10 @@
+{
+  "suite": "corrections_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 1.0,
+  "max_output_flicker": 1.0,
+  "n": 3,
+  "renders_completed": 0,
+  "pass": false
+}

@@ -131,8 +131,15 @@ export interface Alternate {
   op?: string | null;
   artifact_ref?: string | null;
   eval_scores?: Record<string, number> | null;
+  tier?: "draft" | "master" | string | null;
   status?: "draft" | "continuity" | "retired" | (string & {}) | null;
   created_at?: string | null;
+}
+
+export interface SceneUnderstanding {
+  spoken_words?: string | null;
+  has_speech?: boolean | null;
+  scene?: string | null;
 }
 
 /** Row of GET /api/v1/projects/{id}/shots (alternates embedded). */
@@ -143,6 +150,7 @@ export interface ShotRow {
   locked_by?: string | null;
   current_alternate_id?: string | null;
   created_at?: string | null;
+  scene_understanding?: SceneUnderstanding | null;
   alternates: Alternate[];
 }
 
@@ -151,4 +159,43 @@ export interface AlternateMedia {
   alternate_id: string;
   url: string;
   expires_in_minutes: number;
+}
+
+export type InspectImpact = "none" | "low" | "medium" | "high";
+export type InspectKind = "none" | "defect" | "improvement";
+export type InspectStatus = "empty" | "ok" | "needs_work";
+
+export interface InspectNote {
+  station: string;
+  agent: string;
+  status: InspectStatus;
+  impact: InspectImpact;
+  kind: InspectKind;
+  summary: string;
+  cost_estimate_micros: number;
+  shot_id?: string;
+}
+
+export interface WorklistItem {
+  id: string;
+  station: string;
+  status: string;
+  impact?: InspectImpact;
+  kind?: InspectKind;
+  summary?: string;
+  job_id?: string;
+  shot_id?: string;
+  blocked_by?: string[];
+}
+
+export interface Worklist {
+  project_id: string;
+  budget_micros: number;
+  spent_micros: number;
+  status: string;
+  attendance: InspectNote[];
+  items: WorklistItem[];
+  final_refs: string[];
+  original_refs: string[];
+  rank_reason?: string;
 }

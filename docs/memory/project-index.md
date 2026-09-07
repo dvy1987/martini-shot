@@ -1,7 +1,14 @@
 # Project Memory Index
 
-| Date | Type | File | Status | Tags | Summary |
-|---|---|---|---|---|---|
+| 2026-09-07 17:40 | handoff | agent-handoffs.md#2026-09-07-17:40 | current | ingest, captions, loudness, edd | Ingest watches original tape onto shot metadata; live eval green; owner commit+push |
+| 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-1738 | current | d-9, omni, stage-1a, coverage | D-9 Omni 6/6 draft+master PASS; Stage 1a stations in tree; make check blocked on 74% coverage |
+| 2026-09-07 | state | current-state.md | current | d-9, stage-1a | D-9 live Omni EDD green; CI-lite coverage gap remains |
+| 2026-09-07 | decision | decision-log.md (scene-aware loudness) | current | loudness, scene-class, dub, e-3 | Hear the dub, classify scene (whisper through explosion), mix, re-measure; not a single −16 for every clip |
+| 2026-09-07 | decision | decision-log.md (product Veo vs eval clips) | current | omni, veo, product, edd | Product: Omni then Veo fallback. Eval/dev only: generate original clips if Omni refuses PD tape; Veo-finished eval ≠ Omni pass |
+| 2026-09-07 | decision | decision-log.md (Omni-fail disclosure) | superseded | omni, veo, edd | Replaced by product-vs-eval split: Veo fallback remains correct in product |
+| 2026-09-07 | decision | decision-log.md (eval footage path) | current | edd, omni, fixtures | If PD clips fail Omni for ownership/infringement: generate original clips that still have the defect, then EDD; no gradient stand-ins; stop if Omni cannot be called |
+| 2026-09-07 | decision | decision-log.md (one-feature EDD) | current | stage-1a, edd, sequencing | Owner: finish D-10 live EDD end-to-end before starting E-1 or any other Stage 1a feature |
+| 2026-09-07 | decision+plan | decision-log.md (A11), ../plans/2026-08-26-post-command-plan.md | current | stage-1a, demo, agents, edd, ux | Stage 1 plus full non-stretch Stage 1a is the demo; six separate domain agents with agent-assisted + manual UX paths; G3/G3a integrated gates; $100 eval/demo envelope |
 | 2026-09-06 | spec+plan+decision | ../specs/2026-09-06-agentic-stations-design.md + decision-log.md (A10) + ../adr/0004-dub-timefit-and-agentic-qc.md | current | a10, agentic-stations, dub-qc, orchestrator, edd | A10 approved: 8 bespoke station agents + batch orchestrator; StationDecision contract; A10-1 Dub QC DONE (eval green, docs/evidence/E-2); task rows A10-1..A10-4 in tasks plan |
 | 2026-09-06 | handoff | agent-handoffs.md#2026-09-06 | current | e2, dub, atempo, fr03-lessons | E-2 dub station agentic + eval green; load-bearing lessons (atempo, truncation mutation, reference script, WAV streaming headers) |
 | 2026-09-03 | plan+decision | ../plans/2026-09-03-multiagent-supervisor-plan.md + decision-log.md (A9) | current | architecture, multi-agent, h1, h0b | Supervisor → hierarchical specialist team (Investigator/QC/Spend Guardian/Verifier); H-0b amended in place, not rewritten; H-1 moved+expanded into H-1a..H-1g |

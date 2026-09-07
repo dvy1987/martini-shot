@@ -1,5 +1,67 @@
 # Agent Handoffs
 
+## 2026-09-07 17:40 - Ingest watches the original; owner asked commit+push
+
+### Done
+- **Ingest understand (live EDD):** after file-open/not-corrupt, Gemini watches the original clip and stamps `scene_understanding` on `pc-shots` (`spoken_words`, `has_speech`, `scene`). Orchestrator, loudness, and delivery read it. Captions use spoken words when no typed line. Live 8×3: transcript **0.958**, scene **1.00**, $0.08. Evidence `docs/evidence/ingest-understand/`.
+- Quiet speech vs silence: captions ping loudness retry only when there is speech under −23 LUFS; no spoken words is not a mix miss.
+- Scene-aware loudness + caption writer were already in this dirty tree; ingest watch is the missing first listen of the original tape.
+
+### Debated
+- Typed batch lines vs real footage: owner ruled almost no clip arrives with a script. Ingest watch is the source of truth.
+
+### Decisions
+- File check first; never watch a quarantined file. Metadata lives on the shot, not only on a job.
+
+### Deferred
+- Dubbing from ingest transcript (still needs a line/SSML to speak). Repair of bad original audio (wind, dropouts) — still not in scope.
+- `make check` coverage still short (see prior 17:38 handoff).
+
+### Next Agent Should Know
+- Ingest Gemini watch runs only when `shot_id` is on the job (batch path). G1 ingest without a shot still file-checks only.
+- Live eval: `.venv\Scripts\python.exe scripts\ingest_understand_eval.py` (C-7.2 print; `--yes` over $5).
+- Owner asked this session to commit **and push** the full dirty tree (Stage 1a + ingest + mix/captions).
+
+### Revisit Triggers
+- Ingest watch invents dialogue on silence → hard gate + known-bad eval row already exist; tighten prompt only on a real miss.
+- Coverage <90% → do not call CI-lite done.
+
+### Working Tree
+- Committing full uncommitted Stage 1a + ingest-understand tree per owner.
+
+## 2026-09-07 17:38 - D-9 Omni draft+master live; Stage 1a stations in tree; check not green
+
+### Done
+- **D-9 live Omni EDD PASS:** 3 original shots (kitchen cooks, florist tulips, café sign) × 360p draft then 720p master = **6/6 Omni**, `omni_render_rate` 1.0, mean flicker 0.0052 < 0.02, ~$2.80. Evidence `docs/evidence/D-9/extend_omni_station_20260907T091031Z.json`. Florist frames watched (`frames/florist-*.jpg`).
+- Draft vs master wired: station `resolution_for_tier`, H-0 `extend_shot` enqueues `tier=draft`, `render_master` `mst-ext-*` `tier=master`. Alternates API returns `tier`. Extend button in AlternatesLane (Vitest 8/8).
+- Omni HTTP timeout fix: `_omni_client` uses httpx (not google-auth 120s cap) + 3× transport retries. Product Veo fallback stays; eval fails Veo/`omni_fallback`.
+- Scene loudness: silent G1 slate is unmeterable (`-inf` LUFS) — skip mix; `apply_loudnorm` refuses inf measure (AAC NaN). Lock-route test expects `tier`.
+- Also in this tree (prior same-day work, uncommitted until now): Stage 1a stations (corrections, coverage, camera language, relight, revision, caption write, draft-first), finishing loop/inspect/rank, ingest-understand, E-3 raw job JSONs.
+
+### Debated
+- Veo product fallback vs Omni eval bar: owner split stands (decision-log product-vs-eval). Do not treat a Veo-finished eval row as an Omni pass.
+
+### Decisions
+- Product: Omni first, Veo if Omni fails. Eval: original clips if Omni refuses PD tape; stop and tell the owner if Omni cannot be called. See decision-log 2026-09-07.
+
+### Deferred
+- **`make check` coverage 74% vs 90%.** Two previously failing tests now pass in isolation; full suite ~47 min (real GCP). Untested Stage 1a modules (caption_write/continuity/creative_finishing/visual_qc station agents, inspect/rank, relight run) drop the bar. `make` is not on Windows PATH — run Makefile targets via `.venv\Scripts\python.exe`.
+
+### Next Agent Should Know
+- Always `.venv\Scripts\python.exe`. Live eval: `scripts/extend_eval.py` (sources already on GCS; do not regenerate). C-7.2 printed $2.80.
+- FE Extend: `proposeExtend` / `proposeMaster`; do not eat `getSettings()` when adding endpoints.
+- Next: coverage tests on 0% modules (patterns in `tests/test_station_agents.py`) then re-run lint/mypy/pytest-cov/eval-check/integrity/harness-check.
+
+### Revisit Triggers
+- Omni recitation on a public-domain clip → generate original tape with the real deficit; never pass on Veo or gradients.
+- Coverage still <90% → do not declare the CI-lite gate done.
+
+### Working Tree
+- Dirty Stage 1a + D-9 + finishing work committing with this handoff.
+
+### Graph
+- `build_graph.py --incremental` hung with no output (~100s); killed so commit/push is not blocked. Re-run later if GRAPH_INDEX.md looks stale.
+
 ## 2026-09-07 (late, session 2) - Stage 1a agents COMPLETE (live EDD); A1 done; E-3 run unblocked
 
 ### Done

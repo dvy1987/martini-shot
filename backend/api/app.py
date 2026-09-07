@@ -202,6 +202,62 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
                 machine=machine,
                 annotator=_grafana_annotator(cfg),
             )
+            if job.station == "ingest" and job.status == "passed":
+                from backend.supervisor.worklist import load_worklist
+
+                waiting = load_worklist(store, job.project_id)
+                if waiting and str(waiting.get("status") or "") == "waiting_for_ingest":
+                    from backend.api.finish import _finish_once
+
+                    try:
+                        _finish_once(
+                            settings=cfg,
+                            store=store,
+                            queue=app.state.queue,
+                            hub=hub,
+                            project_id=job.project_id,
+                            budget_micros=int(
+                                waiting.get("budget_micros") or 50_000_000
+                            ),
+                        )
+                    except Exception:
+                        import logging as _logging
+
+                        _logging.getLogger("pc.finish").exception(
+                            "resume finishing after ingest failed"
+                        )
+                    return
+            try:
+                from backend.supervisor.finishing_loop import (
+                    on_finishing_terminal,
+                    refresh_final_refs,
+                )
+                from backend.supervisor.worklist import load_worklist, save_worklist
+
+                doc = load_worklist(store, job.project_id)
+                if doc and any(
+                    str(item.get("job_id") or "") == job.id
+                    or str((job.result or {}).get("worklist_item") or "")
+                    == str(item.get("id") or "")
+                    for item in (doc.get("items") or [])
+                ):
+                    updated = on_finishing_terminal(
+                        doc,
+                        job,
+                        queue=app.state.queue,
+                        project_id=job.project_id,
+                    )
+                    refresh_final_refs(updated, store)
+                    save_worklist(store, job.project_id, updated)
+                    hub.publish(
+                        job.project_id, "worklist.updated", {"worklist": updated}
+                    )
+            except Exception:
+                import logging as _logging
+
+                _logging.getLogger("pc.finish").exception(
+                    "finishing terminal tick failed job=%s", getattr(job, "id", "")
+                )
 
     await worker_loop(
         app.state.queue,

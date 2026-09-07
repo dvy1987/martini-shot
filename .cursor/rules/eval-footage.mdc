@@ -1,0 +1,21 @@
+---
+description: Product Veo fallback vs eval-only original-clip generation
+alwaysApply: true
+---
+
+# Omni vs Veo (owner ruling 2026-09-07)
+
+**Product:** Omni first. If Omni fails, fall back to Veo. That is the
+correct product behavior. Record `render_model`, `omni_fallback`, and
+`omni_error`. Do not leave the operator with nothing.
+
+**Development / eval only:** if Omni refuses a public-domain clip for
+ownership / infringement (`recitation`), generate **new original clips**
+that still have the **requisite deficits**, then live-EDD on Omni.
+Generating a new clip is **not** what the product does for the operator.
+
+Do **not** pass an eval with gradients or with Veo-finished rows counted
+as Omni. If Omni fails and Veo succeeds during development, **tell the
+owner immediately**. Never call that an Omni pass.
+
+Full text: root `AGENTS.md` section “Eval footage path”.

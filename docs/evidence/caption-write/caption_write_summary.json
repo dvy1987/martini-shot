@@ -1,0 +1,37 @@
+{
+  "suite": "caption_write_judgment",
+  "runs": 3,
+  "gate": {
+    "threshold": 0.8,
+    "comparison": ">="
+  },
+  "per_run": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 0.875,
+      "hits": 7,
+      "n": 8,
+      "cost_micros": 39526,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.875,
+      "hits": 7,
+      "n": 8,
+      "cost_micros": 33646,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.875,
+      "hits": 7,
+      "n": 8,
+      "cost_micros": 32403,
+      "pass": true
+    }
+  ],
+  "cost_micros": 105575,
+  "cost_usd": 0.1056,
+  "pass": true
+}

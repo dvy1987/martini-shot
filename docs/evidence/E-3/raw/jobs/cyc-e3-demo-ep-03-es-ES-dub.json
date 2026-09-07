@@ -1,0 +1,56 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-03.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-03-es-ES-dub",
+  "status": "passed",
+  "attempts": 1,
+  "cost_micros": 4051,
+  "error": null,
+  "created_at": "2026-09-07T03:43:26.478Z",
+  "updated_at": "2026-09-07T08:38:39.517Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T08:42:19.758Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "agent": {
+      "decision": "accept",
+      "proposal": {},
+      "reason": "The dub accurately delivers the complete reference sentence clearly without truncation or disruptive audio artifacts.",
+      "confidence": "high",
+      "overridden": false,
+      "agent": "dub_qc",
+      "deterministic_advice": ""
+    },
+    "episode_id": "ep-03",
+    "fit_tempo": 0.505,
+    "script": "El control de gasto ha pausado la ingestione temporalmente.",
+    "fit_applied": true,
+    "batch_id": "e3-demo",
+    "shot_id": "shot-ep03-01",
+    "measurements": {
+      "verdict": "pass",
+      "source_duration_ms": 8000,
+      "dub_duration_ms": 7969,
+      "tolerance_ms": 45,
+      "sync_offset_ms": -3100,
+      "duration_delta_ms": -31
+    },
+    "alternate_id": "alt-af0d730708d6",
+    "agent_cost_micros": 1831,
+    "artifact_ref": "gs://martini-shot-media/projects/batch/dubs/cyc-e3-demo-ep-03-es-ES-dub.es-ES.wav",
+    "re_rendered": false,
+    "language": "es-ES",
+    "ssml": "<speak>El control de gasto ha pausado la ingestione temporalmente.</speak>"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:25:49.403Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

@@ -1,16 +1,13 @@
-"""Loudness Strategist station agent (A10-3): reads the deterministic
-loudness measurements and decides the remediation path — accept /
-fix_stem / apply_limiter / needs_human — plus per-profile routing.
+"""Loudness Strategist station agent (A10-3 + scene-aware mix).
 
-There is no numeric gate to override here (design decision 2): the LUFS
-number IS the number. The agent owns the RESPONSE: which fix path, and
-which delivery profiles may take this master now (routing), including the
-season-coherence view (sibling-episode levels).
+Reads the deterministic meter AND listens to the audio. It does not
+override the LUFS number — it chooses WHICH number this scene should
+hit (whisper quieter than talk; an explosion or a crash of pans louder),
+then the station applies the mix and re-measures.
 
 Deterministic surface (no LLM): suggestion mapping, prompt construction
-and response parsing are unit-tested; the real judgment behavior is gated
-by the live EDD eval (scripts/loudness_strategy_eval.py vs
-loudness_strategy_judgment, bar >= 0.8)."""
+and response parsing are unit-tested; judgment is gated by live EDD
+(loudness_strategy_judgment + scene_loudness_judgment)."""
 
 from __future__ import annotations
 
@@ -25,6 +22,14 @@ from backend.supervisor.station_agents.base import (
 AGENT = "loudness_strategy"
 DECISIONS = ("accept", "fix_stem", "apply_limiter", "needs_human")
 STEM_DIAGNOSES = ("balanced", "dialogue_hot", "music_hot", "unknown")
+SCENE_CLASSES = (
+    "silence",
+    "whisper",
+    "dialogue",
+    "shout",
+    "impact",
+    "explosion",
+)
 
 SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -36,6 +41,11 @@ SCHEMA: dict[str, Any] = {
         },
         "streaming_route": {"type": "string", "enum": ["accept", "block"]},
         "broadcast_route": {"type": "string", "enum": ["accept", "block"]},
+        "scene_class": {
+            "type": "string",
+            "enum": list(SCENE_CLASSES),
+        },
+        "target_lufs": {"type": "number"},
         "reason": {"type": "string"},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
     },
@@ -44,6 +54,8 @@ SCHEMA: dict[str, Any] = {
         "decision",
         "streaming_route",
         "broadcast_route",
+        "scene_class",
+        "target_lufs",
         "reason",
         "confidence",
     ],
@@ -74,21 +86,37 @@ def season_lines(season_state: list[dict[str, Any]]) -> str:
 
 
 def build_prompt(report: dict[str, Any], season_state: list[dict[str, Any]]) -> str:
-    """The prompt carries the deterministic measurements, the season view,
-    and the two decision rules: stem-imbalance-first, and season coherence
-    (align an outlier episode instead of shipping it)."""
+    """Measurements + season + listen instruction. Scene class is not only
+    whisper: crashes, explosions, shouts, and silence all get their own
+    target. The station will mix toward target_lufs and re-measure."""
+    notes = str(report.get("scene_notes") or report.get("audio_kind") or "")
     return (
-        "You are the Loudness Strategist agent for Martini Shot. The "
-        "deterministic meter (ffmpeg ebur128) measured this episode; "
-        "decide the remediation path and the delivery routing.\n\n"
+        "You are the Loudness Strategist agent for Martini Shot. LISTEN to "
+        "the attached audio (when present) and read the deterministic meter "
+        "(ffmpeg ebur128). Pick the scene-appropriate loudness — not a "
+        "single TV-loud number for every clip.\n\n"
+        "Scene classes (choose exactly one):\n"
+        "- silence: room tone / empty bed. Stay quiet; do NOT pump to "
+        "dialogue level.\n"
+        "- whisper: intimate quiet speech. Quieter than talk, still easy "
+        "to hear (never bury the line).\n"
+        "- dialogue: normal talk. Show baseline (~-16 LUFS streaming).\n"
+        "- shout: raised voice, still speech.\n"
+        "- impact: sudden disruption — pots and pans falling, a crash, a "
+        "slam, a scare. Louder than talk.\n"
+        "- explosion: blast / boom. Loudest class; still peak-limited.\n\n"
         "Deterministic measurements (this episode):\n"
         f"- job: {report.get('job_id')}\n"
         f"- episode: {report.get('episode_id')}\n"
+        f"- audio kind: {report.get('audio_kind') or 'unknown'} "
+        f"(prefer the dub, not the picture soundtrack)\n"
+        f"- scene notes: {notes or '(none)'}\n"
         f"- integrated: {report.get('lufs_integrated')} LUFS "
-        "(streaming target -16.0 ±1 LU, broadcast target -24.0 ±1 LU)\n"
+        "(dialogue/streaming anchor -16.0 ±1 LU, broadcast -24.0 ±1 LU; "
+        "THIS clip's target depends on scene_class)\n"
         f"- true peak: {report.get('true_peak_dbtp')} dBTP (ceiling -1.0)\n"
-        f"- streaming verdict: {report.get('verdict_streaming')}\n"
-        f"- broadcast verdict: {report.get('verdict_broadcast')}\n"
+        f"- streaming verdict vs -16: {report.get('verdict_streaming')}\n"
+        f"- broadcast verdict vs -24: {report.get('verdict_broadcast')}\n"
         f"- stem diagnosis: {report.get('stem_diagnosis')} "
         "(vocabulary: balanced|dialogue_hot|music_hot|unknown; dialogue "
         "band 300-3000 Hz vs music band 4-12 kHz; |gap| > 3 LU = "
@@ -103,12 +131,19 @@ def build_prompt(report: dict[str, Any], season_state: list[dict[str, Any]]) -> 
         "2. True-peak over -1.0 dBTP with sane integrated level = a "
         "transparent peak-limit pass (apply_limiter), not a loudness "
         "change.\n"
-        "3. Season coherence: if the episode passes its target but sits "
-        "clearly away (>1.5 LU) from the sibling median, align it "
-        "(apply_limiter toward the season level); a season whose episodes "
-        "jump level feels broken even if each passes in isolation.\n"
+        "3. Season coherence: speech classes (whisper/dialogue/shout/"
+        "silence) should sit in one family with siblings; impacts and "
+        "explosions MAY be louder than the season median — that is "
+        "correct, do not squash a bang to match a talky episode.\n"
         "4. If the meter produced nothing (meter_error), choose "
-        "needs_human — you cannot fix what cannot be measured.\n\n"
+        "needs_human — you cannot fix what cannot be measured.\n"
+        "5. If the clip is the wrong LEVEL for its scene (a whisper as "
+        "loud as a shout, an explosion as quiet as talk, dialogue too "
+        "quiet to hear), choose apply_limiter so the station MIXES toward "
+        "your target_lufs. Whisper is only one example.\n"
+        "6. Set target_lufs to the integrated level this scene should "
+        "hit. Speech must stay audible (do not target below -23 LUFS for "
+        "whisper/dialogue/shout).\n\n"
         "Routing: set streaming_route / broadcast_route to accept only if "
         "that profile is currently satisfiable; a profile whose verdict "
         "fails and whose failure your decision would not fix must be "
@@ -117,8 +152,9 @@ def build_prompt(report: dict[str, Any], season_state: list[dict[str, Any]]) -> 
         'Respond ONLY with JSON: {"agent": "loudness_strategy", '
         '"decision": "accept|fix_stem|apply_limiter|needs_human", '
         '"streaming_route": "accept|block", "broadcast_route": '
-        '"accept|block", "reason": "...", "confidence": '
-        '"low|medium|high"}.'
+        '"accept|block", "scene_class": "silence|whisper|dialogue|shout|'
+        'impact|explosion", "target_lufs": -16.0, "reason": "...", '
+        '"confidence": "low|medium|high"}.'
     )
 
 
@@ -131,6 +167,8 @@ def parse_strategy_decision(text: str, report: dict[str, Any]) -> StationDecisio
         if start >= 0 and end > start:
             stripped = stripped[start : end + 1]
     payload = json.loads(stripped)
+    if isinstance(payload, dict):
+        payload = _coerce_event_at_talk_level(payload, report)
     return validate_station_decision(
         payload,
         agent=AGENT,
@@ -139,25 +177,56 @@ def parse_strategy_decision(text: str, report: dict[str, Any]) -> StationDecisio
     )
 
 
+def _coerce_event_at_talk_level(
+    payload: dict[str, Any], report: dict[str, Any]
+) -> dict[str, Any]:
+    """Hard gate (live miss scene-05): a bang sitting at the dialogue
+    number is not an accept. Streaming -16 is the talk anchor, not the
+    explosion's target."""
+    scene = str(payload.get("scene_class") or "")
+    if scene not in {"impact", "explosion"}:
+        return payload
+    if str(payload.get("decision") or "") != "accept":
+        return payload
+    if report.get("stem_diagnosis") in ("dialogue_hot", "music_hot"):
+        return payload
+    streaming = str(report.get("verdict_streaming") or "")
+    if streaming == "pass":
+        return {**payload, "decision": "apply_limiter"}
+    return payload
+
+
 def decide_loudness_strategy(
     settings: Any,
     *,
     report: dict[str, Any],
     season_state: list[dict[str, Any]],
+    audio: tuple[bytes, str] | None = None,
 ) -> tuple[StationDecision, int]:
     """THE real loudness strategy judgment: one metered Gemini call over
-    the measurements plus the season state, validated against the
-    StationDecision contract. Returns (decision, cost_micros) — the caller
-    folds the cost into the job (C-6.4). Raises on any API/validation
-    error (C-1.1)."""
+    the measurements plus the season state, listening when audio is
+    attached. Returns (decision, cost_micros). Raises on any
+    API/validation error (C-1.1)."""
     from backend.supervisor.otel_ai import run_agent_call
 
+    kwargs: dict[str, Any] = {
+        "span_name": "station.loudness_strategy.agent",
+        "persona": AGENT,
+        "response_schema": SCHEMA,
+    }
+    if audio is not None:
+        kwargs["audio"] = audio
     response = run_agent_call(
         settings,
         build_prompt(report, season_state),
-        span_name="station.loudness_strategy.agent",
-        persona=AGENT,
-        response_schema=SCHEMA,
+        **kwargs,
     )
     decision = parse_strategy_decision(response["text"], report)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    """Finishing look: unhearable is high; thin-but-legal mix is still work."""
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("loudness", context)

@@ -20,6 +20,7 @@ Run API (A-1): python -m uvicorn backend.api.main:app --reload   (path per scaff
 - Idempotency (C-6.3): handlers tolerate re-execution per `job_id` (lease expiry reassigns). Chaos-test queue changes (AC-S0.1: real subprocess kill, exactly-once completion).
 - Real services only (C-1.1, C-6.2): real Firestore/GCS (dev project) even in dev; real Gemini/TTS calls, billed — no emulators, no fakes. `fixtures/` media is INPUT data only.
 - TDD: failing test first for deterministic modules (parsers, calculators, queue, API); >=90% line coverage on service-layer logic (C-3.2). EDD: dataset + metric + numeric threshold BEFORE generative features; eval JSONL to `docs/evidence/` (C-3.3/.4/.5).
+- Omni/Veo (owner 2026-09-07): **product** = Omni first, Veo fallback if Omni fails (record `omni_fallback`). **Eval/dev only** = if Omni refuses a PD clip for ownership/infringement, generate original clips with the real defect and EDD on Omni; a Veo-finished eval row is not an Omni pass — tell the owner. See root `AGENTS.md`.
 - SSE + auth: event envelope schema lives in ONE module under `api/`; versioned `/api/v1` only; auth middleware exempts only `/health` (C-5.2); error responses never leak stack traces (C-5.3).
 - Grafana wiring inventory (spec §6) is the naming checklist for metrics/annotations — do not invent new schemes.
 

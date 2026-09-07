@@ -164,3 +164,9 @@ def decide_delivery_strategy(
     )
     decision = parse_strategy_decision(response["text"], evaluations)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("delivery", context)

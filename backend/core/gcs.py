@@ -11,6 +11,31 @@ from google.cloud import storage  # namespace pkg — suppressed in mypy.ini
 from backend.core.config import Settings
 
 
+def object_key(ref: str, *, bucket: str | None = None) -> str:
+    """Turn a gs:// URI or a raw object name into a bucket-relative key.
+
+    E-3 jobs store `gs://martini-shot-media/e3/ep-01.mp4`. Passing that
+    string to `blob()` makes GCS look up object
+    `gs://martini-shot-media/e3/ep-01.mp4` and 404.
+    """
+    text = (ref or "").strip()
+    if not text:
+        raise ValueError("empty GCS object ref")
+    if text.startswith("gs://"):
+        rest = text[5:]
+        if "/" not in rest:
+            raise ValueError(f"gs:// URI missing object key: {ref!r}")
+        uri_bucket, key = rest.split("/", 1)
+        if not key:
+            raise ValueError(f"gs:// URI missing object key: {ref!r}")
+        if bucket and uri_bucket != bucket:
+            raise ValueError(
+                f"gs:// URI bucket {uri_bucket!r} does not match {bucket!r}"
+            )
+        return key
+    return text.lstrip("/")
+
+
 class GCSMedia:
     def __init__(
         self,
@@ -30,18 +55,22 @@ class GCSMedia:
         *,
         content_type: str = "application/octet-stream",
     ) -> None:
-        self._bucket.blob(key).upload_from_string(
+        self._bucket.blob(object_key(key, bucket=self._bucket.name)).upload_from_string(
             data, content_type=content_type, timeout=60
         )
 
     def download_bytes(self, key: str) -> bytes:
-        return self._bucket.blob(key).download_as_bytes(timeout=60)
+        return self._bucket.blob(
+            object_key(key, bucket=self._bucket.name)
+        ).download_as_bytes(timeout=60)
 
     def delete(self, key: str) -> None:
-        self._bucket.blob(key).delete(timeout=60)
+        self._bucket.blob(object_key(key, bucket=self._bucket.name)).delete(timeout=60)
 
     def exists(self, key: str) -> bool:
-        return self._bucket.blob(key).exists(timeout=60)
+        return self._bucket.blob(object_key(key, bucket=self._bucket.name)).exists(
+            timeout=60
+        )
 
     def signed_download_url(self, key: str, *, expires_minutes: int = 60) -> str:
         """V4 signed GET URL for the frontend/player (spec §3: signed URLs to FE).
@@ -51,7 +80,7 @@ class GCSMedia:
         signBlob by impersonating `gcs_signing_sa` — still real credentials,
         no key files anywhere (C-5.1).
         """
-        blob = self._bucket.blob(key)
+        blob = self._bucket.blob(object_key(key, bucket=self._bucket.name))
         credentials = self._client._credentials
         if _needs_remote_signer(credentials):
             if not self._signing_sa:

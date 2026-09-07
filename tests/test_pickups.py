@@ -89,3 +89,165 @@ def test_prev_frame_note() -> None:
 
 def test_negative_frame_count_estimates_zero() -> None:
     assert estimate_micros(-1, 10) == 0
+
+
+class _MemoryGCS:
+    """Test double for the GCS download/upload surface (tests/ only)."""
+
+    def __init__(self, payload: bytes) -> None:
+        self.payload = payload
+        self.uploads: list[tuple[str, bytes, str]] = []
+
+    def download_bytes(self, key: str) -> bytes:
+        del key
+        return self.payload
+
+    def upload_bytes(self, key: str, data: bytes, *, content_type: str = "") -> None:
+        self.uploads.append((key, data, content_type))
+
+
+def _decision(name: str) -> object:
+    from backend.supervisor.station_agents.base import StationDecision
+
+    return StationDecision(
+        agent="pickups_vision_qc",
+        decision=name,
+        reason=f"test {name}",
+        confidence="high",
+        deterministic_advice=name,
+        overridden=False,
+    )
+
+
+def test_live_pickups_asks_vision_qc_and_skips_repair_when_clean() -> None:
+    """Contract: the worker must SEE frames via Pickups Vision QC. A clean
+    clip must pass without billing a generative repair."""
+    from backend.jobs.models import Job
+    from backend.stations.pickups.run import run_pickups
+
+    media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
+    judged: list[object] = []
+
+    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
+        judged.append({"report": report, "n_images": len(images)})
+        assert images, "vision QC must receive real frame extracts"
+        assert all(blob and mime for blob, mime in images)
+        return _decision("accept"), 900
+
+    repairs: list[object] = []
+
+    def repair(_settings: object, **kwargs: object) -> dict:
+        repairs.append(kwargs)
+        raise AssertionError("clean clip must not generate")
+
+    job = Job(station="pickups", project_id="p-qc", input_refs=["slate.mp4"])
+    done = run_pickups(
+        job,
+        _MemoryGCS(SLATE.read_bytes()),
+        media,
+        judge=judge,
+        repair=repair,
+    )
+    assert len(judged) == 1
+    assert judged[0]["n_images"] >= 1
+    assert repairs == []
+    assert done.result["agent"]["decision"] == "accept"
+    assert done.result["repaired"] is False
+    assert done.status != "needs_human"
+
+
+def test_live_pickups_repairs_on_retry_then_passes() -> None:
+    """Contract: retry_with_stronger_anchors must call Omni/Veo repair, not
+    re-score the same identity round-trip."""
+    from backend.jobs.models import Job
+    from backend.stations.pickups.run import run_pickups
+
+    media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
+    slate = SLATE.read_bytes()
+    calls = {"judge": 0, "repair": 0}
+
+    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
+        del report, images
+        calls["judge"] += 1
+        if calls["judge"] == 1:
+            return _decision("retry_with_stronger_anchors"), 1100
+        return _decision("accept"), 1100
+
+    def repair(_settings: object, **kwargs: object) -> dict:
+        calls["repair"] += 1
+        prompt = str(kwargs.get("prompt") or "")
+        assert "identity lock" in prompt
+        return {
+            "video_bytes": slate,
+            "model": "gemini-omni-1.1-flash-preview",
+            "omni_fallback": False,
+            "omni_error": "",
+        }
+
+    job = Job(
+        station="pickups",
+        project_id="p-fix",
+        input_refs=["slate.mp4"],
+        result={"op": "background_swap", "hint": "rainy neon street"},
+    )
+    gcs = _MemoryGCS(slate)
+    done = run_pickups(job, gcs, media, judge=judge, repair=repair)
+    assert calls["repair"] == 1
+    assert calls["judge"] == 2
+    assert done.result["repaired"] is True
+    assert done.result["agent"]["decision"] == "accept"
+    assert gcs.uploads, "repaired clip must be stored"
+    assert done.status != "needs_human"
+
+
+def test_live_pickups_two_repairs_then_needs_human() -> None:
+    from backend.jobs.models import Job
+    from backend.stations.pickups.run import run_pickups
+
+    media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
+    slate = SLATE.read_bytes()
+
+    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
+        del report, images
+        return _decision("retry_with_stronger_anchors"), 800
+
+    repairs = {"n": 0}
+
+    def repair(_settings: object, **kwargs: object) -> dict:
+        del kwargs
+        repairs["n"] += 1
+        return {
+            "video_bytes": slate,
+            "model": "veo-3.1-fast-generate-001",
+            "omni_fallback": True,
+            "omni_error": "recitation",
+        }
+
+    job = Job(station="pickups", project_id="p-nh", input_refs=["k"])
+    done = run_pickups(job, _MemoryGCS(slate), media, judge=judge, repair=repair)
+    assert repairs["n"] == 2
+    assert done.status == "needs_human"
+    assert done.result["repaired"] is True
+
+
+def test_pickup_repair_uses_veo_when_omni_fails() -> None:
+    from backend.stations.pickups.repair import render_pickup_repair
+
+    def boom(_settings: object, **kwargs: object) -> dict:
+        del kwargs
+        raise RuntimeError("omni recitation")
+
+    def veo(_settings: object, **kwargs: object) -> dict:
+        del kwargs
+        return {"video_bytes": b"veo-clip", "model": "veo-3.1-fast-generate-001"}
+
+    out = render_pickup_repair(
+        object(),
+        input_uri="gs://b/src.mp4",
+        prompt="fix frames",
+        omni_edit=boom,
+        veo_extend=veo,
+    )
+    assert out["omni_fallback"] is True
+    assert "recitation" in out["omni_error"]
+    assert out["video_bytes"] == b"veo-clip"

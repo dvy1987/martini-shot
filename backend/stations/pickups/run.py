@@ -1,11 +1,15 @@
-"""Pickups station: extract/reassemble + flicker QC. No Veo call in this path."""
+"""Pickups station: measure flicker, Gemini vision QC, then actually repair."""
 
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
+from backend.core.config import Settings, get_settings
 from backend.core.gcs import GCSMedia
+from backend.core.generative import estimate_extend_cost_micros
 from backend.core.media import FFmpeg
 from backend.jobs.models import Job
 from backend.jobs.telemetry import (
@@ -15,54 +19,163 @@ from backend.jobs.telemetry import (
     record_job,
     timed,
 )
+from backend.stations.pickups.anchors import build_anchor_prompt
 from backend.stations.pickups.cost import estimate_micros
 from backend.stations.pickups.flicker import flicker_score
-from backend.stations.pickups.retry import apply_retries
+from backend.stations.pickups.repair import render_pickup_repair
+from backend.stations.pickups.retry import MAX_RETRIES
+from backend.supervisor.station_agents.pickups_vision_qc import decide_pickups_vision_qc
 
 STATION = "pickups"
 FLICKER_THRESHOLD = 0.18
-MICROS_PER_FRAME = 0  # identity QC path; generate path is eval-gated (C-7.2)
+MICROS_PER_FRAME = 0  # identity extract is unbilled; repairs meter separately
+
+JudgeFn = Callable[..., tuple[Any, int]]
+RepairFn = Callable[..., dict[str, Any]]
 
 
-def run_pickups(job: Job, gcs: GCSMedia, media: FFmpeg) -> Job:
+def as_gs_uri(ref: str, bucket: str) -> str:
+    text = (ref or "").strip()
+    if text.startswith("gs://"):
+        return text
+    return f"gs://{bucket}/{text.lstrip('/')}"
+
+
+def sample_frame_images(
+    frames: list[Path], *, limit: int = 3
+) -> list[tuple[bytes, str]]:
+    if not frames:
+        return []
+    if len(frames) <= limit:
+        chosen = frames
+    else:
+        chosen = [frames[0], frames[len(frames) // 2], frames[-1]]
+    return [(path.read_bytes(), "image/png") for path in chosen]
+
+
+def _measure(
+    payload: bytes, folder: Path, media: FFmpeg
+) -> tuple[list[Path], dict[str, Any]]:
+    src = folder / "src.mp4"
+    src.write_bytes(payload)
+    frames_dir = folder / "frames"
+    frames = media.extract_frames(src, frames_dir, fps=8.0)
+    out = folder / "roundtrip.mp4"
+    media.reassemble(frames, out, fps=8.0)
+    return frames, flicker_score(out, media.ffmpeg_bin)
+
+
+def run_pickups(
+    job: Job,
+    gcs: GCSMedia,
+    media: FFmpeg,
+    *,
+    settings: Settings | None = None,
+    judge: JudgeFn | None = None,
+    repair: RepairFn | None = None,
+) -> Job:
     started = timed()
     outcome = "fail"
+    settings = settings or get_settings()
+    judge = judge or decide_pickups_vision_qc
+    repair = repair or render_pickup_repair
     with job_span(STATION, job.id, job.project_id):
         try:
             if not job.input_refs:
                 raise ValueError("pickups requires media")
             payload = gcs.download_bytes(job.input_refs[0])
+            source_uri = as_gs_uri(job.input_refs[0], settings.gcs_bucket)
+            retries_used = 0
+            repaired = False
+            omni_fallback = False
+            omni_error_text = ""
+            agent_costs: list[int] = []
+            render_cost = 0
+            last_agent: dict[str, Any] = {}
+            frames: list[Path] = []
+            score: dict[str, Any] = {}
+            artifact_ref = ""
+
             with tempfile.TemporaryDirectory() as tmp:
-                src = Path(tmp) / "src.mp4"
-                src.write_bytes(payload)
-                frames_dir = Path(tmp) / "frames"
-                frames = media.extract_frames(src, frames_dir, fps=8.0)
-                out = Path(tmp) / "roundtrip.mp4"
-                media.reassemble(frames, out, fps=8.0)
-                score = flicker_score(out, media.ffmpeg_bin)
-            flicker = float(score.get("flicker_score") or 1.0)
-            record_flicker(STATION, flicker)
-            retry = apply_retries(flicker, FLICKER_THRESHOLD)
-            job.cost_micros = estimate_micros(len(frames), MICROS_PER_FRAME)
+                while True:
+                    folder = Path(tmp) / f"pass-{retries_used}"
+                    folder.mkdir()
+                    frames, score = _measure(payload, folder, media)
+                    flicker = float(score.get("flicker_score") or 1.0)
+                    record_flicker(STATION, flicker)
+                    images = sample_frame_images(frames)
+                    report = {
+                        "flicker": flicker,
+                        "threshold": FLICKER_THRESHOLD,
+                        "frames_analyzed": int(
+                            score.get("frames_analyzed") or len(frames)
+                        ),
+                        "retries_used": retries_used,
+                        "ok": bool(score.get("ok", True)),
+                    }
+                    decision, agent_cost = judge(settings, report=report, images=images)
+                    agent_costs.append(int(agent_cost))
+                    last_agent = decision.to_doc()
+                    name = str(decision.decision)
+                    if name == "accept":
+                        outcome = "pass"
+                        break
+                    if name == "needs_human" or retries_used >= MAX_RETRIES:
+                        job.status = "needs_human"
+                        job.error = (
+                            "pickups_needs_human"
+                            if name == "needs_human"
+                            else "flicker_breach"
+                        )
+                        outcome = "needs_human"
+                        break
+                    op = str(job.result.get("op") or "pickup_repair")
+                    hint = str(
+                        job.result.get("hint")
+                        or job.result.get("intent")
+                        or "Repair damaged or unstable frames. "
+                        "Preserve subjects, framing, and continuity."
+                    )
+                    prompt = build_anchor_prompt(op, hint, strengthen=True)
+                    rendered = repair(settings, input_uri=source_uri, prompt=prompt)
+                    payload = bytes(rendered["video_bytes"])
+                    dest_key = f"projects/{job.project_id}/pickups/{job.id}.mp4"
+                    gcs.upload_bytes(dest_key, payload, content_type="video/mp4")
+                    artifact_ref = f"gs://{settings.gcs_bucket}/{dest_key}"
+                    source_uri = artifact_ref
+                    repaired = True
+                    retries_used += 1
+                    render_cost += estimate_extend_cost_micros(7.0, resolution="360p")
+                    if rendered.get("omni_fallback"):
+                        omni_fallback = True
+                        omni_error_text = str(rendered.get("omni_error") or "")
+
+            job.cost_micros = (
+                estimate_micros(len(frames), MICROS_PER_FRAME)
+                + render_cost
+                + sum(agent_costs)
+            )
             job.result = {
+                **job.result,
                 "flicker": score,
-                "retry": retry,
                 "frames": len(frames),
+                "agent": last_agent,
+                "repaired": repaired,
+                "retries_used": retries_used,
+                "omni_fallback": omni_fallback,
+                "omni_error": omni_error_text,
+                "artifact_ref": artifact_ref,
             }
-            if retry["final"] == "needs_human":
-                job.status = "needs_human"
-                job.error = "flicker_breach"
-                outcome = "needs_human"
-            else:
-                outcome = "pass"
             log.info(
                 "pickups qc done",
                 extra={
                     "job_id": job.id,
                     "station": STATION,
                     "project_id": job.project_id,
-                    "flicker_score": flicker,
-                    "final": retry["final"],
+                    "flicker_score": float(score.get("flicker_score") or 1.0),
+                    "agent_decision": last_agent.get("decision"),
+                    "repaired": repaired,
+                    "omni_fallback": omni_fallback,
                 },
             )
             return job

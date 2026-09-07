@@ -2,16 +2,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getJob, getProject, listProjectShots, listProjects } from "@/api/endpoints";
+import { getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
 
-vi.mock("@/api/endpoints", () => ({
-  getJob: vi.fn(),
-  getProject: vi.fn(),
-  listProjectShots: vi.fn(),
-  listProjects: vi.fn(),
-}));
+vi.mock("@/api/endpoints", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/api/endpoints")>();
+  return {
+    ...actual,
+    getJob: vi.fn(),
+    getProject: vi.fn(),
+    getWorklist: vi.fn(),
+    listProjectShots: vi.fn(),
+    listProjects: vi.fn(),
+    ingestClip: vi.fn(),
+    startFinish: vi.fn(),
+    listDeliberations: vi.fn(),
+    patchWorklist: vi.fn(),
+  };
+});
 
 afterEach(() => {
   cleanup();
@@ -50,12 +59,18 @@ function renderRoute() {
   );
 }
 
+function mockBoard() {
+  vi.mocked(listProjects).mockResolvedValue([observedProject]);
+  vi.mocked(getProject).mockResolvedValue(observedProject);
+  vi.mocked(getJob).mockResolvedValue(observedJob);
+  vi.mocked(listProjectShots).mockResolvedValue([]);
+  vi.mocked(getWorklist).mockRejectedValue(new Error("no worklist"));
+  vi.mocked(listDeliberations).mockResolvedValue([]);
+}
+
 describe("TimelineRoute investigation flow", () => {
   it("selects on the first click and opens the real job query on the second", async () => {
-    vi.mocked(listProjects).mockResolvedValue([observedProject]);
-    vi.mocked(getProject).mockResolvedValue(observedProject);
-    vi.mocked(getJob).mockResolvedValue(observedJob);
-    vi.mocked(listProjectShots).mockResolvedValue([]);
+    mockBoard();
     renderRoute();
 
     const clip = await screen.findByRole("button", { name: /in the lab: job-1/i });
@@ -71,8 +86,7 @@ describe("TimelineRoute investigation flow", () => {
   });
 
   it("renders the alternates lane from the real project shots endpoint", async () => {
-    vi.mocked(listProjects).mockResolvedValue([observedProject]);
-    vi.mocked(getProject).mockResolvedValue(observedProject);
+    mockBoard();
     vi.mocked(listProjectShots).mockResolvedValue([
       {
         shot_id: "shot-1",

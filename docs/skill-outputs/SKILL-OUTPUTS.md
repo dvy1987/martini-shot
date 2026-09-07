@@ -48,3 +48,24 @@
 
 | 2026-09-06 11:00 | test-driven-development | tests/test_dub_qc.py, tests/test_dubbing_run.py, tests/test_station_agents.py | TDD: dub QC measurements (sync offset, atempo fit, defect mutation) + StationDecision contract + dub agent prompt/parse |
 | 2026-09-06 12:00 | test-driven-development | tests/test_orchestrator.py | TDD: batch orchestrator deterministic surface (manifest validation, chain plan, agent-chain subsequence validation, cost estimate, idempotent job ids) |
+| 2026-09-07 12:30 | memory-decision | docs/memory/decision-log.md | Owner: one Stage 1a feature live-EDD complete before the next; start D-10 |
+| 2026-09-07 12:30 | eval-pipeline | docs/evals/2026-09-07-corrections-eval-pipeline.md | D-10 three-layer eval: hard gates + flicker + live Gemini judgment |
+| 2026-09-07 13:42 | memory-decision | AGENTS.md + eval-footage.mdc | Veo fallback only after Omni EDD; Omni-fail/Veo-success must be disclosed to owner |
+| 2026-09-07 13:55 | memory-decision | AGENTS.md + eval-footage.mdc + decision-log.md | Owner: generate-new-clip is eval/dev only; product Omni-fail → Veo fallback is correct |
+| 2026-09-07 13:50 | test-driven-development | tests/test_extend.py + backend/evals/extend_quality.py | TDD: D-9 quality pass requires Omni; Veo fallback fails the suite |
+| 2026-09-07 13:50 | eval-pipeline | docs/evals/2026-09-07-extend-eval-pipeline.md | D-9 three-layer eval: Omni-only + flicker + Extend QC judge |
+| 2026-09-07 13:55 | test-driven-development | tests/test_gcs_keys.py tests/test_footage.py tests/test_dubbing_run.py | TDD: gs:// object keys + dub dispatch + ownership-refusal original clips |
+| 2026-09-07 14:55 | test-driven-development | tests/test_pickups.py | TDD: live pickups worker calls vision QC and Omni/Veo repair (not identity-only) |
+| 2026-09-07 15:30 | test-driven-development | tests/test_scene_loudness.py | TDD: scene-class targets, ffmpeg loudnorm apply, dub-preferring loudness input, orchestrator dub_job_id stamp |
+| 2026-09-07 15:30 | eval-pipeline | docs/evals/2026-09-07-scene-loudness-eval-pipeline.md | Scene-aware loudness: listen + class (whisper through explosion) + mix; gate 0.8 |
+| 2026-09-07 15:30 | memory-decision | docs/memory/decision-log.md | Owner: loudness mixes to scene-fitting level (not whisper-only; bangs may be louder) |
+| 2026-09-07 16:15 | test-driven-development | tests/test_caption_write.py tests/test_delivery.py | TDD: caption writer from script + wire editor/writer into Delivery |
+| 2026-09-07 16:15 | eval-pipeline | docs/evals/2026-09-07-caption-write-eval-pipeline.md | Caption write: meaning-preserving SRT; D-3 re-validates; empty-script known-bad |
+| 2026-09-07 16:45 | test-driven-development | tests/test_caption_write.py tests/test_orchestrator.py | TDD: quiet speech → orchestrator retry_job; silence / no spoken words is not a loudness miss |
+| 2026-09-07 16:50 | eval-rubric-design | docs/evals/2026-09-07-ingest-understand-rubric.md | Ingest watch: transcript + scene; no invented speech |
+| 2026-09-07 16:50 | eval-pipeline | docs/evals/2026-09-07-ingest-understand-eval-pipeline.md | Ingest understand: file-first then Gemini watch; two gates 0.8 |
+| 2026-09-07 16:50 | test-driven-development | tests/test_ingest_understand.py | TDD: shot metadata spoken_words + scene; quarantine never watches |
+| 2026-09-07 17:40 | memory-handoff | agent-handoffs.md#2026-09-07-17:40 | Ingest watch on shot metadata; owner commit+push of dirty Stage 1a tree |
+| 2026-09-07 17:38 | memory-handoff | agent-handoffs.md + current-state.md | D-9 Omni 6/6 draft+master; Stage 1a tree; coverage 74% vs 90% still blocks make check |
+| 2026-09-07 17:38 | git-workflow-and-versioning | commit + push origin/main | Owner asked to commit and push all uncommitted Stage 1a / D-9 work |
+

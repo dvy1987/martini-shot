@@ -107,3 +107,86 @@ def test_social_allows_missing_captions() -> None:
         caption_name=None,
     )
     assert report["verdict"] == "pass"
+
+
+class _ProbeMedia:
+    def probe(self, path):
+        return {
+            **HEALTHY_PROBE,
+            "duration_s": 8.0,
+            "has_audio": True,
+            "audio_streams": 1,
+        }
+
+    def loudness_lufs(self, path) -> float:
+        return -16.0
+
+
+class _MemGCS:
+    def __init__(self, blobs: dict[str, bytes]) -> None:
+        self.blobs = blobs
+        self.uploads: list[str] = []
+
+    def download_bytes(self, key: str) -> bytes:
+        return self.blobs[key]
+
+    def upload_bytes(self, key: str, data: bytes, *, content_type: str = "") -> None:
+        self.blobs[key] = data
+        self.uploads.append(key)
+
+
+class _MemStore:
+    def __init__(self) -> None:
+        self.docs: dict[tuple[str, str], dict] = {}
+
+    def get_doc(self, collection: str, doc_id: str):
+        return self.docs.get((collection, doc_id))
+
+    def set_doc(self, collection: str, doc_id: str, data: dict) -> None:
+        self.docs[(collection, doc_id)] = data
+
+
+def test_delivery_writes_captions_when_missing() -> None:
+    from backend.jobs.models import Job
+    from backend.stations.delivery.run import run_delivery
+
+    job = Job(
+        station="delivery",
+        project_id="batch",
+        input_refs=["gs://b/e3/ep-01.mp4"],
+        id="cyc-demo-ep-01-es-ES-delivery",
+        result={
+            "script": "Hola, este es un doblaje.",
+            "shot_id": "shot-ep-01",
+            "destination": "streaming",
+        },
+    )
+    gcs = _MemGCS({"gs://b/e3/ep-01.mp4": b"not-a-real-mp4"})
+    out = run_delivery(job, gcs, _MemStore(), _ProbeMedia(), settings=None)
+    assert out.result["caption_source"] == "writer"
+    assert out.result["caption_ref"]
+    assert gcs.uploads
+    ids = {v["rule_id"] for v in out.result["delivery"]["violations"]}
+    assert "DEL-007" not in ids
+    assert out.result["delivery"]["verdict"] == "pass"
+
+
+def test_delivery_prefers_loudness_mix() -> None:
+    from backend.jobs.models import Job
+    from backend.stations.delivery.run import resolve_delivery_media
+
+    job = Job(
+        station="delivery",
+        project_id="batch",
+        input_refs=["gs://b/e3/ep-01.mp4"],
+        result={"loudness_job_id": "cyc-demo-ep-01-es-ES-loudness"},
+    )
+    store = _MemStore()
+    store.set_doc(
+        "pc-jobs",
+        "cyc-demo-ep-01-es-ES-loudness",
+        {"result": {"artifact_ref": "gs://b/mixes/ep-01.wav"}},
+    )
+    ref, kind = resolve_delivery_media(job, store)
+    assert kind == "loudness_mix"
+    assert ref.endswith(".wav")

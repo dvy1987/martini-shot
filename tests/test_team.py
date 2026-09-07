@@ -60,6 +60,15 @@ def test_production_specialists_cover_every_routed_name(env) -> None:
             assert callable(specialists[name])
 
 
+def test_every_non_terminal_route_is_explicitly_deferred() -> None:
+    """The router may define future signal types, but their absence from the
+    worker hook must be deliberate and visible—not a silent coverage gap."""
+    from backend.supervisor.case import SPECIALIST_ROUTES
+
+    runtime_signals = set(team._DELIBERATION_TRIGGERS.values())
+    assert set(SPECIALIST_ROUTES) - runtime_signals == set(team.DEFERRED_SIGNAL_REASONS)
+
+
 def _job(**overrides) -> Job:
     defaults = {
         "id": f"job-{uuid.uuid4().hex[:8]}",
@@ -102,6 +111,14 @@ def test_maybe_deliberate_fires_one_propose_only_cycle_per_job(
     assert fired[0]["trigger"]["kind"] == "job_failed"
     assert fired[0]["autonomy_mode"] == "propose_only"
     assert fired[0]["cycle_id"] == f"cyc-job-{fired[0]['trigger']['job_id']}"
+    assert callable(fired[0]["verifier"]), (
+        "production cycles must use the real Verification Agent rather than "
+        "the permissive deliberation fallback"
+    )
+    assert callable(fired[0]["synthesizer"]), (
+        "production cycles must use the metered Post Supervisor synthesis "
+        "rather than deterministic fallback ranking"
+    )
 
 
 def test_maybe_deliberate_ignores_healthy_terminal_states(env, monkeypatch) -> None:

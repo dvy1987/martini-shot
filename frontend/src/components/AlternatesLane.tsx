@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { getAlternateMedia } from "@/api/endpoints";
+import CorrectionsControls from "@/components/CorrectionsControls";
+import ExtendControls from "@/components/ExtendControls";
 import type { Alternate, ShotRow } from "@/types/api";
 
 interface AlternatesLaneProps {
@@ -82,6 +84,11 @@ function AlternateCard({
             flicker <span className="text-ink">{flicker.toFixed(5)}</span>
           </span>
         ) : null}
+        {alternate.tier ? (
+          <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
+            {alternate.tier}
+          </span>
+        ) : null}
         {alternate.artifact_ref ? (
           <button
             type="button"
@@ -156,6 +163,8 @@ function ShotCard({
           ))}
         </div>
       ) : null}
+      <ExtendControls shot={shot} />
+      <CorrectionsControls shot={shot} />
     </li>
   );
 }

@@ -81,6 +81,36 @@ def unlock_shot(store: FirestoreStore, shot_id: str) -> None:
     store.transactional_update(SHOTS, shot_id, _apply)
 
 
+def record_scene_understanding(
+    store: FirestoreStore,
+    shot_id: str,
+    *,
+    spoken_words: str,
+    has_speech: bool,
+    scene: str,
+    cost_micros: int = 0,
+) -> dict[str, Any]:
+    """Persist ingest watch fields on the shot (the scene record)."""
+    spoken = str(spoken_words or "").strip() if has_speech else ""
+    understanding = {
+        "spoken_words": spoken,
+        "has_speech": bool(has_speech) and bool(spoken),
+        "scene": str(scene or "").strip(),
+        "cost_micros": int(cost_micros),
+        "updated_at": utc_now_iso(),
+    }
+
+    def _apply(doc: dict[str, Any]) -> dict[str, Any]:
+        return {
+            **doc,
+            "scene_understanding": understanding,
+            "updated_at": utc_now_iso(),
+        }
+
+    store.transactional_update(SHOTS, shot_id, _apply)
+    return understanding
+
+
 def record_alternate(
     store: FirestoreStore,
     *,
@@ -89,9 +119,11 @@ def record_alternate(
     op: str,
     artifact_ref: str,
     eval_scores: dict[str, float],
+    tier: str = "draft",
 ) -> str:
-    """Register a generated clip as an ALTERNATE (draft). Stations call this
-    instead of overwriting any existing artifact."""
+    """Register a generated clip as an ALTERNATE (never in-continuity).
+    `tier` is the render grade (draft 360p vs master 720p); `status` stays
+    `draft` until add_to_continuity promotes it."""
     alternate_id = f"alt-{uuid.uuid4().hex[:12]}"
     store.set_doc(
         ALTERNATES,
@@ -103,6 +135,7 @@ def record_alternate(
             "op": op,
             "artifact_ref": artifact_ref,
             "eval_scores": eval_scores,
+            "tier": tier,
             "status": "draft",
             "created_at": utc_now_iso(),
             "updated_at": utc_now_iso(),

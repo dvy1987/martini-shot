@@ -1,0 +1,56 @@
+{
+  "station": "dub",
+  "project_id": "batch",
+  "input_refs": [
+    "gs://martini-shot-media/e3/ep-06.mp4"
+  ],
+  "id": "cyc-e3-demo-ep-06-de-DE-dub",
+  "status": "passed",
+  "attempts": 1,
+  "cost_micros": 4970,
+  "error": null,
+  "created_at": "2026-09-07T03:43:26.479Z",
+  "updated_at": "2026-09-07T09:02:29.882Z",
+  "lease_owner": "pc-worker-g1",
+  "lease_expires_at": "2026-09-07T09:06:21.426Z",
+  "checksum_sha256": null,
+  "approval_id": null,
+  "result": {
+    "agent": {
+      "decision": "accept",
+      "proposal": {},
+      "reason": "Overriding deterministic flag: The full reference line is spoken clearly, naturally, and completely without any truncation, clipping, or audio artifacts.",
+      "confidence": "high",
+      "overridden": true,
+      "agent": "dub_qc",
+      "deterministic_advice": ""
+    },
+    "episode_id": "ep-06",
+    "fit_tempo": 0.41,
+    "script": "Der Morgenbericht fasst die Vorkommnisse der Nacht zusammen.",
+    "fit_applied": false,
+    "batch_id": "e3-demo",
+    "shot_id": "shot-ep06-01",
+    "measurements": {
+      "verdict": "flagged",
+      "source_duration_ms": 8000,
+      "dub_duration_ms": 3280,
+      "tolerance_ms": 45,
+      "sync_offset_ms": -4200,
+      "duration_delta_ms": -4720
+    },
+    "alternate_id": "alt-e19b57fe2aa0",
+    "agent_cost_micros": 2720,
+    "artifact_ref": "gs://martini-shot-media/projects/batch/dubs/cyc-e3-demo-ep-06-de-DE-dub.de-DE.wav",
+    "re_rendered": false,
+    "language": "de-DE",
+    "ssml": "<speak>Der Morgenbericht fasst die Vorkommnisse der Nacht zusammen.</speak>"
+  },
+  "retry_history": [
+    {
+      "at": "2026-09-07T08:26:54.699Z",
+      "had_attempts": 2,
+      "from_status": "failed"
+    }
+  ]
+}

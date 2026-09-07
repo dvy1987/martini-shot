@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import math
 import subprocess
 import urllib.request
@@ -24,6 +25,8 @@ from typing import Any
 from backend.core.api_resilience import call_with_resilience
 from backend.core.config import Settings
 from backend.core.models import OMNI_MODEL, TTS_API_BASE, TTS_VOICE_FAMILY, VEO_MODEL
+
+log = logging.getLogger("pc.generative")
 
 
 def _resilient_urlopen(request: urllib.request.Request, timeout: float) -> bytes:
@@ -143,6 +146,35 @@ def build_extend_prompt(shot_title: str) -> str:
     )
 
 
+def _omni_client(settings: Settings, *, timeout_s: int) -> Any:
+    """Vertex Omni client. HTTP timeout is milliseconds; video ops exceed
+    the SDK's 120s default (D-10 quality eval recorded a write timeout).
+
+    Passing an httpx client disables google-auth AuthorizedSession, whose
+    120s write timeout aborted live-action Omni extends (2026-09-07).
+    """
+    import httpx
+    from google import genai
+    from google.genai import types
+
+    http_timeout = httpx.Timeout(timeout_s, connect=60.0)
+    return genai.Client(
+        vertexai=True,
+        project=settings.gcp_project_id,
+        location="global",
+        http_options=types.HttpOptions(
+            timeout=timeout_s * 1000,
+            httpx_client=httpx.Client(timeout=http_timeout),
+        ),
+    )
+
+
+def is_omni_transport_timeout(exc: BaseException) -> bool:
+    """True when Omni's HTTP client aborted a long video call (not recitation)."""
+    text = f"{type(exc).__name__}: {exc}".lower()
+    return "timeout" in text or "timed out" in text
+
+
 def omni_extend(
     settings: Settings,
     *,
@@ -153,22 +185,30 @@ def omni_extend(
 ) -> dict[str, Any]:
     """One real Omni interaction (billed). Returns video bytes + usage.
     Not an HTTP path (C-6.5): stations run this inside lease-queue jobs."""
-    from google import genai
-
-    client = genai.Client(
-        enterprise=True,
-        project=settings.gcp_project_id,
-        location="global",
-    )
-    interaction = client.interactions.create(
-        model=OMNI_MODEL,
-        input=[
-            {"type": "text", "text": prompt},
-            {"type": "video", "uri": input_uri, "mime_type": "video/mp4"},
-        ],
-        generation_config={"video_config": {"task": task}},
-        timeout=timeout_s,
-    )
+    client = _omni_client(settings, timeout_s=timeout_s)
+    last: BaseException | None = None
+    for attempt in range(1, 4):
+        try:
+            interaction = client.interactions.create(
+                model=OMNI_MODEL,
+                input=[
+                    {"type": "text", "text": prompt},
+                    {"type": "video", "uri": input_uri, "mime_type": "video/mp4"},
+                ],
+                generation_config={"video_config": {"task": task}},
+                timeout=timeout_s,
+            )
+            break
+        except Exception as exc:
+            last = exc
+            if not is_omni_transport_timeout(exc) or attempt == 3:
+                raise
+            log.warning(
+                "omni extend transport timeout attempt %s/3; retrying",
+                attempt,
+            )
+    else:
+        raise RuntimeError(f"omni extend failed: {last}")
     status = str(getattr(interaction, "status", "unknown"))
     if status != "completed":
         errors = getattr(interaction, "errors", None)
@@ -179,6 +219,52 @@ def omni_extend(
     usage = getattr(interaction, "usage", None)
     return {
         "video_bytes": video_bytes,
+        "model": OMNI_MODEL,
+        "interaction_id": str(getattr(interaction, "id", "")),
+        "total_token_count": getattr(usage, "total_token_count", None),
+    }
+
+
+def omni_edit(
+    settings: Settings,
+    *,
+    input_uri: str,
+    prompt: str,
+    reference_uris: tuple[str, ...] = (),
+    timeout_s: int = 900,
+) -> dict[str, Any]:
+    """One real Omni "edit" interaction (billed): the shared render call for
+    every Stage 1a bounded-edit op (D-10 Corrections, E-1 Relight, D-12
+    Coverage, D-16 Camera Language). `reference_uris` carries extra subject
+    or neighboring-shot images/video the model may consult but must not
+    copy verbatim (A5 <IMAGE_REF_N>/<VIDEO_REF_N> tags). Not an HTTP path
+    (C-6.5): stations run this inside lease-queue jobs."""
+    client = _omni_client(settings, timeout_s=timeout_s)
+    content: list[dict[str, Any]] = [
+        {"type": "text", "text": prompt},
+        {"type": "video", "uri": input_uri, "mime_type": "video/mp4"},
+    ]
+    for _index, ref_uri in enumerate(reference_uris, start=1):
+        mime = "video/mp4" if ref_uri.endswith(".mp4") else "image/jpeg"
+        kind = "video" if mime == "video/mp4" else "image"
+        content.append({"type": kind, "uri": ref_uri, "mime_type": mime})
+    interaction = client.interactions.create(
+        model=OMNI_MODEL,
+        input=content,
+        generation_config={"video_config": {"task": "edit"}},
+        timeout=timeout_s,
+    )
+    status = str(getattr(interaction, "status", "unknown"))
+    if status != "completed":
+        errors = getattr(interaction, "errors", None)
+        raise RuntimeError(f"omni edit interaction {status}: {str(errors)[:300]}")
+    video_bytes = _extract_video(interaction)
+    if not video_bytes:
+        raise RuntimeError("omni edit interaction completed with no video output")
+    usage = getattr(interaction, "usage", None)
+    return {
+        "video_bytes": video_bytes,
+        "model": OMNI_MODEL,
         "interaction_id": str(getattr(interaction, "id", "")),
         "total_token_count": getattr(usage, "total_token_count", None),
     }

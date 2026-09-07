@@ -506,6 +506,43 @@ def test_parallel_reservations_cannot_overspend(env):
     assert results.count(False) == 3
 
 
+def test_parallel_daily_cap_reservations_cannot_overspend(env):
+    """The daily Spend Control cap needs the same transactional admission as
+    the nightly envelope: concurrent autonomy cycles cannot both reserve the
+    last available project budget."""
+    import threading
+    from datetime import datetime, timezone
+
+    from backend.supervisor.budget_loop import reserve_daily_cap
+
+    col = f"pc-daily-cap-{uuid.uuid4().hex[:8]}"
+    now = datetime(2026, 9, 6, 2, 0, tzinfo=timezone.utc)
+    results: list[bool] = []
+    lock = threading.Lock()
+
+    def attempt() -> None:
+        ok = reserve_daily_cap(
+            env,
+            project_id="project-cap",
+            cost=600,
+            daily_cap=1_000,
+            base_spent=0,
+            collection=col,
+            now=now,
+        )
+        with lock:
+            results.append(ok)
+
+    threads = [threading.Thread(target=attempt) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert results.count(True) == 1
+    assert results.count(False) == 3
+
+
 def test_second_dispatch_skips_when_reservation_exhausts_envelope(h):
     """Two sequential cycles sharing the night ledger: the first dispatches,
     the second must see the reservation and skip — even though its own
@@ -675,3 +712,52 @@ def test_run_budgeted_cycle_forwards_verifier(h, approvals_col, jobs_col, run_id
     ranked = (record.get("recommendation") or {}).get("ranked_actions") or []
     assert ranked == [], "a veto-everything verifier must leave nothing ranked"
     assert all(d["decision"] == "skipped" for d in record["budget"]["decisions"])
+
+
+def test_run_budgeted_cycle_forwards_synthesizer(h, approvals_col, jobs_col, run_id):
+    """The production Post Supervisor must receive only verified findings."""
+    from backend.core.config import get_settings
+    from backend.supervisor.budget_loop import run_budgeted_cycle
+    from backend.supervisor.case import Verdict
+    from backend.supervisor.team import production_specialists
+
+    called = False
+
+    def synthesize(case, findings, verdict):
+        nonlocal called
+        called = True
+        return {
+            "ranked_actions": [],
+            "summary": "No action is justified.",
+            "dissent": [],
+        }
+
+    record = asyncio.run(
+        run_budgeted_cycle(
+            {
+                "kind": "job_failed",
+                "job_id": "job-synthesis",
+                "project_id": "proj-1",
+                "station": "ingest",
+            },
+            get_settings(),
+            h.store,
+            h.machine,
+            project_id="proj-1",
+            jobs_col=jobs_col,
+            approvals_col=approvals_col,
+            deliberation_col=f"pc-deliberations-{run_id}",
+            autonomy_mode="propose_only",
+            specialists=production_specialists(h.store, get_settings()),
+            verifier=lambda case, findings: Verdict(
+                case_id=case.case_id,
+                rejected=[],
+                approved_specialists=[],
+                overall_confidence="high",
+            ),
+            synthesizer=synthesize,
+        )
+    )
+
+    assert called
+    assert record["recommendation"]["summary"] == "No action is justified."

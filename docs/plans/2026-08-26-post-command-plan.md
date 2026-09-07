@@ -116,11 +116,31 @@ orchestrator (main agent) owns quality control. Rules:
 | E-3 Batch demo dataset seed (start early — TTS is slow + billable): script generates 8–10 episodes × **3 languages** (EN source + 2 picked by voice quality/cost) dubs + captions into `fixtures/batch-demo/`; cost estimate printed before run (C-7.*) | fixtures | manual + scripts | dataset manifest committed; dry-run cost print; first episode fully seeded |
 | **Gate G3:** hero op(s) hold quality bar across ≥3 fresh curated shots (not just spike set); Dub QC eval within thresholds; evidence video clips captured (raw, unedited). Stage 1 is now complete end-to-end. | | | |
 
-## PHASE 3a — Stage 1a: generative fast-follow (A5, Sep 5–6; only after G3 passes)
+## PHASE 3a — Full Stage 1a demo release (A11, owner-approved 2026-09-07)
+
+**Amendment A11:** Stage 1 and the full Stage 1a scope are one hackathon demo
+release. The former G3 prerequisite is retired for D-10, E-1, D-11, D-12,
+D-15, and D-16: they may start alongside G3/E-3 work. **G3 and G3a are now
+integrated release gates**, not sequencing gates. The demo must support both a
+hero-shot journey (revision intent → creative choices → draft QC → approval →
+master alternate) and an episode-revision journey (script change → impacted
+spans/languages → regeneration proposals → approvals → batch tracking).
+
+All remaining Stage 1a evals and demo work share a **$100 owner-approved
+envelope**. Every batch estimated above $5 still prints aggregate cost and
+requires `--yes` (C-7.2); stop for owner approval before exceeding $100.
 
 Build order inside 1a: AL-1 → D-9 → D-10 → E-1 → D-11 → D-15 → D-16 → stretch.
-Fallback order for slippage: cut D-16 → D-15 → stretch first; shipping without
-1a is a complete, coherent product (Stage 1).
+**Owner ruling 2026-09-07:** each feature is live-EDD verified end-to-end
+before the next starts (D-10 first). Do not scaffold remaining backends and
+batch-eval later.
+No Stage 1a demo feature may be represented only by an eval: each must expose
+a real queued job, alternate, agent/QC evidence, H-0 approval trace, and
+frontend surface. Each also needs a manual user route: the user can initiate
+the feature, choose permitted parameters, inspect draft/QC/cost/evidence, and
+approve or reject the resulting H-0 proposal. Agent-originated and
+user-originated actions use the same validation, alternate, queue, audit, and
+approval contracts. D-13 and D-14 remain stretch only.
 
 | Task | Op/Feature | Mode | DoD |
 |---|---|---|---|
@@ -135,9 +155,11 @@ Fallback order for slippage: cut D-16 → D-15 → stretch first; shipping witho
 | D-13 Transition Forge (stretch) | first/last-frame interpolation between locked shots; loop variant | EDD | eval PASS or cut |
 | D-14 Versioning (stretch) | 9:16 social cutdowns per delivery profile | EDD | eval PASS or cut |
 
-**Gate G3a:** Stage 1a ops hold their eval bars; alternates lane live in FE;
-Omni-vs-Veo model comparison recorded via ADR + JSONL. Fail ⇒ demote in the
-order above; the G3 state remains the submission fallback.
+**Integrated Gates G3/G3a:** Stage 1 + full Stage 1a ops hold their eval bars;
+both demo journeys run from the live product; alternates lane and all Stage 1a
+controls are live in the FE; per-operation Omni-vs-Veo comparison is recorded
+via ADR + JSONL. A release fails if any planned feature lacks its live EDD
+evidence, H-0 path, Grafana trace/annotation, or UX surface.
 
 ## PHASE 4 — Supervisor intelligence (day 8–10)
 

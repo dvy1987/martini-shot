@@ -1,0 +1,35 @@
+{
+  "pass": true,
+  "stopped": false,
+  "n": 2,
+  "records": [
+    {
+      "scene_id": "cafe-sign",
+      "prompt": "A quiet street cafe exterior. A wooden sign above the door reads CAFE. Morning light. Camera does not move. Eight seconds.",
+      "start_maker": "omni",
+      "start_model": "gemini-omni-1.1-flash-preview",
+      "start_shape": "omni_text_only",
+      "source_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-cafe-sign.mp4",
+      "start_bytes": 3835205,
+      "omni_extend": "ok",
+      "extend_model": "gemini-omni-1.1-flash-preview",
+      "extend_bytes": 7524007,
+      "extend_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-cafe-sign-omni-extend.mp4",
+      "extend_interaction_id": "zG-earuWNIbg694P2Oik8Aw"
+    },
+    {
+      "scene_id": "table-cup",
+      "prompt": "Two people sitting at an outdoor cafe table. A paper cup sits on the table. Soft daylight. Camera does not move. Eight seconds.",
+      "start_maker": "omni",
+      "start_model": "gemini-omni-1.1-flash-preview",
+      "start_shape": "omni_text_only",
+      "source_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-table-cup.mp4",
+      "start_bytes": 2065713,
+      "omni_extend": "ok",
+      "extend_model": "gemini-omni-1.1-flash-preview",
+      "extend_bytes": 4345328,
+      "extend_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-table-cup-omni-extend.mp4",
+      "extend_interaction_id": "dHCeaoqOCte7jNAPmsXYsQ4"
+    }
+  ]
+}

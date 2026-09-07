@@ -68,6 +68,8 @@ def build_prompt(report: dict[str, Any]) -> str:
         "Render report:\n"
         f"- job: {report.get('job_id')} (shot {report.get('shot_id')})\n"
         f"- render model: {report.get('render_model')}\n"
+        f"- omni_fallback: {report.get('omni_fallback', False)} "
+        f"(Omni error: {report.get('omni_error') or 'none'})\n"
         f"- prompt: {report.get('prompt')}\n"
         f"- flicker: {report.get('flicker')} (gate {report.get('flicker_gate')}; "
         "healthy drafts historically land 0.0013-0.0032 — ILLUSTRATIVE "
@@ -136,3 +138,10 @@ def decide_extend_qc(
     )
     decision = parse_extend_decision(response["text"], report)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    """Finishing look: mid-thought cut vs a breath of air."""
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("extend", context)

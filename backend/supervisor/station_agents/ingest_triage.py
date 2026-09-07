@@ -182,3 +182,9 @@ def decide_ingest_triage(
     )
     decision = parse_triage_decision(response["text"], report)
     return decision, int(response["cost_micros"])
+
+
+def build_inspect_prompt(context: dict[str, Any]) -> str:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    return station_inspect_prompt("ingest", context)

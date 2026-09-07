@@ -10,6 +10,7 @@ import type {
   Project,
   Settings,
   ShotRow,
+  Worklist,
 } from "@/types/api";
 
 export function projectEventsUrl(projectId: string): string {
@@ -79,6 +80,58 @@ export function getMorningReport(projectId: string, date: string): Promise<Morni
   );
 }
 
+export function proposeCorrection(
+  shotId: string,
+  body: {
+    source_uri: string;
+    intent: string;
+    protected_subjects?: string[];
+    continuity_constraints?: string[];
+    reason?: string;
+  },
+): Promise<{
+  approval_id: string;
+  status: string;
+  agent?: { name: string; decision: string; rationale: string; cost_micros: number };
+}> {
+  return apiFetch(`/api/v1/shots/${encodeURIComponent(shotId)}/correct`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function proposeExtend(
+  shotId: string,
+  body: {
+    source_uri: string;
+    reason?: string;
+    prompt?: string;
+  },
+): Promise<{ approval_id: string; status: string }> {
+  return apiFetch(`/api/v1/shots/${encodeURIComponent(shotId)}/extend`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function proposeMaster(
+  shotId: string,
+  body: {
+    op: string;
+    source_uri?: string;
+    reason?: string;
+    intent?: string;
+    preset?: string;
+    angle?: string;
+    movement?: string;
+  },
+): Promise<{ approval_id: string; status: string }> {
+  return apiFetch(`/api/v1/shots/${encodeURIComponent(shotId)}/master`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export function getSettings(): Promise<Settings> {
   return apiFetch<Settings>("/api/v1/settings");
 }
@@ -88,4 +141,27 @@ export function updateSettings(settings: Settings): Promise<Settings> {
     method: "PATCH",
     body: JSON.stringify(settings),
   });
+}
+
+export function startFinish(
+  projectId: string,
+  budgetMicros = 50_000_000,
+): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/finish`,
+    { method: "POST", body: JSON.stringify({ budget_micros: budgetMicros }) },
+  );
+}
+
+export function getWorklist(projectId: string): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/worklist`,
+  );
+}
+
+export function patchWorklist(projectId: string, order: string[]): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/worklist`,
+    { method: "PATCH", body: JSON.stringify({ order }) },
+  );
 }
