@@ -10,6 +10,7 @@ from typing import Any
 
 from opentelemetry import trace
 
+from backend.core.api_resilience import call_with_resilience
 from backend.core.config import Settings
 from backend.core.models import TEXT_MODEL, THINKING_LEVEL, THROUGH_THOUGHTS
 from backend.jobs.telemetry import record_ai_usage
@@ -108,23 +109,19 @@ def run_agent_call(
         if media_parts:
             media_parts.append(prompt)
             contents = media_parts
-        # Bounded retry on transient 429 RESOURCE_EXHAUSTED (observed on the
-        # dub eval under burst): 3 attempts, exponential backoff. Any other
-        # error or the final 429 fails loud (C-1.1).
-        import time as _time
-
-        for attempt in range(3):
-            try:
-                response = client.models.generate_content(
-                    model=TEXT_MODEL,
-                    contents=contents,
-                    config=types.GenerateContentConfig(**config_kwargs),
-                )
-                break
-            except Exception as exc:
-                if attempt == 2 or "429" not in str(exc):
-                    raise
-                _time.sleep(2**attempt)
+        # Shared resilience policy (owner directive 2026-09-07): bounded
+        # retry on transient 429 RESOURCE_EXHAUSTED / 503 (observed on the
+        # dub eval under burst). Any other error or the final failure fails
+        # loud (C-1.1). generate_content is safe to retry (no side effects).
+        response = call_with_resilience(
+            lambda: client.models.generate_content(
+                model=TEXT_MODEL,
+                contents=contents,
+                config=types.GenerateContentConfig(**config_kwargs),
+            ),
+            attempts=3,
+            is_transient=lambda exc: "429" in str(exc) or "503" in str(exc),
+        )
         usage = getattr(response, "usage_metadata", None)
         input_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)
         output_tokens = int(getattr(usage, "candidates_token_count", 0) or 0)

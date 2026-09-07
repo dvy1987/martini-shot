@@ -21,8 +21,22 @@ import subprocess
 import urllib.request
 from typing import Any
 
+from backend.core.api_resilience import call_with_resilience
 from backend.core.config import Settings
 from backend.core.models import OMNI_MODEL, TTS_API_BASE, TTS_VOICE_FAMILY, VEO_MODEL
+
+
+def _resilient_urlopen(request: urllib.request.Request, timeout: float) -> bytes:
+    """Shared resilience wrapper (owner directive 2026-09-07): the whole
+    urlopen+read is ONE try-unit, so a mid-read transient failure also
+    retries. Only idempotent calls may pass through here."""
+
+    def _open() -> bytes:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.read()
+
+    return call_with_resilience(_open)
+
 
 # Vertex list prices (2026-09): Omni 1.1 Flash ~$0.10/s of output at 720p;
 # 360p drafts are ~1/3 of that. Integer micro-units (C-6.4), ceil per second.
@@ -87,29 +101,13 @@ def tts_synthesize(
         # texttospeech.googleapis.com (403 SERVICE_DISABLED otherwise).
         "x-goog-user-project": settings.gcp_project_id,
     }
-    # Transient 5xxs observed on 2026-09-06 — bounded retry with backoff.
-    import time
-    import urllib.error
-
-    for attempt in range(3):
-        request = urllib.request.Request(
-            f"{TTS_API_BASE}/text:synthesize",
-            data=json.dumps(body).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=120) as resp:
-                payload = json.load(resp)
-            break
-        except urllib.error.HTTPError as exc:
-            if exc.code < 500 or attempt == 2:
-                raise
-            time.sleep(2**attempt)
-        except urllib.error.URLError:
-            if attempt == 2:
-                raise
-            time.sleep(2**attempt)
+    request = urllib.request.Request(
+        f"{TTS_API_BASE}/text:synthesize",
+        data=json.dumps(body).encode("utf-8"),
+        headers=headers,
+        method="POST",
+    )
+    payload = json.loads(_resilient_urlopen(request, timeout=120))
     audio_b64 = str(payload.get("audioContent") or "")
     if not audio_b64:
         raise RuntimeError("tts synthesize returned no audio content")
@@ -205,8 +203,7 @@ def _extract_video(interaction: Any) -> bytes | None:
     uri = getattr(output_video, "uri", None)
     if uri:
         try:
-            with urllib.request.urlopen(str(uri), timeout=180) as response:
-                return response.read()
+            return _resilient_urlopen(urllib.request.Request(str(uri)), timeout=180)
         except Exception:
             return None
     return None
@@ -282,8 +279,9 @@ def veo_extend(
             },
             method=method,
         )
-        with urllib.request.urlopen(request, timeout=120) as response:
-            return dict(json.loads(response.read().decode("utf-8")))
+        return dict(
+            json.loads(_resilient_urlopen(request, timeout=120).decode("utf-8"))
+        )
 
     operation = _call(
         f"{base}:predictLongRunning",
@@ -309,8 +307,7 @@ def veo_extend(
         if payload.get("done"):
             video = extract_veo_video(payload)
             if isinstance(video, str):
-                with urllib.request.urlopen(video, timeout=300) as response:
-                    video = response.read()
+                video = _resilient_urlopen(urllib.request.Request(video), timeout=300)
             return {
                 "video_bytes": video,
                 "interaction_id": op_name,
