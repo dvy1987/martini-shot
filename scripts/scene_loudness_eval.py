@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-"""Scene-aware loudness eval: real Gemini LISTENS and classifies scene
-energy (whisper / talk / shout / crash / explosion / silence), then
-chooses the mix path.
+"""Scene-aware loudness eval: real Gemini LISTENS and classifies
+quiet/normal/loud × with/without dialogue, then chooses the mix path.
 
 Gate (thresholds.yaml): scene_loudness_judgment mean_case_accuracy >= 0.8.
 A hit requires BOTH scene_class AND decision. A failed call is a miss
@@ -44,12 +43,12 @@ ESTIMATE_MICROS_PER_CALL = 4_000
 def _energy_wav(media: FFmpeg, scene_class: str) -> tuple[bytes, str] | None:
     """Labeled synthetic INPUT whose energy matches the class (C-1.3)."""
     volume = {
-        "silence": -50.0,
-        "whisper": -40.0,
-        "dialogue": -20.0,
-        "shout": -8.0,
-        "impact": -4.0,
-        "explosion": 0.0,
+        "quiet-no-dialogue": -50.0,
+        "quiet-with-dialogue": -40.0,
+        "normal-no-dialogue": -22.0,
+        "normal-with-dialogue": -20.0,
+        "loud-with-dialogue": -8.0,
+        "loud-no-dialogue": 0.0,
     }.get(scene_class)
     if volume is None:
         return None
@@ -57,7 +56,7 @@ def _energy_wav(media: FFmpeg, scene_class: str) -> tuple[bytes, str] | None:
         path = Path(tmp) / "clip.wav"
         src = (
             "anoisesrc=duration=2.5:color=white"
-            if scene_class in {"impact", "explosion"}
+            if scene_class == "loud-no-dialogue"
             else "sine=frequency=1000:duration=2.5"
         )
         result = media._run(
@@ -98,9 +97,9 @@ def run_suite(run_index: int, media: FFmpeg) -> tuple[list[dict], dict]:
         scene_class = ""
         reason = "agent call failed"
         expected = row["expected"]
-        audio = None
-        if expected.get("decision") != "needs_human":
-            audio = _energy_wav(media, str(expected.get("scene_class") or "dialogue"))
+        audio = _energy_wav(
+            media, str(expected.get("scene_class") or "normal-with-dialogue")
+        )
         try:
             doc, call_cost = decide_loudness_strategy(
                 settings,

@@ -275,3 +275,73 @@ def test_correct_api_refuses_locked_empty_and_injective_briefs(
             },
         )
         assert injected.status_code == 409
+
+
+def test_corrections_quality_tape_is_original_not_gradients() -> None:
+    from backend.evals.corrections_quality import SOURCES
+
+    assert len(SOURCES) >= 3
+    kinds = {str(row["kind"]) for row in SOURCES}
+    assert kinds == {"signage", "prop_removal", "on_set_graphic"}
+    for row in SOURCES:
+        uri = str(row["source_uri"])
+        assert "original-probes" in uri
+        assert "synthetic-drift" not in uri
+        assert "gradient" not in uri.lower()
+        assert str(row["intent"]).strip()
+
+
+def test_corrections_quality_rejects_veo_or_missing_omni() -> None:
+    from backend.evals.corrections_quality import summarize_corrections_quality
+
+    omni = summarize_corrections_quality(
+        [
+            {
+                "render_model": "gemini-omni-1.1-flash-preview",
+                "omni_fallback": False,
+                "flicker": 0.003,
+                "qc_decision": "pass",
+                "alternate_status": "draft",
+                "alternate_op": "correction",
+                "source_uri": "gs://martini-shot-media/original-probes/cafe-sign.mp4",
+            }
+        ]
+    )
+    assert omni["pass"] is True
+    assert omni["omni_render_rate"] == 1.0
+
+    veo = summarize_corrections_quality(
+        [
+            {
+                "render_model": "veo-3.1-fast-generate-001",
+                "omni_fallback": True,
+                "flicker": 0.003,
+                "qc_decision": "pass",
+                "alternate_status": "draft",
+                "alternate_op": "correction",
+                "source_uri": "gs://martini-shot-media/original-probes/cafe-sign.mp4",
+            }
+        ]
+    )
+    assert veo["pass"] is False
+    assert veo["omni_render_rate"] == 0.0
+
+
+def test_corrections_quality_rejects_gradient_tape() -> None:
+    from backend.evals.corrections_quality import summarize_corrections_quality
+
+    row = summarize_corrections_quality(
+        [
+            {
+                "render_model": "gemini-omni-1.1-flash-preview",
+                "omni_fallback": False,
+                "flicker": 0.003,
+                "qc_decision": "pass",
+                "alternate_status": "draft",
+                "alternate_op": "correction",
+                "source_uri": "gs://martini-shot-media/probes720/synthetic-drift-01-720p.mp4",
+            }
+        ]
+    )
+    assert row["pass"] is False
+    assert "gradient" in row["fail_reason"]

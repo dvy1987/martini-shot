@@ -137,6 +137,7 @@ export interface Alternate {
 }
 
 export interface SceneUnderstanding {
+  ingested?: boolean | null;
   spoken_words?: string | null;
   has_speech?: boolean | null;
   scene?: string | null;

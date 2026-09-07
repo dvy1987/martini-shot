@@ -10,3 +10,7 @@ Clips are **built at eval time** in `docs/evidence/finish-loop/clips/` (gitignor
 
 The inspect agent is scored on a **watch** (frames + wav), same as production.
 Do not treat these muxes as locked cuts.
+
+D-9 / D-10 buckets use extra originals: full kitchen (nice air), table
+two-shot (leave-it extend), florist (leave-it corrections), chalkboard
+OPNN (must graphic).

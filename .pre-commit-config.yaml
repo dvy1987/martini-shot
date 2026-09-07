@@ -13,7 +13,7 @@ repos:
         # Excluded: generated manifests and evidence JSON whose content is
         # sha256 hashes / trace IDs (false positives; JSON cannot carry
         # inline allowlist pragmas).
-        exclude: ^docs/harness/manifest\.json$|^docs/knowledge-graph/|^docs/evidence/G1/gate\.json$|^docs/evidence/G2/gate\.json$|^docs/evidence/E-3/raw/
+        exclude: ^docs/harness/manifest\.json$|^docs/knowledge-graph/|^docs/evidence/G1/gate\.json$|^docs/evidence/G2/gate\.json$|^docs/evidence/E-3/raw/|^docs/evidence/D-10/|^docs/evidence/finish-loop/
   - repo: local
     hooks:
       - id: integrity-check

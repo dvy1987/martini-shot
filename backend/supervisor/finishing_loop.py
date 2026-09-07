@@ -22,6 +22,34 @@ DEFAULT_BUDGET_MICROS = 50_000_000
 INSPECT_ESTIMATE_MICROS = 200_000  # per station billed look, printed (C-7.2)
 
 
+def _stamp_job_scene(
+    result: dict[str, Any],
+    scene_understanding: dict[str, Any] | None,
+    *,
+    project_id: str,
+    to_station: str,
+    source_uri: str,
+) -> None:
+    from backend.jobs.handoff import turnover_manifest
+    from backend.supervisor.station_agents.ingest_understand import (
+        attach_scene_fields,
+        scene_bag,
+    )
+
+    bag = scene_bag(scene_understanding)
+    if not bag.get("ingested"):
+        return
+    attach_scene_fields(result, bag)
+    files = [{"ref": source_uri, "sha256": "", "bytes": 0}] if source_uri else []
+    result["handoff"] = turnover_manifest(
+        project_id=project_id,
+        from_station="ingest",
+        to_station=to_station,
+        files=files,
+        scene=bag,
+    )
+
+
 def pause_inflight(jobs: list[Job], remaining_micros: int) -> list[Job]:
     """When the envelope is gone, in-flight jobs do not get to finish.
 
@@ -110,6 +138,7 @@ def jobs_from_notes(
     project_id: str,
     source_uri: str,
     shot_id: str,
+    scene_understanding: dict[str, Any] | None = None,
 ) -> list[Job]:
     jobs: list[Job] = []
     for note in notes:
@@ -122,6 +151,19 @@ def jobs_from_notes(
             "finishing": True,
             **args,
         }
+        if target == "extend":
+            result.setdefault("tier", "draft")
+        if target == "corrections":
+            result.setdefault("tier", "draft")
+            if not str(result.get("intent") or "").strip():
+                result["intent"] = note.summary
+        _stamp_job_scene(
+            result,
+            scene_understanding,
+            project_id=project_id,
+            to_station=target,
+            source_uri=source_uri,
+        )
         jobs.append(
             Job(
                 station=target,
@@ -182,22 +224,44 @@ def _busy_generative_shots(items: list[dict[str, Any]]) -> set[str]:
     return busy
 
 
-def _job_from_item(item: dict[str, Any], *, project_id: str) -> Job:
+def _job_from_item(
+    item: dict[str, Any],
+    *,
+    project_id: str,
+    scene_by_shot: dict[str, Any] | None = None,
+) -> Job:
     proposal = dict(item.get("proposal") or {})
     args = dict(proposal.get("args") or {})
     station = str(proposal.get("station") or item.get("station") or "")
     source = str(item.get("source_uri") or "")
     shot_id = str(item.get("shot_id") or args.get("shot_id") or "")
+    result = {
+        "shot_id": shot_id,
+        "finishing": True,
+        "worklist_item": item.get("id"),
+        **args,
+    }
+    if station == "extend":
+        result.setdefault("tier", "draft")
+    if station == "corrections":
+        result.setdefault("tier", "draft")
+        if not str(result.get("intent") or "").strip():
+            result["intent"] = str(item.get("summary") or "")
+    bag = item.get("scene_understanding")
+    if not isinstance(bag, dict) and scene_by_shot:
+        bag = scene_by_shot.get(shot_id)
+    _stamp_job_scene(
+        result,
+        bag if isinstance(bag, dict) else None,
+        project_id=project_id,
+        to_station=station,
+        source_uri=source,
+    )
     return Job(
         station=station,
         project_id=project_id,
         input_refs=[source] if source else [],
-        result={
-            "shot_id": shot_id,
-            "finishing": True,
-            "worklist_item": item.get("id"),
-            **args,
-        },
+        result=result,
     )
 
 
@@ -210,6 +274,39 @@ def _deps_cleared(item: dict[str, Any], items: list[dict[str, Any]]) -> bool:
         if str(blocker.get("status") or "") in _BLOCKING:
             return False
     return True
+
+
+CLEANUP_STATIONS = ("loudness", "pickups")
+
+
+def apply_cleanup_sequence(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Loudness then pickups first per shot; Stage 1a/dub wait until those pass."""
+    by_shot: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        by_shot.setdefault(str(item.get("shot_id") or ""), []).append(item)
+    ordered: list[dict[str, Any]] = []
+    for rows in by_shot.values():
+        loud = next((r for r in rows if r.get("station") == "loudness"), None)
+        pick = next((r for r in rows if r.get("station") == "pickups"), None)
+        rest = [r for r in rows if r.get("station") not in CLEANUP_STATIONS]
+        if loud is not None:
+            loud = dict(loud)
+            loud["blocked_by"] = []
+            ordered.append(loud)
+        if pick is not None:
+            pick = dict(pick)
+            pick["blocked_by"] = [str(loud.get("id") or "")] if loud else []
+            pick["blocked_by"] = [b for b in pick["blocked_by"] if b]
+            ordered.append(pick)
+        blocker_id = str((pick or loud or {}).get("id") or "")
+        for row in rest:
+            row = dict(row)
+            deps = [str(d) for d in (row.get("blocked_by") or []) if d]
+            if blocker_id and blocker_id not in deps:
+                deps.append(blocker_id)
+            row["blocked_by"] = deps
+            ordered.append(row)
+    return ordered
 
 
 def dispatch_next(
@@ -237,7 +334,13 @@ def dispatch_next(
             continue
         if not _deps_cleared(item, items):
             continue
-        job = _job_from_item(item, project_id=project_id)
+        job = _job_from_item(
+            item,
+            project_id=project_id,
+            scene_by_shot=doc.get("scene_by_shot")
+            if isinstance(doc.get("scene_by_shot"), dict)
+            else None,
+        )
         started.append(job)
         item["status"] = "queued"
         item["job_id"] = job.id
@@ -298,6 +401,7 @@ def items_from_rank(
     ranked: RankResult | RankPlan,
     *,
     source_by_shot: dict[str, str],
+    scene_by_shot: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Every needs_work note becomes a waiting row. Dispatch applies budget."""
     if isinstance(ranked, RankPlan):
@@ -306,26 +410,32 @@ def items_from_rank(
     else:
         notes = [*ranked.ordered, *ranked.waiting]
         blocked_by = {}
+    scene_by_shot = scene_by_shot or {}
     items: list[dict[str, Any]] = []
     for note in notes:
         key = note_key(note)
         shot_id = note.shot_id or ""
-        items.append(
-            {
-                "id": key,
-                "station": note.station,
-                "status": "waiting",
-                "impact": note.impact,
-                "kind": note.kind,
-                "summary": note.summary,
-                "shot_id": shot_id,
-                "source_uri": source_by_shot.get(shot_id, ""),
-                "cost_estimate_micros": int(note.cost_estimate_micros),
-                "proposal": dict(note.proposal),
-                "blocked_by": list(blocked_by.get(key) or []),
-            }
-        )
-    return items
+        bag = scene_by_shot.get(shot_id) if isinstance(scene_by_shot, dict) else None
+        row = {
+            "id": key,
+            "station": note.station,
+            "status": "waiting",
+            "impact": note.impact,
+            "kind": note.kind,
+            "summary": note.summary,
+            "shot_id": shot_id,
+            "source_uri": source_by_shot.get(shot_id, ""),
+            "cost_estimate_micros": int(note.cost_estimate_micros),
+            "proposal": dict(note.proposal),
+            "blocked_by": list(blocked_by.get(key) or []),
+        }
+        if isinstance(bag, dict):
+            row["scene_understanding"] = bag
+            row["ingested"] = bag.get("ingested")
+            row["spoken_words"] = bag.get("spoken_words")
+            row["scene"] = bag.get("scene")
+        items.append(row)
+    return apply_cleanup_sequence(items)
 
 
 def refresh_final_refs(doc: dict[str, Any], store: Any) -> dict[str, Any]:

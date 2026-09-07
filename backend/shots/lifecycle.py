@@ -93,6 +93,7 @@ def record_scene_understanding(
     """Persist ingest watch fields on the shot (the scene record)."""
     spoken = str(spoken_words or "").strip() if has_speech else ""
     understanding = {
+        "ingested": True,
         "spoken_words": spoken,
         "has_speech": bool(has_speech) and bool(spoken),
         "scene": str(scene or "").strip(),

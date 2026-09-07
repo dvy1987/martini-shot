@@ -1,5 +1,94 @@
 # Decision Log
 
+## 2026-09-07 - Extend/Corrections looker: must / nice / leave
+Status: active
+Scope: finish_extend + finish_corrections inspect
+Confidence: high
+Tags: finishing, inspect, d-9, d-10, edd
+
+### Decision
+Each looker picks one bucket from the picture: **must** (`needs_work` +
+`kind=defect`), **nice** (`needs_work` + `kind=improvement`), or **leave**
+(`status=ok`, no proposal). The orchestrator never sees leave-it as work.
+It spends defects before improvements and drops low taste first when money
+is tight. Live Gemini watch is the exam — not a written brief.
+
+### Context
+Owner asked for required vs nice-to-have vs leave-it in the D-9 and D-10
+ADK agents, then wiring into the boss. Prior inspect eval failed at 0.75
+in part because a mid-cut was labeled taste.
+
+### Revisit When
+Live `finishing_extend_corrections_inspect` 3-run mean < 0.8.
+
+---
+
+## 2026-09-07 - Loudness: six scene kinds, lift voice over room, no human stop
+Status: active
+Scope: loudness station + Loudness Strategist + finishing cleanup order
+Confidence: high
+Tags: loudness, scene-class, speech-split, finishing
+
+### Decision
+Classify every mix as quiet/normal/loud × with/without dialogue (examples:
+wind = quiet-no-dialogue; explosion with no line = loud-no-dialogue). Stay
+inside a comfortable hearing range; loud may sit louder, quiet softer.
+Speech must be hearable. If the line is buried in the room, **lift the
+voice relative to ambience** (ffmpeg voice-band vs room split), not only
+the whole track. A continuing shot keeps speech and room in family with
+the previous mix. **Never `needs_human`.** Best effort always. After ingest
+metadata exists: loudness then pickups are mandatory cleanup (that spend
+is spent) before Stage 1a/dub proposals; the orchestrator then sequences
+what can run together. Ingest ADK is owned by the other thread — do not
+rebuild it here.
+
+### Context
+Owner rejected whisper/explosion labels as juvenile, picked voice-over-room
+isolation, and said every station must not run at once.
+
+### Rationale
+A mixer judges energy × speech, then actually fixes the soundtrack.
+
+### Alternatives Considered
+- Whisper/talk/shout/impact/explosion labels: rejected (owner).
+- Raise the whole track when speech is buried: rejected (owner picked a real split).
+- Parallel every station after ingest: rejected (owner).
+
+### Revisit When
+- Live `scene_loudness_judgment` 3-run mean is below 0.8 on the new classes.
+- Voice-band split fails on a real café/wind clip (need a stronger separator).
+
+### Consequences
+- `SCENE_CLASSES` in `backend/stations/loudness/scene.py` is the six-kind table.
+- `FFmpeg.lift_speech_over_room` is the split. `fix_stem` means lift voice.
+- Finishing `apply_cleanup_sequence`: loudness then pickups, then creative.
+
+---
+
+## 2026-09-07 - Scene-aware loudness mix (not a single TV number)
+Status: superseded
+Superseded by: 2026-09-07 - Loudness: six scene kinds, lift voice over room, no human stop
+Scope: loudness station + batch orchestrator + Loudness Strategist
+Confidence: high
+Tags: loudness, e-3, scene-class, dub
+
+### Decision
+Loudness hears the **dub** (not only the picture soundtrack), classifies the
+scene (silence / whisper / talk / shout / crash / explosion), mixes toward
+that level, and re-measures. Whisper is one example: a bang or a crash of
+pans should sit **louder** than talk. Dialogue stays easy to hear. The show
+stays in one family. `needs_human` only if the mix still misses.
+
+### Context
+E-3 loudness jobs flagged `fail_quiet` and stopped. The meter was reading the
+picture track and never turning the volume. Owner asked for scene-fitting
+levels, not “everything to −16” and not whisper-only.
+
+### Revisit When
+Replaced 2026-09-07 by the six-kind table + voice-over-room split.
+
+---
+
 ## 2026-09-07 - Finishing inspect EDD is a real watch, cap $20
 Status: active
 Scope: finishing inspect eval

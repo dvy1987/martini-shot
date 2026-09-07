@@ -1,5 +1,11 @@
 # Extend station (D-9)
 
+**Walk-away finishing:** `finish_extend` watches the clip and picks one
+bucket: **must** (dies mid-thought → defect), **nice** (breath of air →
+low improvement), or **leave** (already complete → `status=ok`, no job).
+Must/nice become a 360p **draft** alternate. Leave-it never reaches the
+orchestrator bag. The ADK boss spends defects before taste.
+
 **Capability:** Omni scene-extend through the full audited pipeline —
 H-0 proposal→approval (`extend_shot`, deterministic job id `ext-<approval_id>`)
 → lease-queue render (async, C-6.5) → GCS store → deterministic flicker QC

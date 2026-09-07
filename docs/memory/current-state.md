@@ -1,6 +1,6 @@
 # Current State
 
-**Where:** 2026-09-07 — Stage 1 batch plus Stage 1a stations are in the tree. **Ingest now watches the original clip** after the file check and writes `scene_understanding` (spoken words + scene) onto the shot. Live ingest eval: transcript 0.958 / scene 1.00 ($0.08). Scene-aware loudness mixes; captions format the line or ingest words; quiet speech can retry loudness, silence does not.
-**In flight:** owner asked to commit and push the full dirty tree. `make check` coverage still below 90%.
+**Where:** 2026-09-07 — Ingest **job** is file check only. Scene understanding is the **ingest ADK agent** (first after a healthy upload): `ingested` + `spoken_words` + `scene` on the shot, every later agent, and the handoff. Handoff validator restores lost metadata or runs the look, then writes `handoff_orchestrator_note`. Other stations are not kicked off together.
+**In flight:** owner asked to commit and push the dirty tree (this ingest work plus D-10/loudness/inspect from the parallel thread). `make check` coverage still below 90%.
 **Next queue:** coverage on untested Stage 1a modules; do not treat Veo-finished eval rows as Omni passes.
-**Full handover:** `docs/memory/agent-handoffs.md` (2026-09-07 17:40).
+**Full handover:** `docs/memory/agent-handoffs.md` (2026-09-07 20:41).

@@ -65,7 +65,7 @@ def test_impact_includes_medium() -> None:
             "status": "needs_work",
             "impact": "medium",
             "kind": "improvement",
-            "summary": "Shot dies mid-gesture",
+            "summary": "A breath of air at the end would help",
             "cost_estimate_micros": 3_000_000,
             "proposal": {
                 "kind": "station_job",
@@ -176,6 +176,80 @@ def test_parse_dark_faces_as_high_improvement() -> None:
     )
     assert note.kind == "improvement"
     assert note.impact == "high"
+
+
+def test_needs_work_without_proposal_gets_a_station_job() -> None:
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "loudness",
+                "status": "needs_work",
+                "impact": "high",
+                "kind": "defect",
+                "summary": "dialogue unhearable",
+            }
+        ),
+        "loudness",
+    )
+    assert note.proposal["kind"] == "station_job"
+    assert note.proposal["station"] == "loudness"
+    assert note.cost_estimate_micros > 0
+
+
+def test_inspect_dataset_covers_extend_and_corrections_three_buckets() -> None:
+    from pathlib import Path
+
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "backend"
+        / "evals"
+        / "datasets"
+        / "finishing_inspect_judgment.jsonl"
+    )
+    rows = [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    by_id = {row["id"]: row for row in rows}
+    cut = by_id["fi-03"]
+    assert cut["station"] == "extend"
+    assert cut["expected"]["status"] == "needs_work"
+    assert cut["expected"]["kind"] == "defect"
+    air = by_id["fi-11"]
+    assert air["clip"] == "extra_air"
+    assert air["expected"] == {
+        "status": "needs_work",
+        "impact": "low",
+        "kind": "improvement",
+    }
+    complete = by_id["fi-12"]
+    assert complete["clip"] == "complete_shot"
+    assert complete["expected"]["status"] == "ok"
+    sign = by_id["fi-07"]
+    assert sign["expected"]["kind"] == "defect"
+    cup = by_id["fi-09"]
+    assert cup["expected"]["kind"] == "improvement"
+    clean = by_id["fi-13"]
+    assert clean["station"] == "corrections"
+    assert clean["expected"]["status"] == "ok"
+
+
+def test_inspect_clip_keys_cover_d9_d10_buckets() -> None:
+    from backend.evals.finish_inspect_media import INSPECT_CLIP_KEYS
+
+    for name in (
+        "dies_mid_thought",
+        "extra_air",
+        "complete_shot",
+        "signage_closed",
+        "table_cup",
+        "chalkboard_opnn",
+        "clean_picture",
+    ):
+        assert name in INSPECT_CLIP_KEYS
 
 
 def test_visual_inspect_without_frames_is_empty_not_a_guess() -> None:

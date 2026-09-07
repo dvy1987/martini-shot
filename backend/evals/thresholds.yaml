@@ -99,6 +99,10 @@ suites:
     metric: mean_output_flicker
     threshold: 0.02
     comparison: "<"
+  - name: corrections_omni_primary
+    metric: omni_render_rate
+    threshold: 1.0
+    comparison: ">="
   - name: extend_quality
     metric: mean_output_flicker
     threshold: 0.02
@@ -108,6 +112,10 @@ suites:
     threshold: 1.0
     comparison: ">="
   - name: finishing_inspect_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: finishing_extend_corrections_inspect
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="

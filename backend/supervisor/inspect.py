@@ -56,8 +56,10 @@ Impact:
 
 status: ok if you would change nothing; needs_work if you would change
 something. Do not use empty — empty is only for a missing agent.
-kind: defect vs improvement.
-Propose a real station job the house can run unattended. Minimize needs_human.
+kind: defect is required (story/readability). kind: improvement is
+nice-to-have. status=ok means leave it — no proposal object.
+Propose a real station job the house can run unattended only when
+status is needs_work. Minimize needs_human.
 Respond ONLY with JSON matching the inspect schema.
 """
 

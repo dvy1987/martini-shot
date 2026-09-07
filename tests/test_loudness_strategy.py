@@ -59,7 +59,7 @@ def test_suggestion_maps_measurements() -> None:
     }
     assert suggestion_for_report(quiet) == "fix_stem"
     # Meter garbage -> conservative escalation.
-    assert suggestion_for_report({"verdict_streaming": "meter_error"}) == "needs_human"
+    assert suggestion_for_report({"verdict_streaming": "meter_error"}) == "accept"
 
 
 def test_prompt_contains_measurements_and_season() -> None:
@@ -68,7 +68,8 @@ def test_prompt_contains_measurements_and_season() -> None:
     assert "dialogue_hot|music_hot" in prompt  # stem vocabulary
     assert "ep-01" in prompt and "-16.2" in prompt  # sibling rows
     assert "coherence" in prompt.lower()  # season-coherence rule stated
-    assert "accept|fix_stem|apply_limiter|needs_human" in prompt
+    assert "accept|fix_stem|apply_limiter" in prompt
+    assert "choose needs_human" not in prompt.lower()
 
 
 def test_parse_valid_decision() -> None:
@@ -101,7 +102,7 @@ def test_parse_will_not_accept_an_explosion_sitting_at_talk_level() -> None:
             "decision": "accept",
             "streaming_route": "accept",
             "broadcast_route": "block",
-            "scene_class": "explosion",
+            "scene_class": "loud-no-dialogue",
             "target_lufs": -9.0,
             "reason": "integrated matches streaming -16",
             "confidence": "high",

@@ -1,26 +1,42 @@
 # Corrections station (D-10)
 
-**Capability:** Bounded Omni conversational edits (signage/text/element
-replacement) through the audited pipeline — Corrections Agent judges the
-brief → H-0 `correct_shot` (deterministic job id `cor-<approval_id>`) →
-lease-queue Omni `edit` render → flicker QC gate (0.02) → DRAFT **alternate**
-(AL-1). Locked cuts, empty briefs, and prompt-injection text abstain in code.
+**Walk-away finishing:** `finish_corrections` watches the clip and picks
+one bucket: **must** (wrong signage/graphic → defect), **nice**
+(unmotivated prop → improvement), or **leave** (nothing to fix →
+`status=ok`, no job). Must/nice name a bounded intent and a 360p **draft**
+alternate. Leave-it never reaches the orchestrator bag.
 
-**Model:** `gemini-omni-1.1-flash-preview` via `omni_edit` (`video_config.task`
-= `edit`). The Corrections Agent (`gemini-3.7-flash`, thinking HIGH) proposes
-or abstains; it never executes.
+**Capability:** Omni conversational `edit` through the audited pipeline —
+Corrections Agent judges the brief (or the looker names the intent) → H-0
+`correct_shot` (job id `cor-<approval_id>`) → lease-queue Omni `edit` →
+flicker QC 0.02 → DRAFT **alternate** (AL-1). Locked cuts, empty briefs,
+and prompt-injection text abstain in code.
 
-**Manual UX:** Season Timeline → Alternates lane → Corrections form (brief,
-protected subjects, continuity constraints, source URI) → Approvals inbox.
+**Diverse correction kinds (eval tape):**
+- **signage** — original café wooden sign → rewrite to OPEN
+- **prop_removal** — original table two-shot → remove the paper cup
+- **on_set_graphic** — original chalkboard misspelled OPNN → rewrite to OPEN
 
-**Cost:** draft-first integer micros (360p table unless `tier=master`).
+Gradient / color-bar / BBB holdouts are **not** a quality pass (owner
+2026-09-07). Earlier `synthetic-drift-*` JSONL in this folder is rejected
+tape, kept for honesty.
 
-**Watch items:**
-- Natural-content BBB fixtures (`shot-02-grove`, `shot-03-clearing`) recitation-
-  refuse Omni `edit` (same content-dependent refusal D-9 recorded). There is
-  no Veo edit fallback. Quality EDD uses labeled synthetic INPUT.
-- Omni HTTP timeout must be 900s; the SDK default 120s aborts long edits.
+**Model:** `gemini-omni-1.1-flash-preview` via `omni_edit`. There is no Veo
+`edit` fallback. If Omni cannot be called, stop and tell the owner. The
+job records `render_model`, `omni_fallback`, `omni_error`.
 
-**Eval:** `scripts/corrections_judgment_eval.py` and
-`scripts/corrections_quality_eval.py`; evidence in `docs/evidence/D-10/`.
-Judgment **1.0/1.0/1.0**; quality **9/9**, mean flicker **0.00303** < 0.02.
+**Manual UX:** Season Timeline → Alternates lane → Corrections form →
+Approvals inbox.
+
+**Eval:** `scripts/corrections_judgment_eval.py` (8 labeled briefs: signage,
+prop removal, on-set graphic, lettering replace, plus hard-gate abstentions)
+and `scripts/corrections_quality_eval.py` (original GCS clips, Omni-only).
+
+Live 2026-09-07 (this thread, original tape, not gradients):
+- Judgment **1.0 / 1.0 / 1.0** on 8 briefs × 3 runs
+  (`corrections_judgment_summary_20260907T142002Z.json`).
+- Quality **3/3 Omni** on one run of three kinds, mean flicker **0.00153**,
+  `omni_render_rate` **1.0** (`corrections_quality_summary_20260907T142125Z.json`).
+  Signage café-sign 0.00064; prop table-cup 0.00187; chalkboard OPNN 0.00207.
+  A 3-consecutive-run quality batch is the remaining DoD bar.
+

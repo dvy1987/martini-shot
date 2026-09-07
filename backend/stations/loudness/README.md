@@ -1,6 +1,6 @@
 # Loudness Marshal (S3)
 
-**Capability:** Hear the mix (prefer the sibling dub WAV over the picture soundtrack), classify scene energy (silence / whisper / talk / shout / crash / explosion), mix with ffmpeg `loudnorm` toward that target, re-measure. Dialogue stays easy to hear; the show stays in one loudness family; a whisper may sit quieter than talk and a bang may sit louder. The meter still wins on the number. `needs_human` only if the mix still misses or speech stays unintelligible.
+**Capability:** Hear the mix (prefer the sibling dub WAV over the picture soundtrack), classify quiet/normal/loud × with/without dialogue, mix with ffmpeg `loudnorm` toward that target, and when speech is buried **lift the voice over the room**. Re-measure. Everything stays in a comfortable hearing range; a continuing shot stays in family with the last mix. Best effort — never `needs_human`.
 
 **Real services:** GCS object download/upload, ffmpeg ebur128 + loudnorm, Gemini Loudness Strategist (listens), OTLP metric `pc_loudness_lufs`. Mixed audio is an ALTERNATE on the shot (AL-1).
 

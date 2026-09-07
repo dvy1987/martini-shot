@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from backend.jobs.models import Job
 from backend.supervisor.finishing_loop import (
+    apply_cleanup_sequence,
     dispatch_next,
     on_finishing_terminal,
 )
@@ -166,3 +167,17 @@ def test_items_from_rank_keep_waiting_until_dispatch() -> None:
     assert items[0]["status"] == "waiting"
     assert items[0]["source_uri"] == "gs://b/c.mp4"
     assert items[0]["proposal"]["station"] == "loudness"
+
+
+def test_cleanup_runs_before_creative_and_pickups_waits_on_loudness() -> None:
+    items = apply_cleanup_sequence(
+        [
+            _item(id="extend::shot-a", station="extend", shot_id="shot-a"),
+            _item(id="loudness::shot-a", station="loudness", shot_id="shot-a"),
+            _item(id="pickups::shot-a", station="pickups", shot_id="shot-a"),
+        ]
+    )
+    stations = [row["station"] for row in items]
+    assert stations[:2] == ["loudness", "pickups"]
+    assert items[1]["blocked_by"] == ["loudness::shot-a"]
+    assert "pickups::shot-a" in items[2]["blocked_by"]

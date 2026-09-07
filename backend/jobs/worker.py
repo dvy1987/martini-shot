@@ -11,6 +11,7 @@ from backend.api.events import EventHub
 from backend.api.present import job_to_api
 from backend.core.config import Settings
 from backend.core.gcs import GCSMedia
+from backend.jobs.handoff import HandoffValidator, scene_bag_for_manifest
 from backend.jobs.models import Job
 from backend.jobs.queue import FirestoreLeaseQueue
 from backend.stations.run import STATION_NAMES, execute
@@ -108,6 +109,72 @@ def _authoritative(
         _notify_terminal(on_terminal, state)
 
 
+def apply_job_handoff(
+    job: Job,
+    *,
+    store: Any | None = None,
+    settings: Any | None = None,
+    gcs: Any | None = None,
+) -> Any:
+    """Validate (and try to repair) ingest scene metadata before a station runs."""
+    if job.station == "ingest":
+        return None
+    handoff = (job.result or {}).get("handoff")
+    if not isinstance(handoff, dict):
+        return None
+    delivered = [
+        {"ref": ref, "sha256": job.checksum_sha256 or "", "bytes": 0}
+        for ref in job.input_refs
+    ]
+    delivered_scene = None
+    result = job.result or {}
+    if result.get("ingested") or result.get("scene_understanding"):
+        delivered_scene = scene_bag_for_manifest(
+            {
+                **dict(result.get("scene_understanding") or {}),
+                "ingested": result.get("ingested"),
+                "spoken_words": result.get("spoken_words"),
+                "scene": result.get("scene"),
+            }
+        )
+    payload = None
+    media = None
+    if gcs is not None and job.input_refs:
+        try:
+            payload = gcs.download_bytes(job.input_refs[0])
+        except Exception:
+            payload = None
+        if payload is not None and settings is not None:
+            from backend.core.media import get_media
+
+            try:
+                media = get_media(settings)
+            except Exception:
+                media = None
+    gate = HandoffValidator(store=store).validate(
+        handoff,
+        delivered,
+        job_id=job.id,
+        require_scene=True,
+        delivered_scene=delivered_scene,
+        shot_id=str(result.get("shot_id") or ""),
+        store=store,
+        settings=settings,
+        payload=payload,
+        media=media,
+    )
+    if gate.orchestrator_note:
+        job.result["handoff_orchestrator_note"] = gate.orchestrator_note
+    if gate.repaired and gate.repaired_scene:
+        from backend.supervisor.station_agents.ingest_understand import (
+            attach_scene_fields,
+        )
+
+        attach_scene_fields(job.result, gate.repaired_scene)
+        job.result["handoff"] = {**handoff, "scene": gate.repaired_scene}
+    return gate
+
+
 def _finish_claimed(
     job: Job,
     queue: FirestoreLeaseQueue,
@@ -116,6 +183,12 @@ def _finish_claimed(
     on_terminal: OnTerminal | None = None,
 ) -> Job:
     try:
+        gate = apply_job_handoff(job, store=queue.store, settings=settings, gcs=gcs)
+        if gate is not None and not gate.passed:
+            job.status = "quarantined"
+            job.error = ",".join(gate.codes) or "handoff_blocked"
+            _persist(job, queue, on_terminal=on_terminal)
+            return job
         job = execute(job, gcs=gcs, settings=settings, store=queue.store)
         _persist(job, queue, on_terminal=on_terminal)
         try:
@@ -163,6 +236,13 @@ async def worker_loop(
             continue
         hub.publish(job.project_id, "job.updated", {"job": job_to_api(job)})
         try:
+            gate = apply_job_handoff(job, store=queue.store, settings=settings, gcs=gcs)
+            if gate is not None and not gate.passed:
+                job.status = "quarantined"
+                job.error = ",".join(gate.codes) or "handoff_blocked"
+                await asyncio.to_thread(_persist, job, queue, on_terminal)
+                hub.publish(job.project_id, "job.updated", {"job": job_to_api(job)})
+                continue
             job = await asyncio.to_thread(
                 execute, job, gcs=gcs, settings=settings, store=queue.store
             )

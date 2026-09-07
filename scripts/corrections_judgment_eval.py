@@ -4,7 +4,7 @@
 Gate (thresholds.yaml): corrections_judgment mean_case_accuracy >= 0.8.
 Honest accounting (C-3.5): a failed/invalid decision counts as a miss.
 
-Cost: 6 flash calls/run (~$0.02) × 3 runs ≈ $0.06 — under the $5 bar (C-7.2).
+Cost: 8 flash calls/run (~$0.03) × 3 runs ≈ $0.09 — under the $5 bar (C-7.2).
 Evidence: docs/evidence/D-10/corrections_judgment_eval.jsonl + _summary.json.
 """
 
@@ -80,7 +80,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runs", type=int, default=3)
     args = parser.parse_args()
-    estimate = args.runs * 6 * 4000
+    estimate = args.runs * 8 * 4000
     print(
         f"estimated_cost_micros={estimate} (~${estimate / 1_000_000:.2f}) "
         "for live Gemini judgment calls",

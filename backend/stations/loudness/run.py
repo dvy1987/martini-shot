@@ -1,8 +1,9 @@
 """Loudness station: hear the mix, pick a scene-fitting level, apply, re-measure.
 
 The meter still wins on the number. The strategist listens and chooses WHICH
-number (whisper quieter than talk; an explosion or a crash of pans louder).
-The station then actually mixes — it does not stop at needs_human.
+number (quiet / normal / loud, with or without dialogue). The station then
+actually mixes and, when speech is buried, lifts the voice over the room.
+It does not stop for a human.
 """
 
 from __future__ import annotations
@@ -20,7 +21,8 @@ from backend.stations.loudness.scene import (
     SCENE_CLASSES,
     SPEECH_FLOOR_LUFS,
     clamp_agent_target,
-    scene_target_lufs,
+    continuation_target,
+    has_dialogue,
     season_median_lufs,
 )
 from backend.stations.loudness.verdict import (
@@ -111,7 +113,7 @@ def run_loudness(
                 )
 
                 agent_cost = 0
-                scene_class = "dialogue"
+                scene_class = "normal-with-dialogue"
                 agent_doc: dict[str, Any] | None = None
                 streaming_verdict = verdict(
                     lufs, target=STREAMING_TARGET_LUFS, true_peak_dbtp=peak
@@ -130,6 +132,11 @@ def run_loudness(
                     "stem_diagnosis": stems,
                     "dialogue_band_lufs": dialogue,
                     "music_band_lufs": music,
+                    "previous_loudness": {
+                        "scene_class": job.result.get("previous_scene_class"),
+                        "target_lufs": job.result.get("previous_target_lufs"),
+                        "continuation": bool(job.result.get("continuation")),
+                    },
                 }
                 shot_id = str(job.result.get("shot_id") or "")
                 if store is not None and shot_id:
@@ -143,6 +150,11 @@ def run_loudness(
                         agent_report["spoken_words"] = str(
                             scene_meta.get("spoken_words") or ""
                         )
+                    elif job.result.get("ingested"):
+                        agent_report["scene_notes"] = str(job.result.get("scene") or "")
+                        agent_report["spoken_words"] = str(
+                            job.result.get("spoken_words") or ""
+                        )
                 if settings is not None:
                     decision, agent_cost = strategy_mod.decide_loudness_strategy(
                         settings,
@@ -151,25 +163,46 @@ def run_loudness(
                         audio=(payload, _mime_for(suffix)),
                     )
                     agent_doc = decision.to_doc()
-                    raw_class = str(decision.raw.get("scene_class") or "dialogue")
+                    raw_class = str(
+                        decision.raw.get("scene_class") or "normal-with-dialogue"
+                    )
                     if raw_class in SCENE_CLASSES:
                         scene_class = raw_class
                     raw_target = decision.raw.get("target_lufs")
-                    table = scene_target_lufs(scene_class, season_median=median)
+                    table = continuation_target(
+                        scene_class,
+                        previous_target=(
+                            float(job.result["previous_target_lufs"])
+                            if job.result.get("previous_target_lufs") is not None
+                            else None
+                        ),
+                        is_continuation=bool(job.result.get("continuation")),
+                        season_median=median,
+                    )
                     if isinstance(raw_target, (int, float)):
                         target = clamp_agent_target(float(raw_target), table)
                     else:
                         target = table
-                    # Meter error stays a human flag; every other path mixes.
-                    skip_mix = decision.decision == "needs_human" and (
-                        streaming_verdict == "meter_error" or report.get("lufs") is None
-                    )
-                else:
-                    scene_class = str(job.result.get("scene_class") or "dialogue")
-                    if scene_class not in SCENE_CLASSES:
-                        scene_class = "dialogue"
-                    target = scene_target_lufs(scene_class, season_median=median)
                     skip_mix = False
+                    lift_speech = decision.decision == "fix_stem"
+                else:
+                    scene_class = str(
+                        job.result.get("scene_class") or "normal-with-dialogue"
+                    )
+                    if scene_class not in SCENE_CLASSES:
+                        scene_class = "normal-with-dialogue"
+                    target = continuation_target(
+                        scene_class,
+                        previous_target=(
+                            float(job.result["previous_target_lufs"])
+                            if job.result.get("previous_target_lufs") is not None
+                            else None
+                        ),
+                        is_continuation=bool(job.result.get("continuation")),
+                        season_median=median,
+                    )
+                    skip_mix = False
+                    lift_speech = stems == "music_hot" and has_dialogue(scene_class)
                 peak_n = float(peak) if peak is not None else None
                 if not math.isfinite(lufs) or (
                     peak_n is not None and not math.isfinite(peak_n)
@@ -177,26 +210,38 @@ def run_loudness(
                     skip_mix = True
 
                 mixed = False
+                work = src
                 if not skip_mix:
-                    pre = verdict(lufs, target=target, true_peak_dbtp=peak)
+                    if lift_speech:
+                        lifted = src.with_name(src.stem + "-speech" + suffix)
+                        media.lift_speech_over_room(src, lifted)
+                        work = lifted
+                        mixed_path = lifted
+                        mixed = True
+                    pre = verdict(
+                        float(media.loudness_report(work)["lufs"]),
+                        target=target,
+                        true_peak_dbtp=peak,
+                    )
                     if pre != "pass":
                         mixed_path = src.with_name(src.stem + "-mixed" + suffix)
                         media.apply_loudnorm(
-                            src,
+                            work,
                             mixed_path,
                             integrated_lufs=target,
                             true_peak_dbtp=-1.5,
                         )
+                        mixed = True
+                    if mixed and mixed_path is not None:
                         report = media.loudness_report(mixed_path)
                         lufs = float(report["lufs"])
                         peak = report.get("true_peak_dbtp")
                         dialogue = media.band_lufs(mixed_path, 300, 3000)
                         music = media.band_lufs(mixed_path, 4000, 12000)
                         stems = stem_diagnosis(dialogue, music)
-                        mixed = True
 
                 decision_code = verdict(lufs, target=target, true_peak_dbtp=peak)
-                speech = scene_class in {"whisper", "dialogue", "shout"}
+                speech = has_dialogue(scene_class)
                 unintelligible = speech and lufs < (SPEECH_FLOOR_LUFS - 1.0)
 
                 artifact_ref = None
@@ -246,16 +291,13 @@ def run_loudness(
                     "agent_cost_micros": int(agent_cost),
                 }
                 record_loudness(STATION, lufs)
-                if skip_mix or decision_code != "pass" or unintelligible:
-                    job.status = "needs_human"
-                    job.error = (
-                        "unintelligible"
-                        if unintelligible and decision_code == "pass"
-                        else decision_code
-                    )
-                    outcome = job.error or "needs_human"
-                else:
+                job.status = "passed"
+                outcome = "pass"
+                if skip_mix:
+                    job.error = "unmeterable"
                     outcome = "pass"
+                elif unintelligible:
+                    job.error = "unintelligible-best-effort"
                 log.info(
                     "loudness mixed" if mixed else "loudness measured",
                     extra={

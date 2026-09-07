@@ -96,6 +96,66 @@ def scene_understanding_from_shot(store: Any, shot_id: str) -> dict[str, Any] | 
     return dict(meta) if isinstance(meta, dict) else None
 
 
+def scene_bag(meta: dict[str, Any] | None) -> dict[str, Any]:
+    """The three fields every downstream agent must carry."""
+    meta = dict(meta or {})
+    spoken = str(meta.get("spoken_words") or "").strip()
+    if meta.get("has_speech") is False:
+        spoken = ""
+        has_speech = False
+    else:
+        has_speech = bool(spoken)
+    return {
+        "ingested": bool(meta.get("ingested")),
+        "spoken_words": spoken,
+        "has_speech": has_speech,
+        "scene": str(meta.get("scene") or "").strip(),
+    }
+
+
+def attach_scene_fields(
+    target: dict[str, Any], bag: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Stamp ingested / spoken_words / scene onto an agent context or job result."""
+    normalized = scene_bag(bag)
+    target["ingested"] = normalized["ingested"]
+    target["spoken_words"] = normalized["spoken_words"]
+    target["has_speech"] = normalized["has_speech"]
+    target["scene"] = normalized["scene"]
+    target["scene_understanding"] = normalized
+    return target
+
+
+def ensure_scene_understanding(
+    store: Any,
+    shot_id: str,
+    *,
+    settings: Any | None = None,
+    payload: bytes | None = None,
+    media: Any | None = None,
+    watch: Any | None = None,
+) -> dict[str, Any]:
+    """Watch once. If the shot is already ingested, reuse the bag."""
+    existing = scene_understanding_from_shot(store, shot_id)
+    if isinstance(existing, dict) and existing.get("ingested"):
+        return scene_bag(existing)
+    runner = watch or decide_ingest_understand
+    if payload is None or media is None:
+        raise ValueError("ingest look requires payload and media")
+    decision, cost = runner(settings, payload, media)
+    understanding = understanding_doc(decision)
+    shots.record_scene_understanding(
+        store,
+        shot_id,
+        spoken_words=str(understanding.get("spoken_words") or ""),
+        has_speech=bool(understanding.get("has_speech")),
+        scene=str(understanding.get("scene") or ""),
+        cost_micros=int(cost or 0),
+    )
+    stamped = scene_understanding_from_shot(store, shot_id) or {}
+    return scene_bag(stamped)
+
+
 def watch_parts(
     media: FFmpeg, payload: bytes
 ) -> tuple[tuple[bytes, str] | None, list[tuple[bytes, str]]]:
@@ -123,6 +183,7 @@ def understanding_doc(decision: StationDecision) -> dict[str, Any]:
     raw = decision.raw
     has_speech = bool(raw.get("has_speech"))
     return {
+        "ingested": True,
         "spoken_words": str(raw.get("spoken_words") or "") if has_speech else "",
         "has_speech": has_speech,
         "scene": str(raw.get("scene") or ""),

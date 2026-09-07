@@ -150,6 +150,23 @@ def build_batch_jobs(items: list[dict[str, Any]]) -> list["Job"]:
                 "ingest",
             ),
         }
+        scene = item.get("scene_understanding") or item.get("context", {})
+        if isinstance(scene, dict) and (
+            scene.get("ingested") or scene.get("scene_understanding")
+        ):
+            from backend.supervisor.station_agents.ingest_understand import (
+                attach_scene_fields,
+                scene_bag,
+            )
+
+            bag = (
+                scene.get("scene_understanding")
+                if isinstance(scene.get("scene_understanding"), dict)
+                else scene
+            )
+            attach_scene_fields(
+                context, scene_bag(bag if isinstance(bag, dict) else {})
+            )
         for station in chain:
             result = dict(context)
             if station == "dub":

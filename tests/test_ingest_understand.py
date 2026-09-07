@@ -12,8 +12,11 @@ from backend.jobs.models import Job
 from backend.shots import lifecycle as shots
 from backend.stations.ingest.classify import REASON_EMPTY, classify_payload
 from backend.supervisor.station_agents.ingest_understand import (
+    attach_scene_fields,
     build_prompt,
+    ensure_scene_understanding,
     parse_understand_decision,
+    scene_bag,
     scene_understanding_from_shot,
 )
 
@@ -104,6 +107,11 @@ def test_understanding_is_shot_metadata() -> None:
     loaded = scene_understanding_from_shot(store, shot_id)
     assert loaded is not None
     assert loaded["has_speech"] is True
+    assert loaded["ingested"] is True
+    bag = scene_bag(loaded)
+    assert bag["ingested"] is True
+    assert bag["spoken_words"] == "The door is open."
+    assert "blue" in bag["scene"]
 
 
 def test_no_speech_metadata_clears_words() -> None:
@@ -120,6 +128,7 @@ def test_no_speech_metadata_clears_words() -> None:
     meta = scene_understanding_from_shot(store, shot_id) or {}
     assert meta["has_speech"] is False
     assert meta["spoken_words"] == ""
+    assert meta["ingested"] is True
 
 
 def test_quarantine_does_not_watch_the_clip() -> None:
@@ -172,6 +181,118 @@ def test_planning_prompt_carries_shot_scene_metadata() -> None:
     assert "hola" in lower
     assert "doorway" in lower or "woman" in lower
     assert "scene" in lower
+
+
+class _PassMedia:
+    def probe(self, path):
+        return {
+            "duration_s": 1.0,
+            "fps": 24.0,
+            "codec": "h264",
+            "has_audio": True,
+            "width": 64,
+            "height": 64,
+        }
+
+    def decode_clean(self, path) -> bool:
+        return True
+
+
+def test_healthy_ingest_job_does_not_watch(monkeypatch) -> None:
+    from backend.stations.ingest.run import run_ingest
+    from backend.supervisor.station_agents import ingest_understand as watch
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("ingest job must not watch the clip")
+
+    monkeypatch.setattr(watch, "decide_ingest_understand", boom)
+    store = _Store()
+    shot_id = shots.ensure_shot(store, project_id="p1", title="ep-01")
+    job = Job(
+        station="ingest",
+        project_id="p1",
+        input_refs=["gs://b/ok.mp4"],
+        result={"shot_id": shot_id},
+    )
+    out = run_ingest(
+        job,
+        _GCS({"gs://b/ok.mp4": b"not-empty"}),
+        media=_PassMedia(),  # type: ignore[arg-type]
+        store=store,
+        settings=object(),
+    )
+    assert out.status != "quarantined"
+    assert "scene_understanding" not in (out.result or {})
+    shot = shots.get_shot(store, shot_id) or {}
+    assert "scene_understanding" not in shot
+
+
+def test_ensure_reuses_ingested_shot_without_rewatch() -> None:
+    store = _Store()
+    shot_id = shots.ensure_shot(store, project_id="p1", title="ep-01")
+    shots.record_scene_understanding(
+        store,
+        shot_id,
+        spoken_words="The door is open.",
+        has_speech=True,
+        scene="A blue field.",
+        cost_micros=1,
+    )
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("must not rewatch an ingested shot")
+
+    bag = ensure_scene_understanding(store, shot_id, watch=boom)
+    assert bag["ingested"] is True
+    assert bag["spoken_words"] == "The door is open."
+    assert "blue" in bag["scene"]
+
+
+def test_attach_scene_fields_on_every_agent_context() -> None:
+    ctx: dict = {"clip_uri": "gs://b/c.mp4", "shot_id": "shot-1"}
+    attach_scene_fields(
+        ctx,
+        {
+            "ingested": True,
+            "spoken_words": "Hello.",
+            "scene": "A woman waves from a doorway.",
+        },
+    )
+    assert ctx["ingested"] is True
+    assert ctx["spoken_words"] == "Hello."
+    assert "doorway" in ctx["scene"]
+    meta = ctx["scene_understanding"]
+    assert meta["ingested"] is True
+    assert meta["spoken_words"] == "Hello."
+
+
+def test_loudness_inspect_prompt_carries_ingest_fields() -> None:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    prompt = station_inspect_prompt(
+        "loudness",
+        attach_scene_fields(
+            {"clip_uri": "gs://b/c.mp4"},
+            {
+                "ingested": True,
+                "spoken_words": "Hello from ingest.",
+                "scene": "A doorway.",
+            },
+        ),
+    )
+    lower = prompt.lower()
+    assert "hello from ingest" in lower
+    assert "doorway" in lower
+    assert "ingested" in lower
+
+
+def test_ingest_inspect_specialty_is_scene_not_file_health() -> None:
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    prompt = station_inspect_prompt("ingest", {"clip_uri": "gs://b/c.mp4"})
+    lower = prompt.lower()
+    assert "spoken" in lower or "scene" in lower
+    assert "file health" not in lower
 
 
 def test_empty_payload_still_classifies_before_any_watch() -> None:

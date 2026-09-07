@@ -1,4 +1,4 @@
-"""Ingest station: checksum, probe, quarantine, then watch the original (S1)."""
+"""Ingest station: checksum, probe, quarantine (S1). Scene watch is the ingest ADK agent."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def run_ingest(
     store: Any | None = None,
     settings: Any | None = None,
 ) -> Job:
-    """Checksum + probe first. Only a healthy clip is watched for words + scene."""
+    """Checksum + probe. Corrupt files quarantine. Scene watch is not this job."""
     started = timed()
     outcome = "fail"
     if media is None:
@@ -32,6 +32,7 @@ def run_ingest(
         try:
             if not job.input_refs:
                 raise ValueError("ingest requires a GCS object")
+            del store, settings  # watch is the ingest ADK agent, not this job
             key = job.input_refs[0]
             payload = gcs.download_bytes(key)
             job.checksum_sha256 = sha256_hex(payload)
@@ -67,26 +68,6 @@ def run_ingest(
                     },
                 )
                 return job
-            shot_id = str(job.result.get("shot_id") or "")
-            if settings is not None and store is not None and shot_id:
-                from backend.shots import lifecycle as shots
-                from backend.supervisor.station_agents import ingest_understand as watch
-
-                decision, cost = watch.decide_ingest_understand(
-                    settings, payload, media
-                )
-                job.cost_micros = int(cost)
-                understanding = watch.understanding_doc(decision)
-                understanding["cost_micros"] = int(cost)
-                shots.record_scene_understanding(
-                    store,
-                    shot_id,
-                    spoken_words=str(understanding.get("spoken_words") or ""),
-                    has_speech=bool(understanding.get("has_speech")),
-                    scene=str(understanding.get("scene") or ""),
-                    cost_micros=int(cost),
-                )
-                job.result["scene_understanding"] = understanding
             outcome = "pass"
             log.info(
                 "ingest checksum done",
@@ -96,7 +77,6 @@ def run_ingest(
                     "project_id": job.project_id,
                     "checksum_sha256": job.checksum_sha256,
                     "bytes": len(payload),
-                    "watched": bool(job.result.get("scene_understanding")),
                 },
             )
             return job

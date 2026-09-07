@@ -54,10 +54,10 @@ def build_planning_prompt(item: dict[str, Any], *, default_chain: list[str]) -> 
         "source already passed ingest upstream, ingest is redundant — skip it.\n"
         "- dub renders THIS language's line; always required for a dub item.\n"
         "- loudness must always HEAR the NEW dub (not the picture "
-        "soundtrack), classify the scene (whisper, talk, shout, crash, "
-        "explosion — not only 'make everything TV-loud'), mix toward that "
-        "level, and re-measure. A prior master's pass says nothing about "
-        "this dub.\n"
+        "soundtrack), classify quiet/normal/loud with or without "
+        "dialogue, mix toward a comfortable hearing level, lift speech "
+        "over the room when the line is buried, and re-measure. A prior "
+        "master's pass says nothing about this dub.\n"
         "- delivery builds the destination pack; always the last step.\n"
         "You may NOT invent stations or reorder — only trim with a stated "
         "reason. When in doubt, keep the default chain.\n\n"
@@ -92,10 +92,11 @@ def _scene_understanding_note(context: Any) -> str:
         return ""
     words = str(meta.get("spoken_words") or "").strip() or "(none)"
     scene = str(meta.get("scene") or "").strip() or "(none)"
+    ingested = bool(meta.get("ingested"))
     return (
-        f"- scene understanding (shot metadata): spoken words: {words}; "
-        f"scene: {scene}. Pass this to later stations; do not re-guess "
-        "what was said.\n\n"
+        f"- scene understanding (shot metadata): ingested={ingested}; "
+        f"spoken words: {words}; scene: {scene}. Pass this to later "
+        "stations; do not re-guess what was said.\n\n"
     )
 
 

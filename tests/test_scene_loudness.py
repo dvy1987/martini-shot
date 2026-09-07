@@ -1,10 +1,8 @@
 """Scene-aware loudness: pick a fitting level per scene, then mix.
 
-Whisper is one example. An explosion, a crash of pans, a shout, or a
-sudden disruption should sit louder than talk. Dialogue stays easy to
-hear. The show stays in one loudness family. The meter still wins on
-the number; this suite locks the TARGET table, the ffmpeg apply, the
-dub-preferring input, and the orchestrator stamp.
+Six kinds: quiet/normal/loud × with/without dialogue. Comfortable
+hearing range; loud may sit louder, quiet softer; speech always
+hearable. Continuation from the previous shot. No human stop.
 """
 
 from __future__ import annotations
@@ -23,6 +21,8 @@ from backend.stations.loudness.scene import (
     SCENE_CLASSES,
     SPEECH_FLOOR_LUFS,
     clamp_agent_target,
+    continuation_target,
+    has_dialogue,
     scene_target_lufs,
     season_median_lufs,
 )
@@ -57,29 +57,33 @@ def _sine_wav(media: FFmpeg, path: Path, *, seconds: float, volume_db: float) ->
         raise RuntimeError(result.stderr[:400])
 
 
-def test_scene_classes_cover_quiet_talk_and_loud_events() -> None:
+def test_scene_classes_are_energy_times_dialogue() -> None:
     assert SCENE_CLASSES == (
-        "silence",
-        "whisper",
-        "dialogue",
-        "shout",
-        "impact",
-        "explosion",
+        "quiet-no-dialogue",
+        "quiet-with-dialogue",
+        "normal-no-dialogue",
+        "normal-with-dialogue",
+        "loud-no-dialogue",
+        "loud-with-dialogue",
     )
 
 
-def test_whisper_is_quieter_than_talk_and_still_audible() -> None:
-    whisper = scene_target_lufs("whisper")
-    talk = scene_target_lufs("dialogue")
-    assert whisper < talk
-    assert whisper >= SPEECH_FLOOR_LUFS
+def test_quiet_is_softer_loud_is_louder_speech_stays_hearable() -> None:
+    quiet_line = scene_target_lufs("quiet-with-dialogue")
+    talk = scene_target_lufs("normal-with-dialogue")
+    loud_bang = scene_target_lufs("loud-no-dialogue")
+    assert quiet_line < talk < loud_bang
+    assert quiet_line >= SPEECH_FLOOR_LUFS
+    assert scene_target_lufs("quiet-no-dialogue") < quiet_line
+    assert has_dialogue("quiet-with-dialogue")
+    assert not has_dialogue("loud-no-dialogue")
 
 
-def test_explosion_and_impact_are_louder_than_talk() -> None:
-    talk = scene_target_lufs("dialogue")
-    assert scene_target_lufs("shout") > talk
-    assert scene_target_lufs("impact") > scene_target_lufs("shout")
-    assert scene_target_lufs("explosion") > scene_target_lufs("impact")
+def test_loud_with_dialogue_is_louder_than_talk_and_still_hearable() -> None:
+    talk = scene_target_lufs("normal-with-dialogue")
+    loud_line = scene_target_lufs("loud-with-dialogue")
+    assert loud_line > talk
+    assert loud_line >= SPEECH_FLOOR_LUFS
 
 
 def test_unknown_scene_class_fails_loud() -> None:
@@ -91,16 +95,36 @@ def test_speech_stays_near_the_show_median() -> None:
     median = season_median_lufs([-16.2, -16.0, -16.4])
     assert median == pytest.approx(-16.2)
     # A wild agent-side miss still cannot yank dialogue 20 LU off the show.
-    pulled = scene_target_lufs("dialogue", season_median=median)
+    pulled = scene_target_lufs("normal-with-dialogue", season_median=median)
     assert abs(pulled - median) <= 8.0
 
 
 def test_agent_may_nudge_two_lu_not_rewrite_the_table() -> None:
-    table = scene_target_lufs("explosion")
+    table = scene_target_lufs("normal-with-dialogue")
     assert clamp_agent_target(table + 0.5, table) == pytest.approx(table + 0.5)
     assert clamp_agent_target(table + 9.0, table) == pytest.approx(table + 2.0)
-    whisper = scene_target_lufs("whisper")
-    assert clamp_agent_target(-40.0, whisper) >= SPEECH_FLOOR_LUFS
+    quiet_line = scene_target_lufs("quiet-with-dialogue")
+    assert clamp_agent_target(-40.0, quiet_line) >= SPEECH_FLOOR_LUFS
+
+
+def test_continuation_blends_toward_the_previous_shot() -> None:
+    previous = scene_target_lufs("normal-with-dialogue")
+    quiet = scene_target_lufs("quiet-with-dialogue")
+    blended = continuation_target(
+        "quiet-with-dialogue",
+        previous_target=previous,
+        is_continuation=True,
+    )
+    assert quiet < blended < previous
+    assert blended >= SPEECH_FLOOR_LUFS
+    assert (
+        continuation_target(
+            "quiet-with-dialogue",
+            previous_target=previous,
+            is_continuation=False,
+        )
+        == quiet
+    )
 
 
 def test_apply_loudnorm_refuses_silent_slate() -> None:
@@ -201,10 +225,16 @@ def test_strategy_prompt_names_loud_and_quiet_scenes() -> None:
         "music_band_lufs": -26.5,
     }
     prompt = build_prompt(report, [{"episode_id": "ep-00", "lufs": -16.1}])
-    for word in ("whisper", "explosion", "impact", "shout", "dialogue", "silence"):
+    for word in (
+        "quiet-with-dialogue",
+        "loud-no-dialogue",
+        "normal-with-dialogue",
+        "comfortable",
+    ):
         assert word in prompt.lower()
     assert "scene_class" in prompt
     assert "listen" in prompt.lower()
+    assert "choose needs_human" not in prompt.lower()
 
 
 def test_decide_forwards_audio_when_the_station_has_a_wav(
@@ -225,9 +255,9 @@ def test_decide_forwards_audio_when_the_station_has_a_wav(
                     "decision": "apply_limiter",
                     "streaming_route": "block",
                     "broadcast_route": "block",
-                    "scene_class": "explosion",
-                    "target_lufs": -9.0,
-                    "reason": "a sudden bang; mix louder than talk, do not squash it",
+                    "scene_class": "loud-no-dialogue",
+                    "target_lufs": -10.0,
+                    "reason": "explosion with no line; mix louder than talk",
                     "confidence": "high",
                 }
             ),
@@ -256,7 +286,7 @@ def test_decide_forwards_audio_when_the_station_has_a_wav(
     assert cost == 1800
     assert calls[0]["audio"] == (wav, "audio/wav")
     assert decision.decision == "apply_limiter"
-    assert decision.raw["scene_class"] == "explosion"
+    assert decision.raw["scene_class"] == "loud-no-dialogue"
 
 
 class _MemGCS:
@@ -314,7 +344,7 @@ def test_station_mixes_a_quiet_dub_instead_of_flagging(
                 confidence="high",
                 deterministic_advice="apply_limiter",
                 overridden=False,
-                raw={"scene_class": "dialogue", "target_lufs": -16.0},
+                raw={"scene_class": "normal-with-dialogue", "target_lufs": -16.0},
             ),
             1200,
         )
@@ -339,8 +369,71 @@ def test_station_mixes_a_quiet_dub_instead_of_flagging(
     settings = get_settings()
     out = run_loudness(job, gcs, media, store=store, settings=settings)
     assert out.status != "needs_human"
-    assert out.result["scene_class"] == "dialogue"
+    assert out.result["scene_class"] == "normal-with-dialogue"
     assert abs(float(out.result["lufs"]) - (-16.0)) <= 1.5
     assert out.result.get("artifact_ref")
     assert gcs.uploads, "mixed audio must be written, not only measured"
     assert out.cost_micros == 1200
+
+
+def _band_rms(media: FFmpeg, path: Path, highpass_hz: int, lowpass_hz: int) -> float:
+    result = media._run(
+        [
+            media.ffmpeg_bin,
+            "-hide_banner",
+            "-i",
+            str(path),
+            "-af",
+            f"highpass=f={highpass_hz},lowpass=f={lowpass_hz},astats=metadata=1:reset=1",
+            "-f",
+            "null",
+            "-",
+        ],
+        timeout=30,
+    )
+    rms = None
+    for line in result.stderr.decode("utf-8", "replace").splitlines():
+        if "RMS level dB" in line:
+            try:
+                rms = float(line.rsplit(":", 1)[-1].strip())
+            except ValueError:
+                continue
+    if rms is None:
+        raise RuntimeError(result.stderr.decode("utf-8", "replace")[-400:])
+    return rms
+
+
+def test_lift_speech_raises_voice_band_over_the_room(tmp_path: Path) -> None:
+    media = _media()
+    buried = tmp_path / "buried.wav"
+    lifted = tmp_path / "lifted.wav"
+    result = media._run(
+        [
+            media.ffmpeg_bin,
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=80:duration=3",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=1000:duration=3",
+            "-filter_complex",
+            "[0]volume=0dB[room];[1]volume=-24dB[line];"
+            "[room][line]amix=inputs=2:duration=shortest",
+            str(buried),
+        ],
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr[:400])
+    before_voice = _band_rms(media, buried, 300, 3000)
+    before_room = _band_rms(media, buried, 20, 200)
+    media.lift_speech_over_room(buried, lifted)
+    after_voice = _band_rms(media, lifted, 300, 3000)
+    after_room = _band_rms(media, lifted, 20, 200)
+    assert (after_voice - after_room) > (before_voice - before_room) + 3.0

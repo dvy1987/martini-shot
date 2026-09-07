@@ -245,3 +245,112 @@ def test_hook_silent_when_terminal_write_loses_the_lease() -> None:
     q.authoritative.status = "leased"  # another worker owns it now
     _persist(job, q, on_terminal=seen.append)  # type: ignore[arg-type]
     assert seen == [], "lost lease: no hook from stale state"
+
+
+def test_worker_repairs_then_executes_when_scene_was_lost(monkeypatch) -> None:
+    import backend.jobs.worker as worker_mod
+    from backend.jobs.handoff import scene_bag_for_manifest
+    from backend.shots import lifecycle as shots
+
+    class _Store:
+        def __init__(self) -> None:
+            self.docs: dict[tuple[str, str], dict] = {}
+
+        def get_doc(self, collection: str, doc_id: str):
+            return self.docs.get((collection, doc_id))
+
+        def set_doc(self, collection: str, doc_id: str, data: dict) -> None:
+            self.docs[(collection, doc_id)] = data
+
+        def transactional_update(self, collection: str, doc_id: str, fn) -> None:
+            current = self.docs.get((collection, doc_id)) or {}
+            self.docs[(collection, doc_id)] = fn(current)
+
+    store = _Store()
+    shot_id = shots.ensure_shot(store, project_id="p", title="clip")
+    shots.record_scene_understanding(
+        store,
+        shot_id,
+        spoken_words="The door is open.",
+        has_speech=True,
+        scene="A blue field.",
+        cost_micros=1,
+    )
+    bag = scene_bag_for_manifest(
+        {
+            "ingested": True,
+            "spoken_words": "The door is open.",
+            "scene": "A blue field.",
+        }
+    )
+    executed: list[Job] = []
+
+    def fake_execute(job: Job, **_kwargs: object) -> Job:
+        executed.append(job)
+        job.status = "passed"
+        return job
+
+    monkeypatch.setattr(worker_mod, "execute", fake_execute)
+    job = Job(
+        station="loudness",
+        project_id="p",
+        input_refs=["gs://b/c.mp4"],
+        result={
+            "shot_id": shot_id,
+            "handoff": {
+                "version": 1,
+                "project_id": "p",
+                "from_station": "ingest",
+                "to_station": "loudness",
+                "files": [
+                    {"ref": "gs://b/c.mp4", "sha256": "a" * 64, "bytes": 1},
+                ],
+                "scene": bag,
+            },
+        },
+    )
+    q = _Queue(job)
+    q.store = store
+    q.authoritative = job
+    out = process_job_id(q, None, None, job.id)  # type: ignore[arg-type]
+    assert executed, "repair must restore the bag then execute"
+    assert out is not None
+    assert out.result.get("ingested") is True
+    assert out.result.get("spoken_words") == "The door is open."
+    note = str((out.result or {}).get("handoff_orchestrator_note") or "")
+    assert "lost" in note.lower() or "restored" in note.lower()
+
+
+def test_worker_blocks_unrepairable_scene_handoff(monkeypatch) -> None:
+    import backend.jobs.worker as worker_mod
+
+    def boom_execute(*args: object, **kwargs: object) -> Job:
+        raise AssertionError("worker must not execute a blocked handoff")
+
+    monkeypatch.setattr(worker_mod, "execute", boom_execute)
+    job = Job(
+        station="loudness",
+        project_id="p",
+        input_refs=["gs://b/c.mp4"],
+        result={
+            "handoff": {
+                "version": 1,
+                "project_id": "p",
+                "from_station": "ingest",
+                "to_station": "loudness",
+                "files": [
+                    {"ref": "gs://b/c.mp4", "sha256": "a" * 64, "bytes": 1},
+                ],
+            },
+            "ingested": False,
+        },
+    )
+    q = _Queue(job)
+    q.authoritative = job
+    out = process_job_id(q, None, None, job.id)  # type: ignore[arg-type]
+    assert out is not None
+    assert out.status == "quarantined"
+    assert "SCENE_MISSING" in str(out.error or "")
+    assert any(call[0] == "quarantine" for call in q.calls)
+    note = str((out.result or {}).get("handoff_orchestrator_note") or "")
+    assert "ingest" in note.lower()

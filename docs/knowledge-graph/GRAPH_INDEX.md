@@ -1,7 +1,7 @@
 # Project Knowledge Graph Index
 
-Generated: 2026-09-02T01:01:43.709211+00:00
-Mode: **application** | Nodes: 813 | Edges: 274
+Generated: 2026-09-07T15:14:23.030498+00:00
+Mode: **application** | Nodes: 1030 | Edges: 507
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).
 
@@ -14,21 +14,21 @@ Mode: **application** | Nodes: 813 | Edges: 274
 - config (.agents/ROUTING.md, tsconfig, pyproject, etc.)
 - top-level directories
 
-EXTRACTED: 197 | INFERRED: 77
+EXTRACTED: 346 | INFERRED: 161
 
 ## Hub nodes
-- captions.py (module)
+- finish.py (module)
 - venture-exploration
 - memory
+- models.py (module)
 - memory-capture
 - universal-skill-creator
-- models.py (module)
 - improve-skills
-- feature-spec
+- test_gcs_keys.py (module)
 
 ## Communities
 
-**agent** (5): agent-launcher, agent-observability, agent-run-retro, agent-system-architecture, runtime-learning-loop
+**agent** (2): agent-launcher, agent-run-retro
 **api** (2): api-and-interface-design, api-deprecation-and-migration
 **app** (1): app-security-hardening
 **browser** (1): browser-testing-with-devtools
@@ -38,23 +38,24 @@ EXTRACTED: 197 | INFERRED: 77
 **core** (4): inversion, ooda, quickstart, socratic
 **create** (1): create-agent-prompt
 **deep** (1): deep-thinking
+**dependency** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deploy** (1): deploy-anywhere
 **deprecate** (1): deprecate-skill
+**design** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **eval** (3): eval-judge, eval-output, eval-rubric-design
+**experiment** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
+  … +56 more
 **fault** (1): fault-localize
 **first** (1): first-principles
 **git** (1): git-workflow-and-versioning
 **incremental** (1): incremental-implementation
 **issue** (1): issue-sync
 **knowledge** (1): knowledge-graph
-**motion** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **performance** (1): performance-optimization
 **pr** (1): pr-authoring
 **pre** (1): pre-mortem
-**process** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
-  … +56 more
 **run** (1): run-trace
-**safe** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
+**runtime** (3): agent-observability, agent-system-architecture, runtime-learning-loop
 **second** (1): second-order
 **secure** (4): secure-skill, secure-skill-content-sanitization, secure-skill-repo-ingestion, secure-skill-runtime
 **shipping** (1): shipping-and-launch
@@ -68,10 +69,10 @@ EXTRACTED: 197 | INFERRED: 77
 
 - **config**: 417
 - **directory**: 11
-- **doc**: 41
-- **handoff**: 13
+- **doc**: 73
+- **handoff**: 19
 - **memory**: 9
-- **module**: 198
+- **module**: 377
 - **package**: 1
 - **skill**: 123
 

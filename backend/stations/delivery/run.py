@@ -77,6 +77,14 @@ def run_delivery(
                 scene_meta = scene_understanding_from_shot(store, shot_id)
                 if scene_meta and not script.strip():
                     script = str(scene_meta.get("spoken_words") or "")
+                elif job.result.get("ingested") and not script.strip():
+                    script = str(job.result.get("spoken_words") or "")
+                    scene_meta = {
+                        "ingested": True,
+                        "spoken_words": script,
+                        "has_speech": bool(job.result.get("has_speech")),
+                        "scene": str(job.result.get("scene") or ""),
+                    }
             speech = (
                 bool(scene_meta.get("has_speech"))
                 if scene_meta is not None

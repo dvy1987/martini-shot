@@ -67,5 +67,12 @@
 | 2026-09-07 16:50 | test-driven-development | tests/test_ingest_understand.py | TDD: shot metadata spoken_words + scene; quarantine never watches |
 | 2026-09-07 17:40 | memory-handoff | agent-handoffs.md#2026-09-07-17:40 | Ingest watch on shot metadata; owner commit+push of dirty Stage 1a tree |
 | 2026-09-07 17:38 | memory-handoff | agent-handoffs.md + current-state.md | D-9 Omni 6/6 draft+master; Stage 1a tree; coverage 74% vs 90% still blocks make check |
-| 2026-09-07 17:38 | git-workflow-and-versioning | commit + push origin/main | Owner asked to commit and push all uncommitted Stage 1a / D-9 work |
+| 2026-09-07 19:35 | test-driven-development | tests/test_adk_finishing.py tests/test_corrections.py | TDD: D-10 ADK looker + diverse original-tape quality (signage, prop, graphic) |
+| 2026-09-07 19:55 | test-driven-development | tests/test_ingest_understand.py tests/test_handoff.py tests/test_worker.py tests/test_adk_finishing.py | TDD: ingest ADK look + scene fields on every agent; handoff repairs lost metadata or missing ingest and messages the orchestrator |
+| 2026-09-07 19:40 | test-driven-development | tests/test_scene_loudness.py tests/test_loudness_strategy.py tests/test_finishing_dispatch.py | TDD: six-kind loudness, voice-over-room split, loudness-then-pickups cleanup order |
+| 2026-09-07 19:40 | memory-decision | docs/memory/decision-log.md | Owner: six scene kinds, lift voice over room, no human stop; ingest ADK stays the other thread |
+| 2026-09-07 20:20 | test-driven-development | tests/test_adk_finishing.py tests/test_inspect.py tests/test_finishing_rank.py | TDD: D-9/D-10 looker must/nice/leave; ok notes never become jobs |
+| 2026-09-07 20:20 | eval-rubric-design | docs/evals/2026-09-07-extend-corrections-inspect-rubric.md | Must vs nice vs leave on a live watch |
+| 2026-09-07 20:20 | eval-pipeline | docs/evals/2026-09-07-extend-corrections-inspect-eval-pipeline.md | Live Gemini inspect EDD for finish_extend + finish_corrections |
+| 2026-09-07 20:41 | memory-handoff | agent-handoffs.md#2026-09-07-20:41 | Ingest ADK look + handoff repair; owner commit+push of dirty tree |
 

@@ -1,0 +1,28 @@
+{
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 0.75,
+      "hits": 6,
+      "n": 8,
+      "cost_micros": 12080000,
+      "pass": false
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.75,
+      "hits": 6,
+      "n": 8,
+      "cost_micros": 9000000,
+      "pass": false
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.75,
+      "hits": 6,
+      "n": 8,
+      "cost_micros": 12000000,
+      "pass": false
+    }
+  ]
+}

@@ -256,6 +256,50 @@ class FFmpeg:
                     return value
         raise RuntimeError(f"band ebur128 not parsed: {stderr[-400:]!r}")
 
+    def lift_speech_over_room(
+        self,
+        src: Path | str,
+        dst: Path | str,
+        *,
+        voice_db: float = 6.0,
+        room_db: float = -4.0,
+    ) -> None:
+        """Split voice band from the room and lift the line relative to ambience.
+
+        Voice ≈ 300–3400 Hz. Room is everything else. Real ffmpeg filters,
+        not a fake stem. Then re-measure.
+        """
+        src_path = Path(src)
+        dst_path = Path(dst)
+        filt = (
+            f"[0:a]asplit=3[v][lo][hi];"
+            f"[v]highpass=f=300,lowpass=f=3400,volume={voice_db}dB[voice];"
+            f"[lo]lowpass=f=300,volume={room_db}dB[roomlo];"
+            f"[hi]highpass=f=3400,volume={room_db}dB[roomhi];"
+            f"[voice][roomlo][roomhi]amix=inputs=3:normalize=0[aout]"
+        )
+        probe = self.probe(src_path)
+        args = [
+            self.ffmpeg_bin,
+            "-hide_banner",
+            "-y",
+            "-i",
+            str(src_path),
+            "-filter_complex",
+            filt,
+            "-map",
+            "[aout]",
+        ]
+        if int(probe.get("width") or 0) > 0:
+            args.extend(["-map", "0:v:0", "-c:v", "copy"])
+        args.append(str(dst_path))
+        result = self._run(args, timeout=300)
+        if result.returncode != 0 or not dst_path.exists():
+            raise RuntimeError(
+                "speech lift failed: "
+                f"{result.stderr.decode('utf-8', 'replace')[-400:]!r}"
+            )
+
     def apply_loudnorm(
         self,
         src: Path | str,

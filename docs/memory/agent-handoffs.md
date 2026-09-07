@@ -1,5 +1,40 @@
 # Agent Handoffs
 
+## 2026-09-07 20:41 - Ingest ADK look + handoff repair; owner commit+push
+
+### Done
+- **Ingest job is file check only.** Gemini watch moved off `run_ingest`.
+- **Ingest ADK agent** watches the original after a healthy ingest job and stamps `ingested` + `spoken_words` + `scene` on the shot. Finishing calls this first via `clip_context_after_ingest`. Other stations are **not** launched in parallel.
+- **Every downstream agent** carries those three fields (inspect context, rank payload, job result, worklist items).
+- **Handoff validator repairs then messages the orchestrator:** lost bag restored from the shot; never-watched clip runs ingest look; unrepairable blocks with `handoff_orchestrator_note`. Worker gates on that before `execute`.
+- Parallel-thread work in the same dirty tree: D-10 corrections eval evidence, finishing inspect must/nice/leave, six-kind loudness.
+
+### Debated
+- Other thread wanted all stations to look at once after ingest. Owner: this work only writes script+scene and puts those fields on every agent. Do not force parallel attendance.
+
+### Decisions
+- File check = job. Scene understand = ingest ADK agent, first after upload.
+- Handoff does not only block: diagnose (ingest never ran vs metadata lost), try to fix, tell the orchestrator.
+
+### Deferred
+- `make check` coverage still below 90%.
+- Dubbing from ingest transcript; repair of bad original audio.
+
+### Next Agent Should Know
+- Reuse `ensure_scene_understanding` (idempotent). Do not watch twice.
+- Worker: `apply_job_handoff` before execute when `job.result.handoff` is present.
+- Do not rewrite `build_finishing_team` into ingest-then-parallel-everyone.
+
+### Revisit Triggers
+- Handoff repair bills a surprise ingest look in the worker → expected only when finishing skipped the first-agent step.
+- Coverage <90% → do not call CI-lite done.
+
+### Working Tree
+- Owner asked commit+push of the full dirty tree (ingest ADK + D-10/loudness/inspect).
+
+### Graph
+- `build_graph.py --incremental` hung with no output; killed so commit/push is not blocked.
+
 ## 2026-09-07 17:40 - Ingest watches the original; owner asked commit+push
 
 ### Done

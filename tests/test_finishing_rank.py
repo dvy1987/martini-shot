@@ -43,6 +43,34 @@ def test_empty_never_ranks() -> None:
     assert [n.station for n in ordered] == ["loudness"]
 
 
+def test_ok_leave_it_never_ranks_or_becomes_a_candidate() -> None:
+    from backend.supervisor.rank_impl import _candidates
+
+    leave = validate_inspect_note(
+        {
+            "station": "extend",
+            "agent": "extend",
+            "status": "ok",
+            "impact": "none",
+            "kind": "none",
+            "summary": "Shot already lands",
+            "cost_estimate_micros": 0,
+            "shot_id": "shot-a",
+        }
+    )
+    must = _note(
+        station="extend",
+        impact="medium",
+        kind="defect",
+        summary="Dies mid-thought",
+        shot_id="shot-b",
+    )
+    ordered = rank_notes([leave, must], shot_order={"shot-a": 0, "shot-b": 1}).ordered
+    assert [n.shot_id for n in ordered] == ["shot-b"]
+    ids = [row["id"] for row in _candidates([leave, must])]
+    assert ids == ["extend::shot-b"]
+
+
 def test_defect_before_improvement_in_the_same_band() -> None:
     taste = _note(
         station="relight",

@@ -1,6 +1,6 @@
 {
   "version": "2.2",
-  "generated_at": "2026-09-02T01:01:43.709211+00:00",
+  "generated_at": "2026-09-07T15:14:23.030498+00:00",
   "mode": "application",
   "mode_reason": "application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).",
   "scan_layers": [
@@ -14,33 +14,33 @@
   ],
   "root": "C:\\Users\\reall\\Building_Apps\\martini-shot",
   "stats": {
-    "nodes": 813,
-    "edges": 274,
+    "nodes": 1030,
+    "edges": 507,
     "authoritative_edges": 0,
-    "extracted_edges": 197,
-    "inferred_edges": 77,
+    "extracted_edges": 346,
+    "inferred_edges": 161,
     "node_types": {
       "config": 417,
       "directory": 11,
-      "doc": 41,
-      "handoff": 13,
+      "doc": 73,
+      "handoff": 19,
       "memory": 9,
-      "module": 198,
+      "module": 377,
       "package": 1,
       "skill": 123
     }
   },
   "god_nodes": [
-    "captions.py (module)",
+    "finish.py (module)",
     "venture-exploration",
     "memory",
+    "models.py (module)",
     "memory-capture",
     "universal-skill-creator",
-    "models.py (module)",
     "improve-skills",
+    "test_gcs_keys.py (module)",
     "feature-spec",
-    "problem-to-plan",
-    "memory-startup"
+    "app.py (module)"
   ],
   "surprising_connections": [
     {
@@ -104,12 +104,12 @@
     "How does agent-builder (agent) connect to harness-generation (harness)?",
     "How does agent-builder (agent) connect to setup-evaluation (setup)?",
     "How does agent-loom-sync (agent) connect to validate-skills (validate)?",
-    "What depends on captions.py (module), and what does captions.py (module) invoke?",
+    "What depends on finish.py (module), and what does finish.py (module) invoke?",
     "What depends on venture-exploration, and what does venture-exploration invoke?",
     "What depends on memory, and what does memory invoke?"
   ],
   "communities": {
-    "process": [
+    "experiment": [
       "adversarial-hat",
       "agent-builder",
       "agent-loom-sync",
@@ -177,7 +177,77 @@
       "validate-skills",
       "venture-exploration"
     ],
-    "motion": [
+    "dependency": [
+      "debug-and-fix",
+      "dependency-mapping",
+      "dynamic-routing",
+      "safe-change",
+      "structured-planning"
+    ],
+    "shipping": [
+      "shipping-and-launch"
+    ],
+    "core": [
+      "inversion",
+      "ooda",
+      "quickstart",
+      "socratic"
+    ],
+    "source": [
+      "source-driven-development"
+    ],
+    "browser": [
+      "browser-testing-with-devtools"
+    ],
+    "ci": [
+      "ci-cd-and-automation"
+    ],
+    "secure": [
+      "secure-skill",
+      "secure-skill-content-sanitization",
+      "secure-skill-repo-ingestion",
+      "secure-skill-runtime"
+    ],
+    "performance": [
+      "performance-optimization"
+    ],
+    "tool": [
+      "tool-finder"
+    ],
+    "eval": [
+      "eval-judge",
+      "eval-output",
+      "eval-rubric-design"
+    ],
+    "fault": [
+      "fault-localize"
+    ],
+    "agent": [
+      "agent-launcher",
+      "agent-run-retro"
+    ],
+    "runtime": [
+      "agent-observability",
+      "agent-system-architecture",
+      "runtime-learning-loop"
+    ],
+    "code": [
+      "code-review-crsp",
+      "code-simplification"
+    ],
+    "run": [
+      "run-trace"
+    ],
+    "deprecate": [
+      "deprecate-skill"
+    ],
+    "deep": [
+      "deep-thinking"
+    ],
+    "knowledge": [
+      "knowledge-graph"
+    ],
+    "design": [
       "design-direction",
       "design-review",
       "design-system",
@@ -186,119 +256,51 @@
       "motion-animation",
       "svg-creation"
     ],
-    "source": [
-      "source-driven-development"
+    "create": [
+      "create-agent-prompt"
     ],
-    "browser": [
-      "browser-testing-with-devtools"
+    "spec": [
+      "spec-crosscheck"
+    ],
+    "technical": [
+      "technical-debt-audit"
+    ],
+    "app": [
+      "app-security-hardening"
+    ],
+    "git": [
+      "git-workflow-and-versioning"
+    ],
+    "incremental": [
+      "incremental-implementation"
+    ],
+    "deploy": [
+      "deploy-anywhere"
+    ],
+    "pr": [
+      "pr-authoring"
+    ],
+    "pre": [
+      "pre-mortem"
+    ],
+    "first": [
+      "first-principles"
+    ],
+    "second": [
+      "second-order"
     ],
     "api": [
       "api-and-interface-design",
       "api-deprecation-and-migration"
     ],
-    "core": [
-      "inversion",
-      "ooda",
-      "quickstart",
-      "socratic"
-    ],
-    "eval": [
-      "eval-judge",
-      "eval-output",
-      "eval-rubric-design"
-    ],
-    "ci": [
-      "ci-cd-and-automation"
+    "issue": [
+      "issue-sync"
     ],
     "context": [
       "context-engineering"
     ],
-    "secure": [
-      "secure-skill",
-      "secure-skill-content-sanitization",
-      "secure-skill-repo-ingestion",
-      "secure-skill-runtime"
-    ],
-    "git": [
-      "git-workflow-and-versioning"
-    ],
-    "first": [
-      "first-principles"
-    ],
-    "deep": [
-      "deep-thinking"
-    ],
-    "app": [
-      "app-security-hardening"
-    ],
-    "agent": [
-      "agent-launcher",
-      "agent-observability",
-      "agent-run-retro",
-      "agent-system-architecture",
-      "runtime-learning-loop"
-    ],
-    "fault": [
-      "fault-localize"
-    ],
-    "run": [
-      "run-trace"
-    ],
-    "safe": [
-      "debug-and-fix",
-      "dependency-mapping",
-      "dynamic-routing",
-      "safe-change",
-      "structured-planning"
-    ],
-    "technical": [
-      "technical-debt-audit"
-    ],
     "test": [
       "test-driven-development"
-    ],
-    "second": [
-      "second-order"
-    ],
-    "issue": [
-      "issue-sync"
-    ],
-    "deploy": [
-      "deploy-anywhere"
-    ],
-    "knowledge": [
-      "knowledge-graph"
-    ],
-    "shipping": [
-      "shipping-and-launch"
-    ],
-    "code": [
-      "code-review-crsp",
-      "code-simplification"
-    ],
-    "tool": [
-      "tool-finder"
-    ],
-    "deprecate": [
-      "deprecate-skill"
-    ],
-    "spec": [
-      "spec-crosscheck"
-    ],
-    "pr": [
-      "pr-authoring"
-    ],
-    "performance": [
-      "performance-optimization"
-    ],
-    "create": [
-      "create-agent-prompt"
-    ],
-    "pre": [
-      "pre-mortem"
-    ],
-    "incremental": [
-      "incremental-implementation"
     ]
   },
   "nodes": [
@@ -1575,6 +1577,22 @@
       "language": "py"
     },
     {
+      "id": "module_backend_api_finish_py",
+      "label": "finish.py",
+      "type": "module",
+      "path": "backend\\api\\finish.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_api_google_auth_py",
+      "label": "google_auth.py",
+      "type": "module",
+      "path": "backend\\api\\google_auth.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_api_main_py",
       "label": "main.py",
       "type": "module",
@@ -1599,10 +1617,58 @@
       "language": "py"
     },
     {
+      "id": "module_backend_approvals_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\approvals\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_approvals_commands_py",
+      "label": "commands.py",
+      "type": "module",
+      "path": "backend\\approvals\\commands.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_approvals_machine_py",
+      "label": "machine.py",
+      "type": "module",
+      "path": "backend\\approvals\\machine.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_approvals_orders_py",
+      "label": "orders.py",
+      "type": "module",
+      "path": "backend\\approvals\\orders.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_approvals_sweeper_py",
+      "label": "sweeper.py",
+      "type": "module",
+      "path": "backend\\approvals\\sweeper.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_core_init_py",
       "label": "__init__.py",
       "type": "module",
       "path": "backend\\core\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_api_resilience_py",
+      "label": "api_resilience.py",
+      "type": "module",
+      "path": "backend\\core\\api_resilience.py",
       "community": "code",
       "language": "py"
     },
@@ -1631,10 +1697,26 @@
       "language": "py"
     },
     {
+      "id": "module_backend_core_footage_py",
+      "label": "footage.py",
+      "type": "module",
+      "path": "backend\\core\\footage.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_core_gcs_py",
       "label": "gcs.py",
       "type": "module",
       "path": "backend\\core\\gcs.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_core_generative_py",
+      "label": "generative.py",
+      "type": "module",
+      "path": "backend\\core\\generative.py",
       "community": "code",
       "language": "py"
     },
@@ -1675,6 +1757,30 @@
       "label": "check_thresholds.py",
       "type": "module",
       "path": "backend\\evals\\check_thresholds.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_evals_corrections_quality_py",
+      "label": "corrections_quality.py",
+      "type": "module",
+      "path": "backend\\evals\\corrections_quality.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_evals_extend_quality_py",
+      "label": "extend_quality.py",
+      "type": "module",
+      "path": "backend\\evals\\extend_quality.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_evals_finish_inspect_media_py",
+      "label": "finish_inspect_media.py",
+      "type": "module",
+      "path": "backend\\evals\\finish_inspect_media.py",
       "community": "code",
       "language": "py"
     },
@@ -1727,10 +1833,90 @@
       "language": "py"
     },
     {
+      "id": "module_backend_revision_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\revision\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_revision_alignment_py",
+      "label": "alignment.py",
+      "type": "module",
+      "path": "backend\\revision\\alignment.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_shots_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\shots\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_shots_lifecycle_py",
+      "label": "lifecycle.py",
+      "type": "module",
+      "path": "backend\\shots\\lifecycle.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_stations_init_py",
       "label": "__init__.py",
       "type": "module",
       "path": "backend\\stations\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_camera_language_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\camera_language\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_camera_language_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\camera_language\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_corrections_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\corrections\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_corrections_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\corrections\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_coverage_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\coverage\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_coverage_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\coverage\\run.py",
       "community": "code",
       "language": "py"
     },
@@ -1759,10 +1945,58 @@
       "language": "py"
     },
     {
+      "id": "module_backend_stations_delivery_prepare_py",
+      "label": "prepare.py",
+      "type": "module",
+      "path": "backend\\stations\\delivery\\prepare.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_stations_delivery_run_py",
       "label": "run.py",
       "type": "module",
       "path": "backend\\stations\\delivery\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_draft_first_py",
+      "label": "draft_first.py",
+      "type": "module",
+      "path": "backend\\stations\\draft_first.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_dubbing_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\dubbing\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_dubbing_qc_py",
+      "label": "qc.py",
+      "type": "module",
+      "path": "backend\\stations\\dubbing\\qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_dubbing_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\dubbing\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_extend_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\extend\\run.py",
       "community": "code",
       "language": "py"
     },
@@ -1815,6 +2049,14 @@
       "language": "py"
     },
     {
+      "id": "module_backend_stations_loudness_scene_py",
+      "label": "scene.py",
+      "type": "module",
+      "path": "backend\\stations\\loudness\\scene.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_stations_loudness_verdict_py",
       "label": "verdict.py",
       "type": "module",
@@ -1855,6 +2097,14 @@
       "language": "py"
     },
     {
+      "id": "module_backend_stations_pickups_repair_py",
+      "label": "repair.py",
+      "type": "module",
+      "path": "backend\\stations\\pickups\\repair.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_stations_pickups_retry_py",
       "label": "retry.py",
       "type": "module",
@@ -1867,6 +2117,22 @@
       "label": "run.py",
       "type": "module",
       "path": "backend\\stations\\pickups\\run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_relight_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\stations\\relight\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_stations_relight_run_py",
+      "label": "run.py",
+      "type": "module",
+      "path": "backend\\stations\\relight\\run.py",
       "community": "code",
       "language": "py"
     },
@@ -1935,10 +2201,90 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_adk_finishing_py",
+      "label": "adk_finishing.py",
+      "type": "module",
+      "path": "backend\\supervisor\\adk_finishing.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_agent_py",
       "label": "agent.py",
       "type": "module",
       "path": "backend\\supervisor\\agent.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_creative_orchestrator_py",
+      "label": "creative_orchestrator.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\creative_orchestrator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_delivery_qc_py",
+      "label": "delivery_qc.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\delivery_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_finding_schema_py",
+      "label": "finding_schema.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\finding_schema.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_localization_investigator_py",
+      "label": "localization_investigator.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\localization_investigator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_post_supervisor_py",
+      "label": "post_supervisor.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\post_supervisor.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_reliability_investigator_py",
+      "label": "reliability_investigator.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\reliability_investigator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_spend_guardian_py",
+      "label": "spend_guardian.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\spend_guardian.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_agents_verification_py",
+      "label": "verification.py",
+      "type": "module",
+      "path": "backend\\supervisor\\agents\\verification.py",
       "community": "code",
       "language": "py"
     },
@@ -1959,10 +2305,90 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_batch_state_py",
+      "label": "batch_state.py",
+      "type": "module",
+      "path": "backend\\supervisor\\batch_state.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_budget_loop_py",
+      "label": "budget_loop.py",
+      "type": "module",
+      "path": "backend\\supervisor\\budget_loop.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_case_py",
+      "label": "case.py",
+      "type": "module",
+      "path": "backend\\supervisor\\case.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_clip_preview_py",
+      "label": "clip_preview.py",
+      "type": "module",
+      "path": "backend\\supervisor\\clip_preview.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_deliberation_py",
+      "label": "deliberation.py",
+      "type": "module",
+      "path": "backend\\supervisor\\deliberation.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_finishing_loop_py",
+      "label": "finishing_loop.py",
+      "type": "module",
+      "path": "backend\\supervisor\\finishing_loop.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_inspect_py",
+      "label": "inspect.py",
+      "type": "module",
+      "path": "backend\\supervisor\\inspect.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_inspect_impl_py",
+      "label": "inspect_impl.py",
+      "type": "module",
+      "path": "backend\\supervisor\\inspect_impl.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_inspect_registry_py",
+      "label": "inspect_registry.py",
+      "type": "module",
+      "path": "backend\\supervisor\\inspect_registry.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_mcp_py",
       "label": "mcp.py",
       "type": "module",
       "path": "backend\\supervisor\\mcp.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_orchestrator_py",
+      "label": "orchestrator.py",
+      "type": "module",
+      "path": "backend\\supervisor\\orchestrator.py",
       "community": "code",
       "language": "py"
     },
@@ -1975,6 +2401,22 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_rank_py",
+      "label": "rank.py",
+      "type": "module",
+      "path": "backend\\supervisor\\rank.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_rank_impl_py",
+      "label": "rank_impl.py",
+      "type": "module",
+      "path": "backend\\supervisor\\rank_impl.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_registry_py",
       "label": "registry.py",
       "type": "module",
@@ -1983,10 +2425,202 @@
       "language": "py"
     },
     {
+      "id": "module_backend_supervisor_station_agents_init_py",
+      "label": "__init__.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\__init__.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_base_py",
+      "label": "base.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\base.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_camera_language_py",
+      "label": "camera_language.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\camera_language.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_caption_remediation_py",
+      "label": "caption_remediation.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\caption_remediation.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_caption_write_py",
+      "label": "caption_write.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\caption_write.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_continuity_py",
+      "label": "continuity.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\continuity.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_corrections_py",
+      "label": "corrections.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\corrections.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_coverage_py",
+      "label": "coverage.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\coverage.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_creative_finishing_py",
+      "label": "creative_finishing.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\creative_finishing.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_delivery_strategy_py",
+      "label": "delivery_strategy.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\delivery_strategy.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_draft_first_py",
+      "label": "draft_first.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\draft_first.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_dub_qc_py",
+      "label": "dub_qc.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\dub_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_extend_qc_py",
+      "label": "extend_qc.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\extend_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_ingest_triage_py",
+      "label": "ingest_triage.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\ingest_triage.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_ingest_understand_py",
+      "label": "ingest_understand.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\ingest_understand.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_loudness_strategy_py",
+      "label": "loudness_strategy.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\loudness_strategy.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_orchestrator_py",
+      "label": "orchestrator.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\orchestrator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_pickups_vision_qc_py",
+      "label": "pickups_vision_qc.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\pickups_vision_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_relight_py",
+      "label": "relight.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\relight.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_revision_room_py",
+      "label": "revision_room.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\revision_room.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_spend_steward_py",
+      "label": "spend_steward.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\spend_steward.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_station_agents_visual_qc_py",
+      "label": "visual_qc.py",
+      "type": "module",
+      "path": "backend\\supervisor\\station_agents\\visual_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_team_py",
+      "label": "team.py",
+      "type": "module",
+      "path": "backend\\supervisor\\team.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_backend_supervisor_tools_py",
       "label": "tools.py",
       "type": "module",
       "path": "backend\\supervisor\\tools.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_backend_supervisor_worklist_py",
+      "label": "worklist.py",
+      "type": "module",
+      "path": "backend\\supervisor\\worklist.py",
       "community": "code",
       "language": "py"
     },
@@ -2063,6 +2697,38 @@
       "language": "ts"
     },
     {
+      "id": "module_frontend_src_components_agentpanel_test_tsx",
+      "label": "AgentPanel.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\AgentPanel.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_agentpanel_tsx",
+      "label": "AgentPanel.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\AgentPanel.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_alternateslane_test_tsx",
+      "label": "AlternatesLane.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\AlternatesLane.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_alternateslane_tsx",
+      "label": "AlternatesLane.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\AlternatesLane.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
       "id": "module_frontend_src_components_beforeafterwipe_tsx",
       "label": "BeforeAfterWipe.tsx",
       "type": "module",
@@ -2103,10 +2769,74 @@
       "language": "tsx"
     },
     {
+      "id": "module_frontend_src_components_correctionscontrols_test_tsx",
+      "label": "CorrectionsControls.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\CorrectionsControls.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_correctionscontrols_tsx",
+      "label": "CorrectionsControls.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\CorrectionsControls.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
       "id": "module_frontend_src_components_emptystate_tsx",
       "label": "EmptyState.tsx",
       "type": "module",
       "path": "frontend\\src\\components\\EmptyState.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_extendcontrols_test_tsx",
+      "label": "ExtendControls.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\ExtendControls.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_extendcontrols_tsx",
+      "label": "ExtendControls.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\ExtendControls.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_finishbar_test_tsx",
+      "label": "FinishBar.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\FinishBar.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_finishbar_tsx",
+      "label": "FinishBar.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\FinishBar.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_googlesigninbutton_test_tsx",
+      "label": "GoogleSignInButton.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\GoogleSignInButton.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_googlesigninbutton_tsx",
+      "label": "GoogleSignInButton.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\GoogleSignInButton.tsx",
       "community": "code",
       "language": "tsx"
     },
@@ -2163,6 +2893,22 @@
       "label": "TopBar.tsx",
       "type": "module",
       "path": "frontend\\src\\components\\TopBar.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_worklistpanel_test_tsx",
+      "label": "WorklistPanel.test.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\WorklistPanel.test.tsx",
+      "community": "code",
+      "language": "tsx"
+    },
+    {
+      "id": "module_frontend_src_components_worklistpanel_tsx",
+      "label": "WorklistPanel.tsx",
+      "type": "module",
+      "path": "frontend\\src\\components\\WorklistPanel.tsx",
       "community": "code",
       "language": "tsx"
     },
@@ -2227,6 +2973,22 @@
       "label": "dates.ts",
       "type": "module",
       "path": "frontend\\src\\lib\\dates.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_deliberations_test_ts",
+      "label": "deliberations.test.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\deliberations.test.ts",
+      "community": "code",
+      "language": "ts"
+    },
+    {
+      "id": "module_frontend_src_lib_deliberations_ts",
+      "label": "deliberations.ts",
+      "type": "module",
+      "path": "frontend\\src\\lib\\deliberations.ts",
       "community": "code",
       "language": "ts"
     },
@@ -2463,6 +3225,158 @@
       "language": "ts"
     },
     {
+      "id": "module_scripts_caption_remediation_eval_py",
+      "label": "caption_remediation_eval.py",
+      "type": "module",
+      "path": "scripts\\caption_remediation_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_caption_write_eval_py",
+      "label": "caption_write_eval.py",
+      "type": "module",
+      "path": "scripts\\caption_write_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_continuity_eval_py",
+      "label": "continuity_eval.py",
+      "type": "module",
+      "path": "scripts\\continuity_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_corrections_judgment_eval_py",
+      "label": "corrections_judgment_eval.py",
+      "type": "module",
+      "path": "scripts\\corrections_judgment_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_corrections_quality_eval_py",
+      "label": "corrections_quality_eval.py",
+      "type": "module",
+      "path": "scripts\\corrections_quality_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_creative_finishing_eval_py",
+      "label": "creative_finishing_eval.py",
+      "type": "module",
+      "path": "scripts\\creative_finishing_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_d9_omni_extend_original_py",
+      "label": "d9_omni_extend_original.py",
+      "type": "module",
+      "path": "scripts\\d9_omni_extend_original.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_d9_omni_live_action_py",
+      "label": "d9_omni_live_action.py",
+      "type": "module",
+      "path": "scripts\\d9_omni_live_action.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_delivery_qc_eval_py",
+      "label": "delivery_qc_eval.py",
+      "type": "module",
+      "path": "scripts\\delivery_qc_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_delivery_strategy_eval_py",
+      "label": "delivery_strategy_eval.py",
+      "type": "module",
+      "path": "scripts\\delivery_strategy_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_dub_qc_eval_py",
+      "label": "dub_qc_eval.py",
+      "type": "module",
+      "path": "scripts\\dub_qc_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_e3_dry_run_py",
+      "label": "e3_dry_run.py",
+      "type": "module",
+      "path": "scripts\\e3_dry_run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_e3_original_sources_py",
+      "label": "e3_original_sources.py",
+      "type": "module",
+      "path": "scripts\\e3_original_sources.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_e3_run_worker_py",
+      "label": "e3_run_worker.py",
+      "type": "module",
+      "path": "scripts\\e3_run_worker.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_e3_seed_py",
+      "label": "e3_seed.py",
+      "type": "module",
+      "path": "scripts\\e3_seed.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_extend_eval_py",
+      "label": "extend_eval.py",
+      "type": "module",
+      "path": "scripts\\extend_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_extend_qc_eval_py",
+      "label": "extend_qc_eval.py",
+      "type": "module",
+      "path": "scripts\\extend_qc_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_finishing_inspect_eval_py",
+      "label": "finishing_inspect_eval.py",
+      "type": "module",
+      "path": "scripts\\finishing_inspect_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_finishing_rank_eval_py",
+      "label": "finishing_rank_eval.py",
+      "type": "module",
+      "path": "scripts\\finishing_rank_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_scripts_flicker_report_py",
       "label": "flicker_report.py",
       "type": "module",
@@ -2527,10 +3441,58 @@
       "language": "py"
     },
     {
+      "id": "module_scripts_ingest_triage_eval_py",
+      "label": "ingest_triage_eval.py",
+      "type": "module",
+      "path": "scripts\\ingest_triage_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_ingest_understand_eval_py",
+      "label": "ingest_understand_eval.py",
+      "type": "module",
+      "path": "scripts\\ingest_understand_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_scripts_integrity_check_py",
       "label": "integrity_check.py",
       "type": "module",
       "path": "scripts\\integrity_check.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_loudness_strategy_eval_py",
+      "label": "loudness_strategy_eval.py",
+      "type": "module",
+      "path": "scripts\\loudness_strategy_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_make_dub_fixtures_py",
+      "label": "make_dub_fixtures.py",
+      "type": "module",
+      "path": "scripts\\make_dub_fixtures.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_omni_probe_py",
+      "label": "omni_probe.py",
+      "type": "module",
+      "path": "scripts\\omni_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_orchestrator_planning_eval_py",
+      "label": "orchestrator_planning_eval.py",
+      "type": "module",
+      "path": "scripts\\orchestrator_planning_eval.py",
       "community": "code",
       "language": "py"
     },
@@ -2551,10 +3513,82 @@
       "language": "py"
     },
     {
+      "id": "module_scripts_pickups_vision_qc_eval_py",
+      "label": "pickups_vision_qc_eval.py",
+      "type": "module",
+      "path": "scripts\\pickups_vision_qc_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_probe_fr03_py",
+      "label": "probe_fr03.py",
+      "type": "module",
+      "path": "scripts\\probe_fr03.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_probe_fr03_hear_py",
+      "label": "probe_fr03_hear.py",
+      "type": "module",
+      "path": "scripts\\probe_fr03_hear.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_probe_tts_rate_py",
+      "label": "probe_tts_rate.py",
+      "type": "module",
+      "path": "scripts\\probe_tts_rate.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_ranking_quality_eval_py",
+      "label": "ranking_quality_eval.py",
+      "type": "module",
+      "path": "scripts\\ranking_quality_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_scripts_rego_probe_py",
       "label": "rego_probe.py",
       "type": "module",
       "path": "scripts\\rego_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_reliability_eval_py",
+      "label": "reliability_eval.py",
+      "type": "module",
+      "path": "scripts\\reliability_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_scene_loudness_eval_py",
+      "label": "scene_loudness_eval.py",
+      "type": "module",
+      "path": "scripts\\scene_loudness_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_shadow_run_py",
+      "label": "shadow_run.py",
+      "type": "module",
+      "path": "scripts\\shadow_run.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_spend_guardian_eval_py",
+      "label": "spend_guardian_eval.py",
+      "type": "module",
+      "path": "scripts\\spend_guardian_eval.py",
       "community": "code",
       "language": "py"
     },
@@ -2567,10 +3601,42 @@
       "language": "py"
     },
     {
+      "id": "module_scripts_spend_steward_eval_py",
+      "label": "spend_steward_eval.py",
+      "type": "module",
+      "path": "scripts\\spend_steward_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_veo_extend_probe_py",
+      "label": "veo_extend_probe.py",
+      "type": "module",
+      "path": "scripts\\veo_extend_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_scripts_veo_probe_py",
       "label": "veo_probe.py",
       "type": "module",
       "path": "scripts\\veo_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_verification_eval_py",
+      "label": "verification_eval.py",
+      "type": "module",
+      "path": "scripts\\verification_eval.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_scripts_visual_qc_eval_py",
+      "label": "visual_qc_eval.py",
+      "type": "module",
+      "path": "scripts\\visual_qc_eval.py",
       "community": "code",
       "language": "py"
     },
@@ -2583,10 +3649,74 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_adk_finishing_py",
+      "label": "test_adk_finishing.py",
+      "type": "module",
+      "path": "tests\\test_adk_finishing.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_api_resilience_py",
+      "label": "test_api_resilience.py",
+      "type": "module",
+      "path": "tests\\test_api_resilience.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_app_py",
       "label": "test_app.py",
       "type": "module",
       "path": "tests\\test_app.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_approval_executor_py",
+      "label": "test_approval_executor.py",
+      "type": "module",
+      "path": "tests\\test_approval_executor.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_approval_sweeper_py",
+      "label": "test_approval_sweeper.py",
+      "type": "module",
+      "path": "tests\\test_approval_sweeper.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_budget_loop_py",
+      "label": "test_budget_loop.py",
+      "type": "module",
+      "path": "tests\\test_budget_loop.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_camera_language_py",
+      "label": "test_camera_language.py",
+      "type": "module",
+      "path": "tests\\test_camera_language.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_caption_remediation_py",
+      "label": "test_caption_remediation.py",
+      "type": "module",
+      "path": "tests\\test_caption_remediation.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_caption_write_py",
+      "label": "test_caption_write.py",
+      "type": "module",
+      "path": "tests\\test_caption_write.py",
       "community": "code",
       "language": "py"
     },
@@ -2599,6 +3729,14 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_clip_preview_py",
+      "label": "test_clip_preview.py",
+      "type": "module",
+      "path": "tests\\test_clip_preview.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_config_py",
       "label": "test_config.py",
       "type": "module",
@@ -2607,10 +3745,82 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_corrections_py",
+      "label": "test_corrections.py",
+      "type": "module",
+      "path": "tests\\test_corrections.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_coverage_py",
+      "label": "test_coverage.py",
+      "type": "module",
+      "path": "tests\\test_coverage.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_creative_orchestrator_py",
+      "label": "test_creative_orchestrator.py",
+      "type": "module",
+      "path": "tests\\test_creative_orchestrator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_deliberation_py",
+      "label": "test_deliberation.py",
+      "type": "module",
+      "path": "tests\\test_deliberation.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_delivery_py",
       "label": "test_delivery.py",
       "type": "module",
       "path": "tests\\test_delivery.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_delivery_qc_py",
+      "label": "test_delivery_qc.py",
+      "type": "module",
+      "path": "tests\\test_delivery_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_delivery_strategy_py",
+      "label": "test_delivery_strategy.py",
+      "type": "module",
+      "path": "tests\\test_delivery_strategy.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_draft_first_py",
+      "label": "test_draft_first.py",
+      "type": "module",
+      "path": "tests\\test_draft_first.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_dub_qc_py",
+      "label": "test_dub_qc.py",
+      "type": "module",
+      "path": "tests\\test_dub_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_dubbing_run_py",
+      "label": "test_dubbing_run.py",
+      "type": "module",
+      "path": "tests\\test_dubbing_run.py",
       "community": "code",
       "language": "py"
     },
@@ -2631,10 +3841,66 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_extend_py",
+      "label": "test_extend.py",
+      "type": "module",
+      "path": "tests\\test_extend.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_extend_qc_py",
+      "label": "test_extend_qc.py",
+      "type": "module",
+      "path": "tests\\test_extend_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_finding_schema_py",
+      "label": "test_finding_schema.py",
+      "type": "module",
+      "path": "tests\\test_finding_schema.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_finishing_dispatch_py",
+      "label": "test_finishing_dispatch.py",
+      "type": "module",
+      "path": "tests\\test_finishing_dispatch.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_finishing_loop_py",
+      "label": "test_finishing_loop.py",
+      "type": "module",
+      "path": "tests\\test_finishing_loop.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_finishing_rank_py",
+      "label": "test_finishing_rank.py",
+      "type": "module",
+      "path": "tests\\test_finishing_rank.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_firestore_integration_py",
       "label": "test_firestore_integration.py",
       "type": "module",
       "path": "tests\\test_firestore_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_footage_py",
+      "label": "test_footage.py",
+      "type": "module",
+      "path": "tests\\test_footage.py",
       "community": "code",
       "language": "py"
     },
@@ -2659,6 +3925,14 @@
       "label": "test_gcs_integration.py",
       "type": "module",
       "path": "tests\\test_gcs_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_gcs_keys_py",
+      "label": "test_gcs_keys.py",
+      "type": "module",
+      "path": "tests\\test_gcs_keys.py",
       "community": "code",
       "language": "py"
     },
@@ -2691,6 +3965,30 @@
       "label": "test_ingest_probe.py",
       "type": "module",
       "path": "tests\\test_ingest_probe.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_ingest_triage_py",
+      "label": "test_ingest_triage.py",
+      "type": "module",
+      "path": "tests\\test_ingest_triage.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_ingest_understand_py",
+      "label": "test_ingest_understand.py",
+      "type": "module",
+      "path": "tests\\test_ingest_understand.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_inspect_py",
+      "label": "test_inspect.py",
+      "type": "module",
+      "path": "tests\\test_inspect.py",
       "community": "code",
       "language": "py"
     },
@@ -2735,6 +4033,14 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_loudness_strategy_py",
+      "label": "test_loudness_strategy.py",
+      "type": "module",
+      "path": "tests\\test_loudness_strategy.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_media_py",
       "label": "test_media.py",
       "type": "module",
@@ -2747,6 +4053,14 @@
       "label": "test_models.py",
       "type": "module",
       "path": "tests\\test_models.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_orchestrator_py",
+      "label": "test_orchestrator.py",
+      "type": "module",
+      "path": "tests\\test_orchestrator.py",
       "community": "code",
       "language": "py"
     },
@@ -2791,10 +4105,82 @@
       "language": "py"
     },
     {
+      "id": "module_tests_test_pickups_vision_qc_py",
+      "label": "test_pickups_vision_qc.py",
+      "type": "module",
+      "path": "tests\\test_pickups_vision_qc.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_post_supervisor_py",
+      "label": "test_post_supervisor.py",
+      "type": "module",
+      "path": "tests\\test_post_supervisor.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
       "id": "module_tests_test_present_py",
       "label": "test_present.py",
       "type": "module",
       "path": "tests\\test_present.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_rank_plan_py",
+      "label": "test_rank_plan.py",
+      "type": "module",
+      "path": "tests\\test_rank_plan.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_reliability_investigator_py",
+      "label": "test_reliability_investigator.py",
+      "type": "module",
+      "path": "tests\\test_reliability_investigator.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_relight_py",
+      "label": "test_relight.py",
+      "type": "module",
+      "path": "tests\\test_relight.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_revision_py",
+      "label": "test_revision.py",
+      "type": "module",
+      "path": "tests\\test_revision.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_scene_loudness_py",
+      "label": "test_scene_loudness.py",
+      "type": "module",
+      "path": "tests\\test_scene_loudness.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_settings_route_py",
+      "label": "test_settings_route.py",
+      "type": "module",
+      "path": "tests\\test_settings_route.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_shot_locking_py",
+      "label": "test_shot_locking.py",
+      "type": "module",
+      "path": "tests\\test_shot_locking.py",
       "community": "code",
       "language": "py"
     },
@@ -2819,6 +4205,38 @@
       "label": "test_spend_adversarial.py",
       "type": "module",
       "path": "tests\\test_spend_adversarial.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_spend_guardian_py",
+      "label": "test_spend_guardian.py",
+      "type": "module",
+      "path": "tests\\test_spend_guardian.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_spend_steward_py",
+      "label": "test_spend_steward.py",
+      "type": "module",
+      "path": "tests\\test_spend_steward.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_stage1a_commands_py",
+      "label": "test_stage1a_commands.py",
+      "type": "module",
+      "path": "tests\\test_stage1a_commands.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_station_agents_py",
+      "label": "test_station_agents.py",
+      "type": "module",
+      "path": "tests\\test_station_agents.py",
       "community": "code",
       "language": "py"
     },
@@ -2859,6 +4277,22 @@
       "label": "test_supervisor_tools_integration.py",
       "type": "module",
       "path": "tests\\test_supervisor_tools_integration.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_team_py",
+      "label": "test_team.py",
+      "type": "module",
+      "path": "tests\\test_team.py",
+      "community": "code",
+      "language": "py"
+    },
+    {
+      "id": "module_tests_test_verification_py",
+      "label": "test_verification.py",
+      "type": "module",
+      "path": "tests\\test_verification.py",
       "community": "code",
       "language": "py"
     },
@@ -5832,6 +7266,13 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_pending_work_md",
+      "label": "pending-work",
+      "type": "doc",
+      "path": "docs\\pending-work.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_adr_0002_model_toolchain_pinning_md",
       "label": "0002-model-toolchain-pinning",
       "type": "doc",
@@ -5839,10 +7280,80 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_adr_0003_spend_control_not_bigquery_md",
+      "label": "0003-spend-control-not-bigquery",
+      "type": "doc",
+      "path": "docs\\adr\\0003-spend-control-not-bigquery.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_adr_0004_dub_timefit_and_agentic_qc_md",
+      "label": "0004-dub-timefit-and-agentic-qc",
+      "type": "doc",
+      "path": "docs\\adr\\0004-dub-timefit-and-agentic-qc.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_design_design_md",
       "label": "DESIGN",
       "type": "doc",
       "path": "docs\\design\\DESIGN.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_caption_write_eval_pipeline_md",
+      "label": "2026-09-07-caption-write-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-caption-write-eval-pipeline.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_corrections_eval_pipeline_md",
+      "label": "2026-09-07-corrections-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-corrections-eval-pipeline.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_extend_corrections_inspect_eval_pipeline_md",
+      "label": "2026-09-07-extend-corrections-inspect-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-extend-corrections-inspect-eval-pipeline.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_extend_corrections_inspect_rubric_md",
+      "label": "2026-09-07-extend-corrections-inspect-rubric",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-extend-corrections-inspect-rubric.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_extend_eval_pipeline_md",
+      "label": "2026-09-07-extend-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-extend-eval-pipeline.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_ingest_understand_eval_pipeline_md",
+      "label": "2026-09-07-ingest-understand-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-ingest-understand-eval-pipeline.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_ingest_understand_rubric_md",
+      "label": "2026-09-07-ingest-understand-rubric",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-ingest-understand-rubric.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evals_2026_09_07_scene_loudness_eval_pipeline_md",
+      "label": "2026-09-07-scene-loudness-eval-pipeline",
+      "type": "doc",
+      "path": "docs\\evals\\2026-09-07-scene-loudness-eval-pipeline.md",
       "community": "docs"
     },
     {
@@ -5958,10 +7469,38 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "label": "2026-09-02-h0b-budgeted-supervisor-plan",
+      "type": "doc",
+      "path": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "label": "2026-09-03-multiagent-supervisor-plan",
+      "type": "doc",
+      "path": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "label": "2026-09-07-stage1a-completion-plan",
+      "type": "doc",
+      "path": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
       "label": "2026-08-30-post-command-spec-crosscheck",
       "type": "doc",
       "path": "docs\\reviews\\2026-08-30-post-command-spec-crosscheck.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_reviews_2026_09_07_finishing_spec_crosscheck_md",
+      "label": "2026-09-07-finishing-spec-crosscheck",
+      "type": "doc",
+      "path": "docs\\reviews\\2026-09-07-finishing-spec-crosscheck.md",
       "community": "docs"
     },
     {
@@ -5990,6 +7529,20 @@
       "label": "2026-08-26-post-command-feature-spec",
       "type": "doc",
       "path": "docs\\specs\\2026-08-26-post-command-feature-spec.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "label": "2026-09-02-h0-approval-executor-design",
+      "type": "doc",
+      "path": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_specs_2026_09_06_agentic_stations_design_md",
+      "label": "2026-09-06-agentic-stations-design",
+      "type": "doc",
+      "path": "docs\\specs\\2026-09-06-agentic-stations-design.md",
       "community": "docs"
     },
     {
@@ -6056,10 +7609,45 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_evidence_caption_write_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\caption-write\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_d_10_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\D-10\\README.md",
+      "community": "docs"
+    },
+    {
       "id": "doc_docs_evidence_d_5_readme_md",
       "label": "README",
       "type": "doc",
       "path": "docs\\evidence\\D-5\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_d_9_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\D-9\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_e_3_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\E-3\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_finish_loop_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\finish-loop\\README.md",
       "community": "docs"
     },
     {
@@ -6084,9 +7672,114 @@
       "community": "docs"
     },
     {
+      "id": "doc_docs_evidence_h_0b_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\H-0b\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1a_md",
+      "label": "H-1a",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1a.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1b_md",
+      "label": "H-1b",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1b.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1c_md",
+      "label": "H-1c",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1c.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1d_md",
+      "label": "H-1d",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1d.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1e_md",
+      "label": "H-1e",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1e.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1f_md",
+      "label": "H-1f",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1f.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_h_1_h_1g_md",
+      "label": "H-1g",
+      "type": "doc",
+      "path": "docs\\evidence\\H-1\\H-1g.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_ingest_understand_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\ingest-understand\\README.md",
+      "community": "docs"
+    },
+    {
+      "id": "doc_docs_evidence_scene_loudness_readme_md",
+      "label": "README",
+      "type": "doc",
+      "path": "docs\\evidence\\scene-loudness\\README.md",
+      "community": "docs"
+    },
+    {
       "id": "memory_docs_memory_agent_handoffs_md",
       "label": "agent-handoffs",
       "type": "memory",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_20_41_ingest_adk_look_handoff_repair_owner_commit_push",
+      "label": "2026-09-07 20:41 - Ingest ADK look + handoff repair; owner commit+push",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_17_40_ingest_watches_the_original_owner_asked_commit_push",
+      "label": "2026-09-07 17:40 - Ingest watches the original; owner asked commit+push",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_17_38_d_9_omni_draft_master_live_stage_1a_stations_in_tree_check_not_green",
+      "label": "2026-09-07 17:38 - D-9 Omni draft+master live; Stage 1a stations in tree; check not green",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_late_session_2_stage_1a_agents_complete_live_edd_a1_done_e_3_run_unblocked",
+      "label": "2026-09-07 (late, session 2) - Stage 1a agents COMPLETE (live EDD); A1 done; E-3 run unblocked",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_07_late_a10_complete_e_3_batch_queued_96_jobs_live_stage_1a_handoff",
+      "label": "2026-09-07 (late) - A10 complete; E-3 batch queued (96 jobs live); Stage 1a handoff",
+      "type": "handoff",
       "path": "docs\\memory\\agent-handoffs.md",
       "community": "memory"
     },
@@ -6177,6 +7870,13 @@
     {
       "id": "handoff_2026_08_28_replit_steps_1_2_reviewed_review_fixes_applied_same_session",
       "label": "2026-08-28 — Replit Steps 1–2 reviewed; review fixes applied (same session)",
+      "type": "handoff",
+      "path": "docs\\memory\\agent-handoffs.md",
+      "community": "memory"
+    },
+    {
+      "id": "handoff_2026_09_06_e_2_dub_qc_station_complete_agentic_eval_green_evidence_pushed",
+      "label": "2026-09-06 — E-2 Dub QC station COMPLETE: agentic, eval-green, evidence pushed",
       "type": "handoff",
       "path": "docs\\memory\\agent-handoffs.md",
       "community": "memory"
@@ -7335,7 +9035,7 @@
     },
     {
       "source": "module_backend_api_app_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7344,7 +9044,7 @@
     },
     {
       "source": "module_backend_api_events_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7352,8 +9052,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_api_finish_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\finish.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_api_google_auth_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\api\\google_auth.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_api_main_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7362,7 +9080,7 @@
     },
     {
       "source": "module_backend_api_present_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7371,7 +9089,7 @@
     },
     {
       "source": "module_backend_api_spine_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7379,8 +9097,44 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_approvals_init_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\approvals\\__init__.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_approvals_commands_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\approvals\\commands.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_approvals_machine_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\approvals\\machine.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_approvals_sweeper_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\approvals\\sweeper.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_core_firestore_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7388,8 +9142,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_core_footage_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\core\\footage.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_core_gcs_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7397,8 +9160,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_core_generative_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\core\\generative.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_core_otel_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7406,8 +9178,35 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_evals_corrections_quality_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\evals\\corrections_quality.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_evals_extend_quality_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\evals\\extend_quality.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_evals_finish_inspect_media_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\evals\\finish_inspect_media.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_jobs_handoff_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7416,7 +9215,7 @@
     },
     {
       "source": "module_backend_jobs_queue_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7425,7 +9224,7 @@
     },
     {
       "source": "module_backend_jobs_worker_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7433,8 +9232,53 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_revision_alignment_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\revision\\alignment.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_shots_lifecycle_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\shots\\lifecycle.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_stations_camera_language_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\camera_language\\run.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_stations_corrections_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\corrections\\run.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_stations_coverage_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\coverage\\run.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_stations_delivery_evaluate_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7442,8 +9286,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_stations_delivery_prepare_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\delivery\\prepare.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_stations_delivery_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7451,8 +9304,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_stations_dubbing_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\dubbing\\run.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_stations_extend_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\extend\\run.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_stations_ingest_classify_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7461,7 +9332,7 @@
     },
     {
       "source": "module_backend_stations_ingest_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7470,7 +9341,7 @@
     },
     {
       "source": "module_backend_stations_loudness_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7478,8 +9349,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_stations_pickups_repair_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\pickups\\repair.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_stations_pickups_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7487,8 +9367,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_stations_relight_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\stations\\relight\\run.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_stations_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7497,7 +9386,7 @@
     },
     {
       "source": "module_backend_stations_spend_act_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7506,7 +9395,7 @@
     },
     {
       "source": "module_backend_stations_spend_control_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7515,7 +9404,7 @@
     },
     {
       "source": "module_backend_stations_spend_run_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7523,8 +9412,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_adk_finishing_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\adk_finishing.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_agent_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7532,8 +9430,71 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_agents_delivery_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\delivery_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_finding_schema_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\finding_schema.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_localization_investigator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\localization_investigator.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_post_supervisor_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\post_supervisor.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_reliability_investigator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\reliability_investigator.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_spend_guardian_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\spend_guardian.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_agents_verification_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\agents\\verification.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_annotate_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7542,7 +9503,7 @@
     },
     {
       "source": "module_backend_supervisor_autonomy_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7550,8 +9511,71 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_budget_loop_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\budget_loop.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_case_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\case.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_deliberation_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\deliberation.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_finishing_loop_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\finishing_loop.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_inspect_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\inspect.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_inspect_impl_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\inspect_impl.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_inspect_registry_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\inspect_registry.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_mcp_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7560,7 +9584,7 @@
     },
     {
       "source": "module_backend_supervisor_otel_ai_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7568,8 +9592,233 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_rank_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\rank.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_rank_impl_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\rank_impl.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_init_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\__init__.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_base_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\base.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_camera_language_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\camera_language.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_caption_remediation_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\caption_remediation.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_caption_write_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\caption_write.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_continuity_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\continuity.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_corrections_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\corrections.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_coverage_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\coverage.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_creative_finishing_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\creative_finishing.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_delivery_strategy_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\delivery_strategy.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_draft_first_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\draft_first.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_dub_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\dub_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_extend_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\extend_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_ingest_triage_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\ingest_triage.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_ingest_understand_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\ingest_understand.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_loudness_strategy_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\loudness_strategy.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_orchestrator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\orchestrator.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_pickups_vision_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\pickups_vision_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_relight_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\relight.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_revision_room_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\revision_room.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_spend_steward_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\spend_steward.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_station_agents_visual_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\station_agents\\visual_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_backend_supervisor_team_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\team.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_backend_supervisor_tools_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7577,8 +9826,206 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_backend_supervisor_worklist_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend\\supervisor\\worklist.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_frontend_src_api_client_test_ts",
+      "target": "module_frontend_src_api_client_ts",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend\\src\\api\\client.test.ts",
+      "provenance": "ts-import"
+    },
+    {
+      "source": "module_frontend_src_components_googlesigninbutton_test_tsx",
+      "target": "module_frontend_src_components_googlesigninbutton_tsx",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "frontend\\src\\components\\GoogleSignInButton.test.tsx",
+      "provenance": "ts-import"
+    },
+    {
+      "source": "module_scripts_caption_remediation_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\caption_remediation_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_caption_write_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\caption_write_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_continuity_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\continuity_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_corrections_judgment_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\corrections_judgment_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_corrections_quality_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\corrections_quality_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_creative_finishing_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\creative_finishing_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_d9_omni_extend_original_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\d9_omni_extend_original.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_d9_omni_live_action_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\d9_omni_live_action.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_delivery_qc_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\delivery_qc_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_delivery_strategy_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\delivery_strategy_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_dub_qc_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\dub_qc_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_e3_dry_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\e3_dry_run.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_e3_original_sources_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\e3_original_sources.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_e3_run_worker_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\e3_run_worker.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_e3_seed_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\e3_seed.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_extend_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\extend_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_extend_qc_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\extend_qc_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_finishing_inspect_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\finishing_inspect_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_finishing_rank_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\finishing_rank_eval.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_scripts_g1_gate_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7587,7 +10034,7 @@
     },
     {
       "source": "module_scripts_g1_make_slate_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7596,7 +10043,7 @@
     },
     {
       "source": "module_scripts_g2_gate_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7604,8 +10051,53 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_scripts_ingest_triage_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\ingest_triage_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_ingest_understand_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\ingest_understand_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_loudness_strategy_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\loudness_strategy_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_make_dub_fixtures_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\make_dub_fixtures.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_orchestrator_planning_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\orchestrator_planning_eval.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_scripts_otel_smoke_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7614,7 +10106,7 @@
     },
     {
       "source": "module_scripts_pickups_eval_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7622,8 +10114,116 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_scripts_pickups_vision_qc_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\pickups_vision_qc_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_probe_fr03_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\probe_fr03.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_probe_fr03_hear_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\probe_fr03_hear.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_probe_tts_rate_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\probe_tts_rate.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_ranking_quality_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\ranking_quality_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_reliability_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\reliability_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_scene_loudness_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\scene_loudness_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_shadow_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\shadow_run.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_spend_guardian_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\spend_guardian_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_spend_steward_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\spend_steward_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_verification_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\verification_eval.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_scripts_visual_qc_eval_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts\\visual_qc_eval.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_chaos_worker_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7631,8 +10231,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_adk_finishing_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_adk_finishing.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_api_resilience_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_api_resilience.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_app_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7640,8 +10258,71 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_approval_executor_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_approval_executor.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_approval_sweeper_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_approval_sweeper.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_approval_sweeper_py",
+      "target": "module_tests_test_gcs_keys_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_approval_sweeper.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_budget_loop_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_budget_loop.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_budget_loop_py",
+      "target": "module_tests_test_gcs_keys_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_budget_loop.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_caption_remediation_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_caption_remediation.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_caption_write_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_caption_write.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_captions_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7649,8 +10330,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_clip_preview_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_clip_preview.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_config_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7658,8 +10348,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_creative_orchestrator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_creative_orchestrator.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_deliberation_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_deliberation.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_delivery_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7667,8 +10375,53 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_delivery_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_delivery_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_delivery_strategy_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_delivery_strategy.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_draft_first_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_draft_first.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_dub_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_dub_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_dubbing_run_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_dubbing_run.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_errors_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7677,7 +10430,7 @@
     },
     {
       "source": "module_tests_test_events_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7685,8 +10438,53 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_extend_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_extend_qc.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_finding_schema_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_finding_schema.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_finishing_dispatch_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_finishing_dispatch.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_finishing_loop_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_finishing_loop.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_finishing_rank_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_finishing_rank.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_firestore_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7694,8 +10492,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_footage_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_footage.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_g1_ingest_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7704,7 +10511,7 @@
     },
     {
       "source": "module_tests_test_g2_stations_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7713,7 +10520,7 @@
     },
     {
       "source": "module_tests_test_g2_stations_integration_py",
-      "target": "module_tests_test_spend_adversarial_py",
+      "target": "module_tests_test_gcs_keys_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7722,7 +10529,7 @@
     },
     {
       "source": "module_tests_test_gcs_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7730,8 +10537,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_gcs_keys_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_gcs_keys.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_handoff_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7740,7 +10556,7 @@
     },
     {
       "source": "module_tests_test_handoff_annotation_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7749,7 +10565,7 @@
     },
     {
       "source": "module_tests_test_ingest_checksum_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7758,7 +10574,7 @@
     },
     {
       "source": "module_tests_test_ingest_probe_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7766,8 +10582,35 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_ingest_triage_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_ingest_triage.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_ingest_understand_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_ingest_understand.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_inspect_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_inspect.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_jobs_models_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7776,7 +10619,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_chaos_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7785,7 +10628,7 @@
     },
     {
       "source": "module_tests_test_lease_queue_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7794,7 +10637,7 @@
     },
     {
       "source": "module_tests_test_logging_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7803,7 +10646,7 @@
     },
     {
       "source": "module_tests_test_loudness_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7811,8 +10654,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_loudness_strategy_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_loudness_strategy.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_media_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7821,7 +10673,7 @@
     },
     {
       "source": "module_tests_test_models_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7829,8 +10681,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_orchestrator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_orchestrator.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_otel_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7839,7 +10700,7 @@
     },
     {
       "source": "module_tests_test_otel_ai_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7848,7 +10709,7 @@
     },
     {
       "source": "module_tests_test_otel_ai_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7857,7 +10718,7 @@
     },
     {
       "source": "module_tests_test_otel_auth_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7866,7 +10727,7 @@
     },
     {
       "source": "module_tests_test_pickups_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7874,8 +10735,17 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_pickups_vision_qc_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_pickups_vision_qc.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_present_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7883,8 +10753,71 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_rank_plan_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_rank_plan.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_reliability_investigator_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_reliability_investigator.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_revision_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_revision.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_scene_loudness_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_scene_loudness.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_settings_route_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_settings_route.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_shot_locking_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_shot_locking.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_shot_locking_py",
+      "target": "module_tests_test_gcs_keys_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_shot_locking.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_spend_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7893,7 +10826,7 @@
     },
     {
       "source": "module_tests_test_spend_py",
-      "target": "module_tests_test_spend_adversarial_py",
+      "target": "module_tests_test_gcs_keys_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7902,7 +10835,7 @@
     },
     {
       "source": "module_tests_test_spend_adversarial_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7910,8 +10843,44 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_spend_guardian_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_spend_guardian.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_spend_steward_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_spend_steward.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_stage1a_commands_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_stage1a_commands.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_station_agents_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_station_agents.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_supervisor_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7920,7 +10889,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7929,7 +10898,7 @@
     },
     {
       "source": "module_tests_test_supervisor_mcp_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7938,7 +10907,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7947,7 +10916,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_py",
-      "target": "module_tests_test_spend_adversarial_py",
+      "target": "module_tests_test_gcs_keys_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7956,7 +10925,7 @@
     },
     {
       "source": "module_tests_test_supervisor_tools_integration_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -7964,8 +10933,26 @@
       "provenance": "python-import"
     },
     {
+      "source": "module_tests_test_team_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_team.py",
+      "provenance": "python-import"
+    },
+    {
+      "source": "module_tests_test_verification_py",
+      "target": "module_backend_api_finish_py",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests\\test_verification.py",
+      "provenance": "python-import"
+    },
+    {
       "source": "module_tests_test_worker_py",
-      "target": "module_backend_stations_delivery_captions_py",
+      "target": "module_backend_api_finish_py",
       "relation": "imports",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -8189,12 +11176,129 @@
       "provenance": "doc-path"
     },
     {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_budget_loop_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_team_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_deliberation_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_station_agents_orchestrator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_pending_work_md",
+      "target": "module_backend_supervisor_case_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\pending-work.md",
+      "provenance": "doc-path"
+    },
+    {
       "source": "doc_docs_adr_0002_model_toolchain_pinning_md",
       "target": "module_backend_core_models_py",
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.7,
       "source_file": "docs\\adr\\0002-model-toolchain-pinning.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_adr_0004_dub_timefit_and_agentic_qc_md",
+      "target": "module_scripts_probe_tts_rate_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\adr\\0004-dub-timefit-and-agentic-qc.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_adr_0004_dub_timefit_and_agentic_qc_md",
+      "target": "module_scripts_probe_fr03_hear_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\adr\\0004-dub-timefit-and-agentic-qc.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evals_2026_09_07_caption_write_eval_pipeline_md",
+      "target": "module_tests_test_caption_write_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evals\\2026-09-07-caption-write-eval-pipeline.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evals_2026_09_07_caption_write_eval_pipeline_md",
+      "target": "module_tests_test_captions_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evals\\2026-09-07-caption-write-eval-pipeline.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evals_2026_09_07_extend_eval_pipeline_md",
+      "target": "module_tests_test_extend_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evals\\2026-09-07-extend-eval-pipeline.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evals_2026_09_07_ingest_understand_eval_pipeline_md",
+      "target": "module_tests_test_ingest_understand_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evals\\2026-09-07-ingest-understand-eval-pipeline.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evals_2026_09_07_scene_loudness_eval_pipeline_md",
+      "target": "module_tests_test_scene_loudness_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evals\\2026-09-07-scene-loudness-eval-pipeline.md",
       "provenance": "doc-path"
     },
     {
@@ -8214,6 +11318,42 @@
       "confidence_score": 0.75,
       "source_file": "docs\\harness\\middleware.md",
       "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_scripts_extend_eval_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_tests_test_station_agents_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_scripts_e3_run_worker_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_agent_handoffs_md",
+      "target": "module_backend_core_api_resilience_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
     },
     {
       "source": "doc_docs_memory_agent_handoffs_md",
@@ -8267,6 +11407,51 @@
       "confidence": "INFERRED",
       "confidence_score": 0.7,
       "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_decision_log_md",
+      "target": "module_backend_stations_loudness_scene_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\decision-log.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_decision_log_md",
+      "target": "module_scripts_extend_eval_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\decision-log.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_decision_log_md",
+      "target": "module_backend_core_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\decision-log.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_decision_log_md",
+      "target": "module_backend_approvals_orders_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\decision-log.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_memory_decision_log_md",
+      "target": "module_backend_api_spine_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\memory\\decision-log.md",
       "provenance": "doc-path"
     },
     {
@@ -8360,6 +11545,24 @@
       "provenance": "doc-path"
     },
     {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_supervisor_station_agents_base_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_08_26_post_command_tasks_md",
+      "target": "module_backend_supervisor_orchestrator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-08-26-post-command-tasks.md",
+      "provenance": "doc-path"
+    },
+    {
       "source": "doc_docs_plans_2026_09_01_post_command_handover_md",
       "target": "skill_memory_startup",
       "relation": "mentions",
@@ -8423,6 +11626,249 @@
       "provenance": "doc-path"
     },
     {
+      "source": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "target": "skill_eval_rubric_design",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "target": "skill_adversarial_hat",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "target": "module_backend_core_config_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "target": "module_backend_supervisor_agent_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_02_h0b_budgeted_supervisor_plan_md",
+      "target": "module_backend_stations_spend_detect_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-02-h0b-budgeted-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "skill_eval_judge",
+      "relation": "mentions",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-mention"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_registry_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_frontend_src_components_investigationdrawer_tsx",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_case_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_deliberation_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_agents_reliability_investigator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_agents_delivery_qc_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_agents_spend_guardian_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_supervisor_agents_verification_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_backend_api_spine_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_03_multiagent_supervisor_plan_md",
+      "target": "module_frontend_src_types_api_ts",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-03-multiagent-supervisor-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_core_api_resilience_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_tests_test_api_resilience_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_core_generative_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_supervisor_otel_ai_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_scripts_e3_run_worker_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_jobs_worker_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_scripts_g2_gate_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_scripts_e3_seed_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_backend_supervisor_station_agents_dub_qc_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_plans_2026_09_07_stage1a_completion_plan_md",
+      "target": "module_scripts_extend_qc_eval_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\plans\\2026-09-07-stage1a-completion-plan.md",
+      "provenance": "doc-path"
+    },
+    {
       "source": "doc_docs_reviews_2026_08_30_post_command_spec_crosscheck_md",
       "target": "skill_incremental_implementation",
       "relation": "mentions",
@@ -8465,6 +11911,105 @@
       "confidence": "INFERRED",
       "confidence_score": 0.7,
       "source_file": "docs\\specs\\2026-08-26-post-command-feature-spec.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_api_spine_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_supervisor_agent_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_jobs_models_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_approvals_commands_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_supervisor_registry_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_jobs_queue_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_jobs_worker_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_stations_spend_control_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_02_h0_approval_executor_design_md",
+      "target": "module_backend_stations_spend_act_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-02-h0-approval-executor-design.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_specs_2026_09_06_agentic_stations_design_md",
+      "target": "module_backend_supervisor_orchestrator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\specs\\2026-09-06-agentic-stations-design.md",
       "provenance": "doc-path"
     },
     {
@@ -8666,6 +12211,249 @@
       "provenance": "doc-path"
     },
     {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_backend_supervisor_budget_loop_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_tests_test_budget_loop_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_backend_supervisor_team_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_backend_api_app_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_scripts_ranking_quality_eval_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_0b_readme_md",
+      "target": "module_backend_api_google_auth_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-0b\\README.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1a_md",
+      "target": "module_backend_supervisor_case_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1a.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1a_md",
+      "target": "module_backend_supervisor_deliberation_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1a.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1a_md",
+      "target": "module_backend_supervisor_otel_ai_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1a.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1b_md",
+      "target": "module_backend_supervisor_agents_reliability_investigator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1b.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1b_md",
+      "target": "module_scripts_reliability_eval_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1b.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1b_md",
+      "target": "module_tests_test_reliability_investigator_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1b.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1c_md",
+      "target": "module_backend_supervisor_agents_finding_schema_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1c.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1c_md",
+      "target": "module_backend_supervisor_agents_delivery_qc_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1c.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1c_md",
+      "target": "module_tests_test_delivery_qc_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1c.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1d_md",
+      "target": "module_backend_supervisor_agents_spend_guardian_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1d.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1d_md",
+      "target": "module_tests_test_spend_guardian_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1d.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1e_md",
+      "target": "module_backend_supervisor_agents_verification_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1e.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1e_md",
+      "target": "module_tests_test_verification_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1e.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1f_md",
+      "target": "module_tests_test_deliberation_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1f.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1g_md",
+      "target": "module_scripts_shadow_run_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1g.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "doc_docs_evidence_h_1_h_1g_md",
+      "target": "module_backend_supervisor_budget_loop_py",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs\\evidence\\H-1\\H-1g.md",
+      "provenance": "doc-path"
+    },
+    {
+      "source": "handoff_2026_09_07_20_41_ingest_adk_look_handoff_repair_owner_commit_push",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_09_07_17_40_ingest_watches_the_original_owner_asked_commit_push",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_09_07_17_38_d_9_omni_draft_master_live_stage_1a_stations_in_tree_check_not_green",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_09_07_late_session_2_stage_1a_agents_complete_live_edd_a1_done_e_3_run_unblocked",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_09_07_late_a10_complete_e_3_batch_queued_96_jobs_live_stage_1a_handoff",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
       "source": "handoff_2026_09_02_06_30_rest_of_sprint_p1_p3_g2_push_pending",
       "target": "memory_docs_memory_agent_handoffs_md",
       "relation": "recorded_in",
@@ -8775,6 +12563,15 @@
     },
     {
       "source": "handoff_2026_08_28_replit_steps_1_2_reviewed_review_fixes_applied_same_session",
+      "target": "memory_docs_memory_agent_handoffs_md",
+      "relation": "recorded_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs\\memory\\agent-handoffs.md",
+      "provenance": "agent-handoffs.md"
+    },
+    {
+      "source": "handoff_2026_09_06_e_2_dub_qc_station_complete_agentic_eval_green_evidence_pushed",
       "target": "memory_docs_memory_agent_handoffs_md",
       "relation": "recorded_in",
       "confidence": "EXTRACTED",

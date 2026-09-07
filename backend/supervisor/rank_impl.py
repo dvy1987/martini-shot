@@ -61,9 +61,11 @@ complete bag of their proposals. Your job is to THINK:
 - Independent clips, or sound vs picture that do not overwrite the same file,
   may run in parallel (no dependency).
 - Do not invent a station, a shot, or a job that is not in the candidate list.
-- Empty notes are attendance holes, not work. Spend never becomes a picture job.
-- Drop only when you can justify spending the envelope elsewhere. Dropped work
-  waits for the human.
+- Empty notes are attendance holes, not work. ok / leave-it notes are not
+  candidates — never turn them into jobs.
+- kind=defect is required. Spend it before kind=improvement (nice-to-have).
+- When the envelope is tight, drop low improvements first. Dropped work waits.
+- Spend never becomes a picture job.
 
 IDs are "station::shot_id". Return JSON only.
 """
@@ -141,3 +143,33 @@ def run_rank_agent(
     except Exception:
         log.exception("finishing ranker failed; heuristic fallback")
         return fallback_plan(notes, shot_order=shot_order)
+
+
+def rank_complete_bag(
+    settings: Any,
+    notes: list[InspectNote],
+    *,
+    shot_order: dict[str, int],
+    remaining_micros: int,
+    adk_text: str = "",
+) -> RankPlan:
+    """Honor the ADK orchestrator JSON when present; else billed ranker.
+
+    The boss ranks the complete bag of station notes (all clips), not one
+    specialist in isolation. Heuristic sort is last-resort crash fallback.
+    """
+    if str(adk_text or "").strip():
+        try:
+            plan = plan_from_text(notes, adk_text)
+            if plan.ordered or not _candidates(notes):
+                return plan
+        except Exception:
+            log.exception("ADK orchestrator JSON unusable; billed rank fallback")
+    if settings is not None:
+        return run_rank_agent(
+            settings,
+            notes,
+            shot_order=shot_order,
+            remaining_micros=remaining_micros,
+        )
+    return fallback_plan(notes, shot_order=shot_order)

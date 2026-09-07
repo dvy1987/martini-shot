@@ -98,6 +98,7 @@ def run_correction(
             decision = draft_qc_decision(flicker)
 
             artifact_ref = f"gs://{settings.gcs_bucket}/{destination_key}"
+            tier = str(job.result.get("tier") or "draft")
             alternate_id = shots.record_alternate(
                 store,
                 shot_id=shot_id,
@@ -105,9 +106,8 @@ def run_correction(
                 op="correction",
                 artifact_ref=artifact_ref,
                 eval_scores={"flicker": flicker},
+                tier=tier,
             )
-
-            tier = str(job.result.get("tier") or "draft")
             resolution = "720p" if tier == "master" else "360p"
             analyzed_s = float(score.get("frames_analyzed") or 0) / 8.0
             job.cost_micros = estimate_extend_cost_micros(
@@ -118,6 +118,8 @@ def run_correction(
                 "alternate_id": alternate_id,
                 "artifact_ref": artifact_ref,
                 "render_model": render.get("model"),
+                "omni_fallback": False,
+                "omni_error": "",
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
                 "qc_decision": decision,

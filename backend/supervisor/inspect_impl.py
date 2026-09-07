@@ -20,13 +20,13 @@ from backend.supervisor.inspect import (
 log = logging.getLogger("pc.finishing.inspect")
 
 _AGENT = {
-    "ingest": "ingest_triage",
+    "ingest": "ingest_understand",
     "loudness": "loudness_strategy",
     "delivery": "delivery_strategy",
     "spend": "spend_steward",
     "pickups": "pickups_vision_qc",
     "dub": "dub_qc",
-    "extend": "extend_qc",
+    "extend": "extend",
     "corrections": "corrections",
     "relight": "relight",
     "coverage": "coverage",
@@ -35,13 +35,17 @@ _AGENT = {
 
 _SPECIALTY = {
     "ingest": (
-        "File health. Corrupt/missing media is high. A technically valid "
-        "but unusable ingest (no picture, no sound) is high."
+        "Watch the original clip. Write spoken words (the script) and a "
+        "short scene description. Silence is valid: ingested=true, empty "
+        "spoken_words, still describe the picture. The ingest JOB already "
+        "checked the container. Use and preserve context ingested / "
+        "spoken_words / scene — do not invent a different line."
     ),
     "loudness": (
-        "Hearability AND presence. Unhearable or clipping is high. A mix "
-        "that meters near target but dialogue feels thin is medium. Do not "
-        "pump a true silence/whisper scene up to TV-loud."
+        "Hearability AND presence. Classify quiet/normal/loud with or "
+        "without dialogue. Unhearable speech is high. If speech is buried "
+        "in the room, lift the voice — do not only turn the whole track "
+        "up. Do not pump a true quiet-no-dialogue scene up to talk level."
     ),
     "delivery": (
         "Captions and pack completeness. Missing required captions is high. "
@@ -61,13 +65,28 @@ _SPECIALTY = {
         "truncated/missing line is high; a complete but stiff read is medium."
     ),
     "extend": (
-        "Does the shot die mid-thought (medium/high) or merely want a breath "
-        "of air at the end (low)?"
+        "Pick exactly one bucket. MUST: the shot dies mid-thought or "
+        "mid-action so the story does not land — status=needs_work, "
+        "kind=defect, impact=high or medium, propose a 360p draft extend "
+        "as an ALTERNATE. NICE: the beat already lands; a breath of air "
+        "at the end would help — status=needs_work, kind=improvement, "
+        "impact=low, propose that same draft alternate. LEAVE: the shot "
+        "is already complete — status=ok, impact=none, kind=none, do not "
+        "propose, no proposal object. Never overwrite a locked cut. Keep "
+        "everything else the same."
     ),
     "corrections": (
-        "Wrong signage/text is a defect. Visual clutter the film would be "
-        "better without is an improvement — you MAY name the intent from "
-        "looking; do not wait for a human brief."
+        "Pick exactly one bucket. MUST: wrong or unreadable signage, "
+        "burned-in text that lies, or a misspelled on-set graphic — "
+        "status=needs_work, kind=defect, impact=medium or high, name the "
+        "intent, propose a 360p draft alternate. NICE: an unmotivated prop "
+        "(cup, bag, toolbox) the scene does not need — status=needs_work, "
+        "kind=improvement, impact=low or medium, name the intent, propose "
+        "that draft. LEAVE: no wrong signage, graphic, or unmotivated prop "
+        "— status=ok, impact=none, kind=none, do not propose, no proposal "
+        "object. Never overwrite a locked cut. Keep everything else the "
+        "same. You MAY name the intent from looking; do not wait for a "
+        "human brief."
     ),
     "relight": (
         "Inconsistent lighting is a defect. Consistent but too dark, faces "
@@ -90,20 +109,35 @@ _SPECIALTY = {
 }
 
 
+def _public_context(context: dict[str, Any]) -> dict[str, Any]:
+    skip = {"store", "settings", "payload", "media", "watch"}
+    return {
+        key: value
+        for key, value in context.items()
+        if key not in skip and not str(key).startswith("_")
+    }
+
+
 def station_inspect_prompt(station: str, context: dict[str, Any]) -> str:
     if station not in ROSTER:
         raise InspectNoteError(f"unknown station {station!r}")
+    public = _public_context(context)
     return (
         f"You are the {station} finishing agent for Martini Shot.\n"
         f"{INSPECT_CONTRACT}\n"
         f"Specialty:\n{_SPECIALTY[station]}\n\n"
-        f"Context:\n{json.dumps(context, default=str)}\n\n"
+        "Ingest metadata on every look: ingested (bool), spoken_words "
+        "(script from the original), scene (description). If ingested is "
+        "true, use that script and description; do not invent a different "
+        "line. If ingested is false, say so — do not guess dialogue.\n\n"
+        f"Context:\n{json.dumps(public, default=str)}\n\n"
         f'The JSON field "station" MUST be "{station}". '
         f'The JSON field "agent" MUST be "{_AGENT[station]}". '
         f"Default cost_estimate_micros if unsure: "
         f"{DEFAULT_COST_MICROS[station]}. "
         'proposal.kind is "station_job" with "station" matching you and '
-        '"args" for presets/intents/movements when needed.'
+        '"args" for presets/intents/movements when needed. '
+        "If status is needs_work you MUST include that proposal object."
     )
 
 
@@ -121,7 +155,56 @@ def parse_inspect_text(text: str, station: str) -> InspectNote:
         raise InspectNoteError(f"{station} inspect payload must be an object")
     payload["station"] = station
     payload.setdefault("agent", _AGENT[station])
+    if str(payload.get("status") or "") == "needs_work" and not payload.get("proposal"):
+        payload["proposal"] = {
+            "kind": "station_job",
+            "station": station,
+            "args": {},
+        }
+    if station == "extend" and str(payload.get("status") or "") == "needs_work":
+        proposal = dict(payload.get("proposal") or {})
+        args = dict(proposal.get("args") or {})
+        args.setdefault("tier", "draft")
+        proposal["kind"] = str(proposal.get("kind") or "station_job")
+        proposal["station"] = "extend"
+        proposal["args"] = args
+        payload["proposal"] = proposal
+    if station == "corrections" and str(payload.get("status") or "") == "needs_work":
+        proposal = dict(payload.get("proposal") or {})
+        args = dict(proposal.get("args") or {})
+        args.setdefault("tier", "draft")
+        if not str(args.get("intent") or "").strip():
+            args["intent"] = str(payload.get("summary") or "").strip()
+        proposal["kind"] = str(proposal.get("kind") or "station_job")
+        proposal["station"] = "corrections"
+        proposal["args"] = args
+        payload["proposal"] = proposal
+    if payload.get("cost_estimate_micros") in (None, ""):
+        payload["cost_estimate_micros"] = DEFAULT_COST_MICROS[station]
     return validate_inspect_note(payload)
+
+
+def _ingest_look_note(context: dict[str, Any]) -> InspectNote:
+    from backend.supervisor.station_agents.ingest_understand import scene_bag
+
+    bag = scene_bag(context.get("scene_understanding") or context)
+    shot_id = str(context.get("shot_id") or "")
+    if bag.get("ingested"):
+        words = bag["spoken_words"] or "(none)"
+        scene = bag["scene"] or "(none)"
+        return InspectNote(
+            station="ingest",
+            agent=_AGENT["ingest"],
+            status="ok",
+            impact="none",
+            kind="none",
+            summary=f"ingested; spoken_words={words}; scene={scene}",
+            cost_estimate_micros=DEFAULT_COST_MICROS["ingest"],
+            proposal={},
+            shot_id=shot_id,
+            reason="ingest look already on the shot",
+        )
+    return empty_note("ingest", agent=_AGENT["ingest"])
 
 
 def run_inspect(
@@ -137,6 +220,10 @@ def run_inspect(
     context = dict(context or {})
     if settings is None:
         raise InspectNoteError("inspect requires live settings (no mock look)")
+    if station == "ingest":
+        note = _ingest_look_note(context)
+        if note.status != "empty":
+            return note
     from backend.supervisor.clip_preview import VISUAL_STATIONS
     from backend.supervisor.otel_ai import run_agent_call
 

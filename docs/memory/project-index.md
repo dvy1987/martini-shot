@@ -1,9 +1,10 @@
 # Project Memory Index
 
-| 2026-09-07 17:40 | handoff | agent-handoffs.md#2026-09-07-17:40 | current | ingest, captions, loudness, edd | Ingest watches original tape onto shot metadata; live eval green; owner commit+push |
+| 2026-09-07 20:41 | handoff | agent-handoffs.md#2026-09-07-20:41 | current | ingest-adk, handoff, finishing | Ingest ADK look + handoff repair; fields on every agent; owner commit+push |
 | 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-1738 | current | d-9, omni, stage-1a, coverage | D-9 Omni 6/6 draft+master PASS; Stage 1a stations in tree; make check blocked on 74% coverage |
 | 2026-09-07 | state | current-state.md | current | d-9, stage-1a | D-9 live Omni EDD green; CI-lite coverage gap remains |
-| 2026-09-07 | decision | decision-log.md (scene-aware loudness) | current | loudness, scene-class, dub, e-3 | Hear the dub, classify scene (whisper through explosion), mix, re-measure; not a single −16 for every clip |
+| 2026-09-07 | decision | decision-log.md (six-kind loudness) | current | loudness, speech-split, finishing | quiet/normal/loud × dialogue; lift voice over room; no human stop; loudness then pickups before creative |
+| 2026-09-07 | decision | decision-log.md (scene-aware loudness) | superseded | loudness, scene-class, dub, e-3 | Replaced by six-kind table + voice-over-room split |
 | 2026-09-07 | decision | decision-log.md (product Veo vs eval clips) | current | omni, veo, product, edd | Product: Omni then Veo fallback. Eval/dev only: generate original clips if Omni refuses PD tape; Veo-finished eval ≠ Omni pass |
 | 2026-09-07 | decision | decision-log.md (Omni-fail disclosure) | superseded | omni, veo, edd | Replaced by product-vs-eval split: Veo fallback remains correct in product |
 | 2026-09-07 | decision | decision-log.md (eval footage path) | current | edd, omni, fixtures | If PD clips fail Omni for ownership/infringement: generate original clips that still have the defect, then EDD; no gradient stand-ins; stop if Omni cannot be called |
