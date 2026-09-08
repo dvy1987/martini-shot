@@ -191,7 +191,7 @@ Stage 1) is the guaranteed coherent fallback submission.
 | J-2 Chaos pass: kill workers mid-run, revoke+refresh OAuth, network flap to OTLP; Spend Control keeps runaway retries bounded during chaos — product recovers without data loss | integration | recovery log evidence; no orphaned leases; spend stayed inside policy |
 | J-3 Replit hosting swap rehearsal (identical build, CORS/base-URL change only) | deploy | both URLs live; rollback doc |
 | J-4 README final: stranger-rerunnable quickstart (env, provision scripts, make targets, cost expectations), honest limitations section | docs | fresh-agent reproducibility walkthrough passes (C-1.6) |
-| J-5 Record 3-min video FROM THE RUNNING PRODUCT (C-1.5), narration script lists announced fault injections; show batch-scale dashboard beat; captions EN | media | raw takes + final cut archived under `docs/evidence/video/` |
+| J-5 Record 3-min video FROM THE RUNNING PRODUCT (C-1.5), narration follows `ideas/AO-STATION-MAP.md` §7 + A6 (walk-away house order); batch-scale dashboard only as finale; captions EN | media | raw takes + final cut archived under `docs/evidence/video/` |
 | J-6 Devpost submission form complete; repo About shows license; submit ≥24 h early | admin | confirmation email screenshot |
 
 ## Gate Summary

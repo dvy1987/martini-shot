@@ -147,7 +147,7 @@ Shared machinery already landed: `StationDecision` contract (`backend/supervisor
 | J-2 | Chaos pass: worker kills, OAuth refresh, OTLP flap; Spend Control bounds runaway | C-6.3 | recovery log; no orphaned leases; spend inside policy |
 | J-3 | Replit hosting swap rehearsal | §7.3 | both URLs live; rollback doc |
 | J-4 | README final: stranger-rerunnable quickstart + honest limitations + **fresh-source attestation (C-2.4, F-3b)** | C-1.6, C-2.4 | fresh-agent walkthrough passes |
-| J-5 | 3-min video FROM THE RUNNING PRODUCT; announced fault injections; captions EN | C-1.5 | raw takes + final cut in `docs/evidence/video/` |
+| J-5 | 3-min video FROM THE RUNNING PRODUCT; AO-STATION-MAP §7 + A6 walk-away house order; captions EN | C-1.5 | raw takes + final cut in `docs/evidence/video/` |
 | J-6 | Devpost submission ≥24 h early | C-2.3 | confirmation screenshot |
 
 ## DEMO RELEASE — Full Stage 1a (A11, owner-approved 2026-09-07)

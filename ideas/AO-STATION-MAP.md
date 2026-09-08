@@ -3,7 +3,7 @@
 **Read this file first.** It is the single self-contained context document for our
 hackathon project. Anyone (human or agent) who reads only this file should fully
 understand what we are building, why, how we got here, and what happens next.
-Last updated: **2026-08-28** (staging amendment A4; A5 Stage 1a fast-follow). Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
+Last updated: **2026-09-08** (A6 walk-away demo flow). Companion file: `IDEAS.md` (full idea catalog, 51 ideas).
 
 ---
 
@@ -200,26 +200,47 @@ checksums, render health, archive, cost tracking.
 
 ---
 
-## 7. How we DEMO each station (the 3-minute video plan)
+## 7. How we DEMO (the 3-minute video plan)
 
-Framing rule for the whole video: **fault-injection test bench, honestly
-labeled.** "We built a miniature post house and broke it six ways; watch the
-supervisor catch every one." A BATCH of files (8–10 episodes × ~30 languages of
-localization) travels the entire chain so Grafana charts show system-scale
-volume, not a 20-row list; ~25 seconds per station beat; before/after reel as
-the finale.
+Framing: **walk away from a real post house.** Upload clips in order, set a
+budget, leave. The house does not send every station at the footage at once.
+~20 seconds per beat; playable before/after as the spine; Grafana is the audit
+trail. Batch volume (season heatmap) can sit in the finale, not steal the
+walk-away story.
+
+**House order (say this, then show it):**
+
+1. Upload clips — they stay numbered in that order.
+2. Ingest **job** — file check only. A corrupt file **stops**.
+3. Ingest **agent** — watches the original; writes **script** + **scene**
+   (silence is valid). That bag goes with every later agent. Handoff tries to
+   repair a lost bag and **tells the orchestrator**.
+4. **Loudness agent + job (always)** — listens, picks the scene kind, **mixes**.
+   Continuing shots stay in family. This spend is spent.
+5. **Pickups agent + job (always)** — looks at **that clip after the mix**.
+   Repairs real flicker/damage. This spend is spent.
+6. **Wait** until every uploaded clip has finished mix + pickups.
+7. **Leftover station agents** get the **updated clips** in upload order, with
+   script + scene: extend, corrections, relight, coverage, camera language, dub,
+   delivery. They suggest must / nice / leave.
+8. **Spend agent** prices **each** leftover suggestion.
+9. **Orchestrator** (Gemini) ranks by impact, names **what must wait on what**,
+   reads ingest/handoff notes, keeps what still fits. The rest waits for a human.
+10. The house **runs** what still fits. Mix and pickups are already done.
 
 | Beat | On screen | Grafana MCP moment |
 |---|---|---|
-| Cold open | "I'm shipping a season. Post has 10+ handoffs. Each silently bleeds days." Title card: POST COMMAND. | — |
-| Ingest | Footage arrives; one card corrupt (we corrupted it). Alert fires; agent pulls Loki logs, names the broken offload. | alert→logs→annotation |
-| Pickups pt.1 | Editor marks "flat sky"; background swap renders; flicker score spikes mid-render; agent investigates trace, retries with fixed anchors. | metrics+trace→auto-retry |
-| Pickups pt.2 | "Need vertical for socials": outpaint reframe 16:9→9:16 plays side-by-side. | annotation + before/after |
-| Dub | Spanish dub generated (real TTS); EP segment runs 800ms long; agent ranks severity, re-times. Play the audio. | metrics→incident→fix |
-| Captions | Caption batch violates reading speed; blocked pre-shipment with reasons. | LogQL evidence |
-| Delivery | Loudness check FAILS (-9 LUFS, legal limit -24); agent diagnoses hot dialogue stem via metric correlation. Fix lands; PASS. | cross-metric diagnosis |
-| Finale | Project timeline UI: every event annotated; morning report compiles itself. Before/after reel. | dashboard links for humans |
-| Meta close | Grafana AI Observability panel showing OUR agent's own tokens/latency/tool-calls during everything just shown. | self-observation |
+| Cold open | "I'm shipping a season. I upload the dailies, set a budget, walk away." Title: Martini Shot. | — |
+| Upload | Clips drop in numbered order. Budget $50. Finish. | — |
+| Ingest job | One file is corrupt — it stops. Healthy files pass. | alert→logs→annotation |
+| Ingest agent | Watches the original. Script + scene land on the shot. | annotation (job_id) |
+| Loudness | Agent listens; mix actually lands; buried speech stands out. | LUFS metrics + annotation |
+| Pickups | After the mix: real damage is repaired; clean frames stay. Before/after wipe. | flicker + before/after |
+| Leftover looks | Stage 1a + dub agents watch the **updated** clips in upload order. Must / nice / leave. | looks as traces |
+| Spend + orchestrator | Each leftover job is priced. Boss ranks impact, names dependencies, reads a handoff note, drops what the envelope cannot hold. | ranked table + annotation |
+| Run | What still fits runs. Play a mix, a repair, one alternate. Leftovers wait. | job annotations |
+| Finale | Timeline of the night; morning report; before/after reel. Season heatmap if it helps. | dashboard links |
+| Meta close | Grafana AI Observability: our agent's own tokens/latency/tool-calls during the walk-away. | self-observation |
 
 ---
 
@@ -413,3 +434,13 @@ short:
 Stations now number 16 (15 original + Spend Control). Authoritative detail:
 `docs/specs/2026-08-26-post-command-feature-spec.md` (§5) and
 `docs/plans/2026-08-26-post-command-plan.md`.
+
+## A6. Walk-away demo flow — 2026-09-08 (SUPERSEDES §7 2026-08-26 beats)
+
+Owner locked the **product and demo sequence**: ingest file check → ingest
+watch (script + scene) → **always** loudness (agent + mix) → **always**
+pickups (agent + repair) on that mixed clip → wait until **every** clip is
+through pickups → leftover agents look in **upload order** → Spend prices each
+leftover job → orchestrator ranks impact, **dependencies**, and spine notes →
+run what still fits. §7 above is the 3-minute video of that house. Do not
+demo “every station looks at once after ingest.”

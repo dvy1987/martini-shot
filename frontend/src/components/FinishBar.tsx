@@ -79,8 +79,8 @@ export default function FinishBar({ projectId, onFinished }: FinishBarProps) {
         Finish
       </button>
       <p className="basis-full font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-        Upload, set a budget, Finish, walk away. Stations look; work runs in rank order until
-        the money is gone.
+        Upload, set a budget, Finish, walk away. Mix then pickups always run; then the other
+        agents look, Spend prices, and the orchestrator ranks what still fits.
       </p>
       {note ? <p className="font-mono text-xs text-ink-muted">{note}</p> : null}
       {error ? <p className="font-mono text-xs text-signal">{error}</p> : null}
