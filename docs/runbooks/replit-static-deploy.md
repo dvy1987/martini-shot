@@ -10,7 +10,10 @@ The repository’s `.replit` workflow starts the React/Vite frontend on port 500
 cd frontend && npm run dev -- --host 0.0.0.0 --port 5000
 ```
 
-The repository deployment target is currently `cloudrun`. The frontend remains a Vite application that can be built into `frontend/dist` and served by a static host or packaged into a combined deployment if the hosting configuration supplies the required API base URL and key.
+The repository deployment target is static. `.replit` builds from `frontend/` with
+`npm run build` and serves `frontend/dist`. The static host must rewrite unknown
+paths to `index.html`; otherwise a browser refresh on a client-side route such as
+`/approvals` or `/reports` returns a 404 before React can render it.
 
 ## Local development
 
@@ -31,9 +34,20 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build
+npm run smoke:static-deploy
 ```
 
 The build runs TypeScript checking before producing `frontend/dist`.
+The smoke check rebuilds the frontend, starts a local static preview from
+`frontend/dist`, and verifies that `/`, `/approvals`, and `/reports` each return
+the SPA HTML shell. Set `SMOKE_PORT` when the default preview port (`4173`) is
+already in use:
+
+```bash
+SMOKE_PORT=4174 npm run smoke:static-deploy
+```
+
+This is the repeatable local or CI check for the static deployment contract.
 
 ## Runtime configuration
 

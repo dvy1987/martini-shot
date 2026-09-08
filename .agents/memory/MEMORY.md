@@ -1,1 +1,2 @@
 - [Replit config validation](replit-config-validation.md) — validate temporary TOML before replacing `.replit`
+- [Node preview cleanup](node-preview-cleanup.md) — spawned npm/Vite preview checks must terminate their process group so CI cannot hang
