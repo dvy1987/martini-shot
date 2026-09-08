@@ -1,0 +1,12 @@
+{"run": 1, "id": "sp-01", "score": 1.0, "prices": {"extend::shot-a": 1500000, "dub::shot-a": 500000}}
+{"run": 1, "id": "sp-02", "score": 1.0, "prices": {"corrections::shot-a": 3000000}}
+{"run": 1, "id": "sp-03", "score": 1.0, "prices": {"delivery::shot-a": 50000}}
+{"run": 1, "id": "sp-04", "score": 1.0, "prices": {"extend::shot-a": 3000000}}
+{"run": 2, "id": "sp-01", "score": 1.0, "prices": {"extend::shot-a": 1500000, "dub::shot-a": 500000}}
+{"run": 2, "id": "sp-02", "score": 1.0, "prices": {"corrections::shot-a": 3000000}}
+{"run": 2, "id": "sp-03", "score": 1.0, "prices": {"delivery::shot-a": 50000}}
+{"run": 2, "id": "sp-04", "score": 1.0, "prices": {"extend::shot-a": 3000000}}
+{"run": 3, "id": "sp-01", "score": 1.0, "prices": {"extend::shot-a": 1500000, "dub::shot-a": 500000}}
+{"run": 3, "id": "sp-02", "score": 1.0, "prices": {"corrections::shot-a": 3000000}}
+{"run": 3, "id": "sp-03", "score": 1.0, "prices": {"delivery::shot-a": 50000}}
+{"run": 3, "id": "sp-04", "score": 1.0, "prices": {"extend::shot-a": 3000000}}

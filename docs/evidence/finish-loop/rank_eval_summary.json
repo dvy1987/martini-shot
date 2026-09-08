@@ -2,25 +2,25 @@
   "summaries": [
     {
       "run": 1,
-      "mean_case_accuracy": 1.0,
-      "hits": 6,
-      "n": 6,
+      "mean_case_accuracy": 0.9,
+      "hits": 9,
+      "n": 10,
       "cost_micros": 0,
       "pass": true
     },
     {
       "run": 2,
-      "mean_case_accuracy": 1.0,
-      "hits": 6,
-      "n": 6,
+      "mean_case_accuracy": 0.9,
+      "hits": 9,
+      "n": 10,
       "cost_micros": 0,
       "pass": true
     },
     {
       "run": 3,
-      "mean_case_accuracy": 1.0,
-      "hits": 6,
-      "n": 6,
+      "mean_case_accuracy": 0.8,
+      "hits": 8,
+      "n": 10,
       "cost_micros": 0,
       "pass": true
     }
