@@ -51,7 +51,7 @@ describe("CorrectionsControls", () => {
         continuity_constraints: ["preserve framing"],
       }),
     );
-    expect(await screen.findByText(/H-0 appr-1/)).toBeInTheDocument();
+    expect(await screen.findByText(/Suggestion created: appr-1/)).toBeInTheDocument();
     expect(screen.getByText(/Bounded signage fix/)).toBeInTheDocument();
   });
 });

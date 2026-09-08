@@ -21,13 +21,13 @@ const openShot: ShotRow = {
 };
 
 describe("CoverageControls", () => {
-  it("uses the clip itself as the subject reference", async () => {
+  it("suggests another camera angle using the current clip", async () => {
     const propose = vi.fn().mockResolvedValue({
       approval_id: "appr-cov",
       status: "proposed",
     });
     render(<CoverageControls shot={openShot} propose={propose} />);
-    fireEvent.click(screen.getByRole("button", { name: /propose coverage/i }));
+    fireEvent.click(screen.getByRole("button", { name: /suggest another angle/i }));
     await waitFor(() =>
       expect(propose).toHaveBeenCalledWith("shot-open", {
         source_uri: "gs://bucket/source.mp4",
@@ -37,5 +37,6 @@ describe("CoverageControls", () => {
         reason: "Looker-named coverage; clip is the subject reference",
       }),
     );
+    expect(await screen.findByText(/Suggestion created: appr-cov/)).toBeInTheDocument();
   });
 });

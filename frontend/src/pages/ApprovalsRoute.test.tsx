@@ -57,6 +57,6 @@ describe("ApprovalsRoute", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /^approve$/i }));
     await waitFor(() => expect(decideApproval).toHaveBeenCalledWith("ap-1", "approve"));
-    expect(screen.getByText("PRODUCTION ACCOUNTING")).toBeInTheDocument();
+    expect(screen.getByText("Budget review")).toBeInTheDocument();
   });
 });

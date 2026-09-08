@@ -36,16 +36,16 @@ describe("AgentPanel", () => {
   it("renders the team's verdict, ranked actions, and dissent from the real deliberation record", () => {
     render(<AgentPanel deliberation={deliberation} />);
 
-    expect(screen.getByText(/Agent deliberation/i)).toBeInTheDocument();
+    expect(screen.getByText(/How Martini Shot reached this result/i)).toBeInTheDocument();
     expect(screen.getByText(/reliability_investigator/)).toBeInTheDocument();
     expect(screen.getByText(/delivery_qc/)).toBeInTheDocument();
-    expect(screen.getByText(/retry_job/)).toBeInTheDocument();
-    expect(screen.getByText(/reversible/i)).toBeInTheDocument();
+    expect(screen.getByText(/retry job/)).toBeInTheDocument();
+    expect(screen.getByText(/Can be undone/i)).toBeInTheDocument();
     expect(screen.getByText(/QC and reliability disagree on the retry cost estimate/)).toBeInTheDocument();
-    expect(screen.getByText(/stale: the job was re-rendered/)).toBeInTheDocument();
+    expect(screen.getByText(/Not used: stale: the job was re-rendered/)).toBeInTheDocument();
   });
 
-  it("says no actions were proposed instead of inventing any", () => {
+  it("says no further action was suggested instead of inventing any", () => {
     const empty: Deliberation = {
       ...deliberation,
       recommendation: { ranked_actions: [], dissent: [] },
@@ -53,7 +53,7 @@ describe("AgentPanel", () => {
     };
     render(<AgentPanel deliberation={empty} />);
 
-    expect(screen.getByText(/no ranked actions/i)).toBeInTheDocument();
-    expect(screen.queryByText(/retry_job/)).not.toBeInTheDocument();
+    expect(screen.getByText(/no further action was suggested/i)).toBeInTheDocument();
+    expect(screen.queryByText(/retry job/)).not.toBeInTheDocument();
   });
 });

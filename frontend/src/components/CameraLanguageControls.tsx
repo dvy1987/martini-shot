@@ -43,7 +43,7 @@ export default function CameraLanguageControls({
   if (shot.locked) {
     return (
       <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-signal">
-        Locked cut — camera language is blocked until unlock.
+        This clip is locked. Unlock it before creating a camera-movement version.
       </p>
     );
   }
@@ -77,13 +77,13 @@ export default function CameraLanguageControls({
       }}
     >
       <p className="font-mono text-[11px] uppercase tracking-widest text-ink-muted">
-        Camera Language
+        Change the camera movement
       </p>
       <p className="text-xs text-ink-muted">
-        Suggestions are model output. Walk-away looker names a move from the picture.
+        Choose the camera movement you want to try.
       </p>
       <fieldset className="grid gap-1">
-        <legend className="text-xs text-ink-muted">Movement</legend>
+        <legend className="text-xs text-ink-muted">Camera movement</legend>
         <div className="flex flex-wrap gap-2">
           {MOVEMENTS.map((item) => (
             <label
@@ -112,10 +112,10 @@ export default function CameraLanguageControls({
         disabled={pending || !sourceUri.startsWith("gs://")}
         className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
       >
-        {pending ? "Proposing…" : "Propose camera move"}
+        {pending ? "Preparing suggestion…" : "Suggest a camera move"}
       </button>
       {proposedId ? (
-        <p className="font-mono text-[11px] text-tungsten">H-0 {proposedId} · proposed</p>
+        <p className="font-mono text-[11px] text-tungsten">Suggestion created: {proposedId}</p>
       ) : null}
       {error ? (
         <p className="text-sm text-danger" role="alert">

@@ -21,14 +21,14 @@ const openShot: ShotRow = {
 };
 
 describe("CameraLanguageControls", () => {
-  it("proposes a vocabulary move through H-0", async () => {
+  it("suggests a camera movement", async () => {
     const propose = vi.fn().mockResolvedValue({
       approval_id: "appr-cam",
       status: "proposed",
     });
     render(<CameraLanguageControls shot={openShot} propose={propose} />);
     fireEvent.click(screen.getByText(/steadicam/i));
-    fireEvent.click(screen.getByRole("button", { name: /propose camera move/i }));
+    fireEvent.click(screen.getByRole("button", { name: /suggest a camera move/i }));
     await waitFor(() =>
       expect(propose).toHaveBeenCalledWith("shot-open", {
         source_uri: "gs://bucket/source.mp4",
@@ -36,5 +36,6 @@ describe("CameraLanguageControls", () => {
         reason: "Genre-aware suggestion: steadicam (model-named)",
       }),
     );
+    expect(await screen.findByText(/Suggestion created: appr-cam/)).toBeInTheDocument();
   });
 });

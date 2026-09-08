@@ -1,7 +1,7 @@
 import type { ApprovalKind, ApprovalStatus } from "@/types/api";
 
-/** Charter Screening Room: Spend Control escalations wear this slate, not a generic badge. */
-export const SPEND_SLATE = "PRODUCTION ACCOUNTING";
+/** Budget-related approval requests use a clear label in the UI. */
+export const SPEND_SLATE = "Budget review";
 
 export function spendSlate(kind: ApprovalKind): string | null {
   return kind === "spend" ? SPEND_SLATE : null;

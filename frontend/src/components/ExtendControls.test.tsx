@@ -96,6 +96,6 @@ describe("ExtendControls", () => {
         reason: "Master after passing draft QC",
       }),
     );
-    expect(await screen.findByText(/H-0 appr-mst/)).toBeInTheDocument();
+    expect(await screen.findByText(/Suggestion created: appr-mst/)).toBeInTheDocument();
   });
 });

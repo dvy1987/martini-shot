@@ -49,7 +49,7 @@ export const SLATE_FRAMES: Record<SlateId, SlateFrame[]> = {
     { caption: "See what happened and when it happened.", term: "Alert" },
     { caption: "Open the logs, metrics, and traces used to investigate the problem.", term: "Evidence chain" },
     { caption: "See the problem, its likely cause, and how serious it is.", term: "Verdict" },
-    { caption: "Review suggested work, its cost, and whether you need to approve it.", term: "Proposed action" },
+    { caption: "Review suggested work, its cost, and whether you need to approve it.", term: "Suggested change" },
   ],
   accounting: [
     {
@@ -62,7 +62,7 @@ export const SLATE_FRAMES: Record<SlateId, SlateFrame[]> = {
     },
     {
       caption: "Each proposed task shows why it was suggested and what it will cost.",
-      term: "PRODUCTION ACCOUNTING",
+      term: "Budget review",
     },
   ],
   dailies: [

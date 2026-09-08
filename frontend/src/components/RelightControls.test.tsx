@@ -45,6 +45,6 @@ describe("RelightControls", () => {
         reason: "Looker-named or operator-picked noir",
       }),
     );
-    expect(await screen.findByText(/H-0 appr-rlt/)).toBeInTheDocument();
+    expect(await screen.findByText(/Suggestion created: appr-rlt/)).toBeInTheDocument();
   });
 });

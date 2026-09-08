@@ -17,12 +17,12 @@ const ALTERNATE_STATUS_META: Record<
   string,
   { label: string; className: string }
 > = {
-  draft: { label: "DRAFT", className: "border-tungsten/60 text-tungsten" },
+  draft: { label: "Draft", className: "border-tungsten/60 text-tungsten" },
   continuity: {
-    label: "In continuity",
+    label: "Current version",
     className: "border-signal/60 text-signal",
   },
-  retired: { label: "Retired", className: "border-line text-ink-muted" },
+  retired: { label: "Archived", className: "border-line text-ink-muted" },
 };
 
 function AlternateStatusChip({ status }: { status: Alternate["status"] }) {
@@ -61,7 +61,7 @@ function AlternateCard({
       setVideoUrl(await fetchMediaUrl(alternate.alternate_id));
     } catch (error) {
       setPlayError(
-        error instanceof Error ? error.message : "Signed media unavailable.",
+        error instanceof Error ? error.message : "The video could not be loaded.",
       );
     } finally {
       setIsLoading(false);
@@ -84,12 +84,12 @@ function AlternateCard({
         ) : null}
         {flicker !== undefined ? (
           <span className="font-mono text-[11px] text-ink-muted">
-            flicker <span className="text-ink">{flicker.toFixed(5)}</span>
+            Flicker score <span className="text-ink">{flicker.toFixed(5)}</span>
           </span>
         ) : null}
         {alternate.tier ? (
           <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
-            {alternate.tier}
+            {alternate.tier === "master" ? "Final" : alternate.tier}
           </span>
         ) : null}
         {alternate.draft_state ? (
@@ -99,7 +99,7 @@ function AlternateCard({
         ) : null}
         {typeof alternate.cost_delta_micros === "number" && alternate.cost_delta_micros > 0 ? (
           <span className="font-mono text-[11px] text-ink-muted">
-            master Δ {(alternate.cost_delta_micros / 1_000_000).toFixed(2)}
+            Extra cost {(alternate.cost_delta_micros / 1_000_000).toFixed(2)}
           </span>
         ) : null}
         {alternate.artifact_ref ? (
@@ -156,8 +156,8 @@ function ShotCard({
         </span>
         <span className="ml-auto font-mono text-[11px] uppercase tracking-wider text-ink-muted">
           {count > 0
-            ? `${count} alternate${count === 1 ? "" : "s"}`
-            : "No alternates yet"}
+            ? `${count} new version${count === 1 ? "" : "s"}`
+            : "No new versions yet"}
         </span>
       </div>
       {count > 0 ? (
@@ -203,7 +203,7 @@ export default function AlternatesLane({
           id="alternates-lane-heading"
           className="font-mono text-xs uppercase tracking-widest text-ink-muted"
         >
-          Alternates lane
+          New versions
         </h2>
         <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
           {shots.length} shot{shots.length === 1 ? "" : "s"}

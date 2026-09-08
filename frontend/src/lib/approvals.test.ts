@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { canDecide, spendSlate, SPEND_SLATE } from "@/lib/approvals";
 
 describe("approval presentation", () => {
-  it("labels only spend-kind cards with the accounting slate", () => {
+  it("labels only spend-kind cards as budget review", () => {
     expect(spendSlate("spend")).toBe(SPEND_SLATE);
     expect(spendSlate("fix")).toBeNull();
   });

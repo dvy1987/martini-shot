@@ -72,7 +72,7 @@ export default function RevisionRoom({
     try {
       const result = await regenerate(projectId, last.version_id, {
         spans: last.affected,
-        reason: "Revision Room: regenerate affected spans",
+        reason: "Update the script: regenerate affected spans",
       });
       setProposedId(result.approval_id);
     } catch (caught) {
@@ -95,14 +95,13 @@ export default function RevisionRoom({
         id="revision-room-heading"
         className="font-mono text-xs uppercase tracking-widest text-ink-muted"
       >
-        Revision Room
+        Update the script
       </h2>
       <p className="mt-2 text-sm text-ink-muted">
-        Change the words. Gemini maps them to shots from ingest. Affected spans
-        regenerate as alternates.
+        Edit the script below. Martini Shot will identify the affected clips and suggest updated versions for your review.
       </p>
       <label className="mt-3 grid gap-1 text-xs text-ink-muted">
-        Script
+        Script text
         <textarea
           value={text}
           onChange={(event) => setText(event.target.value)}
@@ -126,7 +125,7 @@ export default function RevisionRoom({
             onClick={() => void regenerateAffected()}
             className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
           >
-            Propose regenerate
+            Suggest updated clips
           </button>
         ) : null}
       </div>
@@ -135,11 +134,11 @@ export default function RevisionRoom({
       ) : null}
       {affectedShots.length > 0 ? (
         <p className="mt-2 font-mono text-[11px] text-tungsten">
-          Affected shots: {affectedShots.join(", ")}
+          Affected clips: {affectedShots.join(", ")}
         </p>
       ) : null}
       {proposedId ? (
-        <p className="mt-2 font-mono text-[11px] text-tungsten">H-0 {proposedId} · proposed</p>
+        <p className="mt-2 font-mono text-[11px] text-tungsten">Suggestion created: {proposedId}</p>
       ) : null}
       {error ? (
         <p className="mt-2 text-sm text-danger" role="alert">

@@ -39,7 +39,7 @@ export default function RelightControls({
   if (shot.locked) {
     return (
       <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-signal">
-        Locked cut — relight is blocked until unlock.
+        This clip is locked. Unlock it before creating a relit version.
       </p>
     );
   }
@@ -71,13 +71,13 @@ export default function RelightControls({
       }}
     >
       <p className="font-mono text-[11px] uppercase tracking-widest text-ink-muted">
-        Relight Studio
+        Improve the lighting
       </p>
       <p className="text-xs text-ink-muted">
-        Walk-away looker names a preset from the picture. Here you can pick one.
+        Choose the lighting style you want to try.
       </p>
       <fieldset className="grid gap-1">
-        <legend className="text-xs text-ink-muted">Preset</legend>
+        <legend className="text-xs text-ink-muted">Lighting style</legend>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((item) => (
             <label
@@ -102,7 +102,7 @@ export default function RelightControls({
         </div>
       </fieldset>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Source URI
+        Video file
         <input
           value={sourceUri}
           onChange={(event) => setSourceUri(event.target.value)}
@@ -115,10 +115,10 @@ export default function RelightControls({
         disabled={pending || !sourceUri.startsWith("gs://")}
         className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
       >
-        {pending ? "Proposing…" : "Propose relight"}
+        {pending ? "Preparing suggestion…" : "Suggest a lighting change"}
       </button>
       {proposedId ? (
-        <p className="font-mono text-[11px] text-tungsten">H-0 {proposedId} · proposed</p>
+        <p className="font-mono text-[11px] text-tungsten">Suggestion created: {proposedId}</p>
       ) : null}
       {error ? (
         <p className="text-sm text-danger" role="alert">

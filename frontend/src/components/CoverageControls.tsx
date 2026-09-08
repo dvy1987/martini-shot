@@ -41,7 +41,7 @@ export default function CoverageControls({
   if (shot.locked) {
     return (
       <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-signal">
-        Locked cut — coverage is blocked until unlock.
+        This clip is locked. Unlock it before creating an alternate angle.
       </p>
     );
   }
@@ -75,13 +75,13 @@ export default function CoverageControls({
       }}
     >
       <p className="font-mono text-[11px] uppercase tracking-widest text-ink-muted">
-        Coverage
+        Create another angle
       </p>
       <p className="text-xs text-ink-muted">
-        This clip is the subject reference. No extra stills required.
+        Create another view of the same moment. Martini Shot will use this clip to keep the people and setting consistent.
       </p>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Angle
+        Camera angle
         <select
           value={angle}
           onChange={(event) => setAngle(event.target.value)}
@@ -95,7 +95,7 @@ export default function CoverageControls({
         </select>
       </label>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Intent
+        What should the new view show?
         <input
           value={intent}
           onChange={(event) => setIntent(event.target.value)}
@@ -108,10 +108,10 @@ export default function CoverageControls({
         disabled={pending || !intent.trim() || !sourceUri.startsWith("gs://")}
         className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
       >
-        {pending ? "Proposing…" : "Propose coverage"}
+        {pending ? "Preparing suggestion…" : "Suggest another angle"}
       </button>
       {proposedId ? (
-        <p className="font-mono text-[11px] text-tungsten">H-0 {proposedId} · proposed</p>
+        <p className="font-mono text-[11px] text-tungsten">Suggestion created: {proposedId}</p>
       ) : null}
       {error ? (
         <p className="text-sm text-danger" role="alert">

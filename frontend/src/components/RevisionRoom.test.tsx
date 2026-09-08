@@ -54,8 +54,8 @@ describe("RevisionRoom", () => {
       }),
     );
     expect(await screen.findByText(/Line changed on the table shot/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /propose regenerate/i }));
+    fireEvent.click(screen.getByRole("button", { name: /suggest updated clips/i }));
     await waitFor(() => expect(regenerate).toHaveBeenCalled());
-    expect(await screen.findByText(/H-0 appr-rev/)).toBeInTheDocument();
+    expect(await screen.findByText(/Suggestion created: appr-rev/)).toBeInTheDocument();
   });
 });

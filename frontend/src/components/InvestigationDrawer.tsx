@@ -65,7 +65,7 @@ function DrawerBody({
   if (error) {
     return (
       <div className="rounded-md border border-line bg-surface-2 p-4">
-        <p className="text-lg text-ink">Case file unavailable.</p>
+        <p className="text-lg text-ink">Job details unavailable.</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">{error.message}</p>
         <p className="mt-3 font-mono text-xs uppercase tracking-wider text-ink-muted">
           {error.code}
@@ -76,7 +76,7 @@ function DrawerBody({
             onClick={onRetry}
             className="mt-4 rounded-sm border border-line bg-surface-1 px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink transition-colors ease-chrome hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
           >
-            Retry case file
+            Try again
           </button>
         ) : null}
       </div>
@@ -86,9 +86,9 @@ function DrawerBody({
   if (!job) {
     return (
       <div className="rounded-md border border-line bg-surface-2 p-4">
-        <p className="text-lg text-ink">No job record returned.</p>
+        <p className="text-lg text-ink">No job details available.</p>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-          The API did not return an observable case file for this selection.
+          The service did not return details for this item.
         </p>
       </div>
     );
@@ -114,7 +114,7 @@ function DrawerBody({
 
       <section aria-label="Job accounting" className="grid grid-cols-2 gap-2">
         <div className="rounded-md border border-line bg-surface-2 p-3">
-          <SectionLabel>Attempts</SectionLabel>
+          <SectionLabel>Number of tries</SectionLabel>
           <p className="mt-2 font-mono text-lg text-ink">{job.attempts}</p>
         </div>
         <div className="rounded-md border border-line bg-surface-2 p-3">
@@ -126,7 +126,7 @@ function DrawerBody({
       </section>
 
       <section aria-labelledby="case-file-error">
-        <SectionLabel>Error report</SectionLabel>
+        <SectionLabel>What went wrong</SectionLabel>
         <div className="mt-2 rounded-md border border-line bg-surface-2 p-4">
           {job.error ? (
             <>
@@ -143,14 +143,14 @@ function DrawerBody({
 
       <section aria-labelledby="case-file-inputs">
         <div className="flex items-baseline justify-between gap-4">
-          <SectionLabel>Input refs</SectionLabel>
+          <SectionLabel>Source files</SectionLabel>
           <span className="font-mono text-xs text-ink-muted">
             {inputRefCount > 0 ? `${inputRefCount} reported` : "none reported"}
           </span>
         </div>
         <div className="mt-2 rounded-md border border-line bg-surface-2 p-4">
           <p id="case-file-inputs" className="text-sm text-ink-muted">
-            These are the source references reported by the job API.
+            These are the files used by this job.
           </p>
         </div>
       </section>
@@ -170,7 +170,7 @@ function DrawerBody({
         </button>
         {showEvidence ? (
           <div id="case-file-evidence" className="mt-3 space-y-2">
-            <p className="text-sm text-ink-muted">API-reported input references</p>
+            <p className="text-sm text-ink-muted">Files used by this job</p>
             {job.input_refs.length > 0 ? (
               job.input_refs.map((inputRef) => (
                 <span
@@ -200,7 +200,7 @@ function DrawerBody({
         </button>
         {showTranscript ? (
           <div id="case-file-transcript" className="mt-3">
-            <p className="mb-2 text-sm text-ink-muted">Raw API job record</p>
+            <p className="mb-2 text-sm text-ink-muted">Technical details</p>
             <pre className="max-h-72 overflow-auto rounded-md border border-line bg-surface-2 p-3 font-mono text-xs leading-relaxed text-ink">
               {JSON.stringify(job, null, 2)}
             </pre>
