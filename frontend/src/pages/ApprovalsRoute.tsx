@@ -139,6 +139,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
   }
 
   const items = query.data ?? [];
+  const actionable = items.filter((item) => canDecide(item.status));
+  const history = items.filter((item) => !canDecide(item.status));
 
   if (items.length === 0) {
     return (
@@ -160,12 +162,25 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       className="mx-auto max-w-3xl space-y-4 px-6 py-8"
     >
       <header>
-        <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">Queue</p>
-        <h1 className="mt-1 text-2xl text-ink">Screening Room</h1>
+          <p className={`font-mono text-xs uppercase tracking-widest ${actionable.length > 0 ? "text-tungsten" : "text-ink-muted"}`}>{actionable.length > 0 ? "Needs you" : "Screening room"}</p>
+          <h1 className="mt-1 text-2xl text-ink">Screening Room</h1>
+          <p className="mt-2 max-w-xl text-sm text-ink-muted">{actionable.length > 0 ? "Review the evidence, then approve or reject only the work that cannot move without you." : "Nothing is waiting for a decision. Past cards remain available below for reference."}</p>
       </header>
-      {items.map((item) => (
+      {actionable.map((item) => (
         <ApprovalCard key={item.approval_id} item={item} />
       ))}
+      {history.length > 0 ? (
+        <details className="border border-line bg-surface-1 p-4">
+          <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">
+            Past decisions · {history.length}
+          </summary>
+          <div className="mt-4 space-y-4">
+            {history.map((item) => (
+              <ApprovalCard key={item.approval_id} item={item} />
+            ))}
+          </div>
+        </details>
+      ) : null}
     </motion.div>
   );
 }

@@ -197,6 +197,7 @@ export interface Worklist {
   budget_micros: number;
   spent_micros: number;
   status: string;
+  phase?: string;
   attendance: InspectNote[];
   items: WorklistItem[];
   final_refs: string[];

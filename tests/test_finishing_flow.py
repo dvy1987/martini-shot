@@ -74,6 +74,38 @@ def test_originals_follow_ingest_created_at_not_firestore_shuffle() -> None:
     ]
 
 
+def test_originals_can_be_bound_to_an_explicit_ingest_batch_order() -> None:
+    store = _Store(
+        [
+            {
+                "id": "old",
+                "station": "ingest",
+                "status": "passed",
+                "created_at": "2026-09-07T11:00:00.000Z",
+                "input_refs": ["gs://b/old.mp4"],
+            },
+            {
+                "id": "job-b",
+                "station": "ingest",
+                "status": "passed",
+                "created_at": "2026-09-07T12:00:00.000Z",
+                "input_refs": ["gs://b/b.mp4"],
+            },
+            {
+                "id": "job-a",
+                "station": "ingest",
+                "status": "passed",
+                "created_at": "2026-09-07T12:00:01.000Z",
+                "input_refs": ["gs://b/a.mp4"],
+            },
+        ]
+    )
+    assert collect_original_refs(store, "p", ["job-a", "job-b"]) == [
+        "gs://b/a.mp4",
+        "gs://b/b.mp4",
+    ]
+
+
 def test_mandatory_cleanup_is_loudness_then_pickups_per_shot_in_upload_order() -> None:
     items = mandatory_cleanup_items(
         shots=[

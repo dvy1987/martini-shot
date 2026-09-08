@@ -230,13 +230,17 @@ def jobs_from_notes(
     return jobs
 
 
-def collect_original_refs(store: Any, project_id: str) -> list[str]:
+def collect_original_refs(
+    store: Any, project_id: str, ingest_job_ids: list[str] | None = None
+) -> list[str]:
     refs: list[str] = []
     seen: set[str] = set()
     try:
         rows = store.list_where("pc-jobs", "project_id", project_id)
-    except Exception:
+    except Exception as exc:
         log.exception("collect_original_refs failed project=%s", project_id)
+        if ingest_job_ids:
+            raise RuntimeError("could not validate the requested ingest batch") from exc
         return refs
     ingest = [
         row
@@ -244,7 +248,20 @@ def collect_original_refs(store: Any, project_id: str) -> list[str]:
         if str(row.get("station") or "") == "ingest"
         and str(row.get("status") or "") == "passed"
     ]
-    ingest.sort(key=lambda row: str(row.get("created_at") or ""))
+    if ingest_job_ids:
+        if len(set(ingest_job_ids)) != len(ingest_job_ids):
+            raise ValueError("ingest_job_ids must be unique")
+        by_id = {
+            str(row.get("id") or row.get("job_id") or ""): row for row in ingest
+        }
+        missing = [job_id for job_id in ingest_job_ids if job_id not in by_id]
+        if missing:
+            raise ValueError("every ingest_job_id must identify a passed ingest job")
+        ingest = [by_id[job_id] for job_id in ingest_job_ids]
+        if any(len(list(row.get("input_refs") or [])) != 1 for row in ingest):
+            raise ValueError("every ingest job must resolve to exactly one original")
+    else:
+        ingest.sort(key=lambda row: str(row.get("created_at") or ""))
     for row in ingest:
         for ref in list(row.get("input_refs") or []):
             if ref and ref not in seen:

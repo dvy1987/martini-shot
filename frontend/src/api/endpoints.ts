@@ -240,10 +240,17 @@ export function updateSettings(settings: Settings): Promise<Settings> {
 export function startFinish(
   projectId: string,
   budgetMicros = 50_000_000,
+  ingestJobIds?: string[],
 ): Promise<Worklist> {
   return apiFetch<Worklist>(
     `/api/v1/projects/${encodeURIComponent(projectId)}/finish`,
-    { method: "POST", body: JSON.stringify({ budget_micros: budgetMicros }) },
+    {
+      method: "POST",
+      body: JSON.stringify({
+        budget_micros: budgetMicros,
+        ingest_job_ids: ingestJobIds,
+      }),
+    },
   );
 }
 

@@ -223,6 +223,8 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
                             budget_micros=int(
                                 waiting.get("budget_micros") or 50_000_000
                             ),
+                            ingest_job_ids=list(waiting.get("ingest_job_ids") or [])
+                            or None,
                         )
                     except Exception:
                         import logging as _logging

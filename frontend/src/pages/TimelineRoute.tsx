@@ -15,6 +15,8 @@ import TimelineBoard from "@/components/TimelineBoard";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
 import { toggleStatus } from "@/lib/lens";
+import { deriveJourney } from "@/lib/journey";
+import { cost } from "@/lib/formatters";
 import type { Job, JobStatus } from "@/types/api";
 
 const EMPTY_JOBS: Job[] = [];
@@ -93,6 +95,7 @@ export default function TimelineRoute({
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [inspectedJobId, setInspectedJobId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<Set<JobStatus>>(() => new Set());
+  const [worklistMutationError, setWorklistMutationError] = useState<string | null>(null);
   const jobTriggerRef = useRef<HTMLElement | null>(null);
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: listProjects });
   const projectQuery = useQuery({
@@ -122,7 +125,13 @@ export default function TimelineRoute({
     retry: false,
   });
   const worklistStatus = worklistQuery.data?.status ?? "";
-  const pulseLive =
+  const worklistHasActiveItems = Boolean(
+    worklistQuery.data?.items.some((item) =>
+      ["queued", "leased", "running"].includes(item.status),
+    ),
+  );
+  const turnoverActive =
+    worklistHasActiveItems ||
     worklistStatus === "running" ||
     worklistStatus === "waiting_for_ingest" ||
     worklistStatus === "inspecting";
@@ -131,7 +140,7 @@ export default function TimelineRoute({
     queryFn: () => getRunPulse(selectedProjectId ?? ""),
     enabled: selectedProjectId !== null,
     retry: false,
-    refetchInterval: pulseLive ? 15_000 : false,
+    refetchInterval: turnoverActive ? 15_000 : false,
   });
 
   const handleJobSelection = useCallback(
@@ -176,6 +185,10 @@ export default function TimelineRoute({
   }, [lensOpen]);
 
   const jobs = projectQuery.data?.jobs ?? EMPTY_JOBS;
+  const journey = deriveJourney(jobs, worklistQuery.data ?? null);
+  // The evidence surfaces remain available immediately when real activity exists;
+  // the guided brief and live plan above them still own the first reading order.
+  const [expertOpen, setExpertOpen] = useState(true);
 
   useEffect(() => {
     if (!pendingJobId || !projectQuery.isSuccess) return;
@@ -271,16 +284,91 @@ export default function TimelineRoute({
 
       {selectedProjectId ? (
         <FinishBar
+          key={selectedProjectId}
           projectId={selectedProjectId}
           onFinished={() => {
             void projectQuery.refetch();
             void worklistQuery.refetch();
             void pulseQuery.refetch();
           }}
+          compact={Boolean(worklistQuery.data)}
+          active={turnoverActive}
         />
       ) : null}
 
+      {selectedProjectId && worklistQuery.data ? (
+        <section className="mb-6 border border-line bg-surface-1" aria-labelledby="plan-heading">
+          <header className="border-b border-line px-5 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">03 / plan on record</p>
+                <h2 id="plan-heading" className="mt-1 text-lg text-ink">What the stations proposed</h2>
+              </div>
+              <p className="font-mono text-xs tabular-nums text-ink-muted">{cost(worklistQuery.data.spent_micros)} spent / {cost(worklistQuery.data.budget_micros)} envelope</p>
+            </div>
+            {worklistQuery.data.rank_reason ? <p className="mt-3 max-w-3xl border-l-2 border-agent px-3 text-sm text-ink">{worklistQuery.data.rank_reason}</p> : null}
+          </header>
+          <div className="grid gap-0 lg:grid-cols-2">
+            <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
+              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Attendance</h3>
+              {worklistQuery.data.attendance.length === 0 ? <p className="mt-3 text-sm text-ink-muted">No station notes recorded yet.</p> : <ul className="mt-3 space-y-3">{worklistQuery.data.attendance.slice(0, 5).map((row, index) => <li key={`${row.station}-${row.shot_id ?? "project"}-${index}`}><div className="flex items-baseline justify-between gap-3"><span className="font-mono text-xs uppercase text-ink">{row.station.replaceAll("_", " ")}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{row.status}</span></div>{row.status !== "empty" ? <p className="mt-1 text-sm text-ink-muted">{row.summary}{row.impact !== "none" ? ` · ${row.impact} impact` : ""}</p> : null}</li>)}</ul>}
+            </div>
+            <div className="p-5">
+              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Orchestrator order</h3>
+              {worklistQuery.data.items.length === 0 ? <p className="mt-3 text-sm text-ink-muted">The plan is not ranked yet.</p> : <ol className="mt-3 space-y-2">{worklistQuery.data.items.slice(0, 6).map((item, index) => <li key={item.id} className="border-b border-line pb-2 last:border-0"><div className="flex gap-3"><span className="font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><span className="font-mono text-xs uppercase text-ink">{item.station.replaceAll("_", " ")}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{item.status}</span></div>{item.summary ? <p className="mt-1 text-sm text-ink-muted">{item.summary}</p> : null}{item.blocked_by?.length ? <p className="mt-1 font-mono text-[10px] uppercase text-tungsten">waits on {item.blocked_by.map((id) => id.split("::")[0]).join(", ")}</p> : null}</div></div></li>)}</ol>}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {selectedProjectId ? (
+        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-live="polite">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">02 / live station log</p>
+              <h2 className="mt-1 text-xl text-ink">{journey.label}</h2>
+              <p className="mt-1 max-w-2xl text-sm text-ink-muted">{journey.detail}</p>
+            </div>
+            <div className="text-right font-mono text-xs text-ink-muted">
+              <p className="uppercase tracking-wider">{journey.phase}</p>
+              {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} recorded</p> : null}
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {([
+              ["ingesting", "Clip check"],
+              ["mixing", "Mix"],
+              ["repairing", "Pickups"],
+              ["consulting", "Station looks"],
+              ["planning", "Orchestrator"],
+              ["executing", "House run"],
+            ] as const).map(([phase, label]) => {
+              const phaseOrder = ["ingesting", "mixing", "repairing", "consulting", "planning", "executing"];
+              const currentIndex = journey.phase === "complete" ? phaseOrder.length : phaseOrder.indexOf(journey.phase);
+              const phaseIndex = phaseOrder.indexOf(phase);
+              const active = journey.phase === phase;
+              const complete = currentIndex > phaseIndex;
+              return (
+              <div key={phase} className={`border-t-2 pt-2 font-mono text-[10px] uppercase tracking-wider ${active ? "border-tungsten text-ink" : complete ? "border-signal text-ink-muted" : "border-line text-ink-muted"}`}>
+                {label}
+              </div>
+              );
+            })}
+          </div>
+          {worklistQuery.isError ? (
+            <div className="mt-4 border-l-2 border-danger pl-3 text-sm text-danger">
+              The station plan could not be loaded.
+              <button type="button" onClick={() => void worklistQuery.refetch()} className="ml-2 font-mono text-[10px] uppercase underline underline-offset-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">Retry</button>
+            </div>
+          ) : null}
+          {worklistMutationError ? <p className="mt-3 border-l-2 border-danger pl-3 text-sm text-danger">{worklistMutationError}</p> : null}
+          <button type="button" onClick={() => setExpertOpen((open) => !open)} className="mt-4 border-b border-line pb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">
+            {expertOpen ? "Hide station detail" : "Inspect station detail"}
+          </button>
+        </section>
+      ) : null}
+
+      {selectedProjectId && expertOpen ? (
         <RunPulseStrip
           pulse={pulseQuery.data ?? null}
           isLoading={pulseQuery.isPending}
@@ -332,7 +420,7 @@ export default function TimelineRoute({
         />
       ) : null}
 
-      {projectQuery.isSuccess && jobs.length > 0 ? (
+      {projectQuery.isSuccess && jobs.length > 0 && expertOpen ? (
         <TimelineBoard
           jobs={jobs}
           selectedJobId={selectedJobId}
@@ -349,19 +437,26 @@ export default function TimelineRoute({
         </p>
       ) : null}
 
-      {projectQuery.isSuccess && selectedProjectId ? (
+      {projectQuery.isSuccess && selectedProjectId && expertOpen ? (
         <AlternatesLane shots={shotsQuery.data ?? []} />
       ) : null}
 
-      {selectedProjectId ? <RevisionRoom projectId={selectedProjectId} /> : null}
+      {selectedProjectId && expertOpen ? <RevisionRoom projectId={selectedProjectId} /> : null}
 
-      {selectedProjectId ? (
+      {selectedProjectId && expertOpen ? (
         <WorklistPanel
           worklist={worklistQuery.data ?? null}
           onReorder={(order) => {
-            void patchWorklist(selectedProjectId, order).then(() => {
-              void worklistQuery.refetch();
-            });
+            setWorklistMutationError(null);
+            void patchWorklist(selectedProjectId, order)
+              .then(() => {
+                void worklistQuery.refetch();
+              })
+              .catch((error: unknown) => {
+                setWorklistMutationError(
+                  error instanceof Error ? error.message : "The worklist order could not be saved.",
+                );
+              });
           }}
         />
       ) : null}

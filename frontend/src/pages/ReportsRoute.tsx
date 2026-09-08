@@ -115,6 +115,14 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
 
   const report = query.isError ? null : (query.data ?? null);
   const verdicts = report?.verdicts ?? [];
+  const completedVerdicts = new Set(["pass", "passed", "healthy", "locked", "completed", "executed"]);
+  const failedVerdicts = new Set(["fail", "failed", "failing"]);
+  const completed = verdicts.filter((item) => completedVerdicts.has(item.verdict)).length;
+  const failed = verdicts.filter((item) => failedVerdicts.has(item.verdict)).length;
+  const totalCost = verdicts.reduce((sum, item) => sum + (item.cost_micros ?? 0), 0);
+  const happened = verdicts.filter((item) => completedVerdicts.has(item.verdict));
+  const needsAttention = verdicts.filter((item) => !completedVerdicts.has(item.verdict));
+  const attention = needsAttention.filter((item) => !failedVerdicts.has(item.verdict)).length;
 
   if (!report || verdicts.length === 0) {
     return (
@@ -138,9 +146,22 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
           Generated {relativeTime(report.generated_at)}
         </p>
       </header>
-      {verdicts.map((verdict, index) => (
-        <VerdictRow key={`${verdict.station}-${index}`} verdict={verdict} />
-      ))}
+      <section className="grid grid-cols-2 border border-line bg-surface-1 sm:grid-cols-4" aria-label="Morning report totals">
+        {[
+          ["Completed", completed, "text-signal"],
+          ["Failed", failed, failed ? "text-danger" : "text-ink-muted"],
+          ["Attention", attention, attention ? "text-tungsten" : "text-ink-muted"],
+          ["Cost", cost(totalCost), "text-ink"],
+        ].map(([label, value, tone]) => <div key={String(label)} className="border-b border-line px-4 py-3 last:border-0 sm:border-b-0 sm:border-r"><p className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">{label}</p><p className={`mt-1 font-mono text-lg tabular-nums ${tone}`}>{value}</p></div>)}
+      </section>
+      <section className="border border-line bg-surface-1 p-4">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-ink">What happened</h2>
+        {happened.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No completed station verdicts were recorded.</p> : <div className="mt-3 space-y-3">{happened.map((verdict, index) => <VerdictRow key={`done-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
+      </section>
+      <section className="border border-line bg-surface-1 p-4">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-tungsten">Needs attention</h2>
+        {needsAttention.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No attention items were recorded in this report.</p> : <div className="mt-3 space-y-3">{needsAttention.map((verdict, index) => <VerdictRow key={`attention-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
+      </section>
     </section>
   );
 }

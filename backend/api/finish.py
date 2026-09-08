@@ -85,6 +85,7 @@ def clip_context_after_ingest(
 
 class FinishIn(BaseModel):
     budget_micros: int = Field(default=DEFAULT_BUDGET_MICROS, gt=0)
+    ingest_job_ids: list[str] | None = Field(default=None, min_length=1)
 
 
 class WorklistPatchIn(BaseModel):
@@ -141,8 +142,14 @@ def _finish_once(
     hub: EventHub,
     project_id: str,
     budget_micros: int,
+    ingest_job_ids: list[str] | None = None,
+    original_refs: list[str] | None = None,
 ) -> dict[str, Any]:
-    originals = collect_original_refs(store, project_id)
+    originals = (
+        list(original_refs)
+        if original_refs is not None
+        else collect_original_refs(store, project_id, ingest_job_ids)
+    )
     doc = worklist_doc(
         project_id=project_id,
         budget_micros=budget_micros,
@@ -203,6 +210,8 @@ def _finish_once(
     doc["proposals_started"] = False
     doc["phase"] = "cleanup"
     doc["orchestrator_spine"] = list(doc.get("orchestrator_spine") or [])
+    if ingest_job_ids:
+        doc["ingest_job_ids"] = list(ingest_job_ids)
     doc = dispatch_next(doc, queue=queue, project_id=project_id)
     refresh_final_refs(doc, store)
     save_worklist(store, project_id, doc)
@@ -231,7 +240,10 @@ def run_proposal_phase(
     if doc.get("proposals_started"):
         return doc
     doc["proposals_started"] = True
-    doc["phase"] = "propose"
+    doc["phase"] = "consulting"
+    doc["status"] = "inspecting"
+    save_worklist(store, str(doc.get("project_id") or ""), doc)
+    _publish(hub, str(doc.get("project_id") or ""), doc)
     project_id = str(doc.get("project_id") or "")
     budget_micros = int(doc.get("budget_micros") or 0)
     remaining = budget_micros - int(doc.get("spent_micros") or 0)
@@ -326,6 +338,11 @@ def run_proposal_phase(
     except Exception:
         log.exception("spend pricing failed; station defaults remain advice only")
 
+    doc["attendance"] = [n.to_doc() for n in all_notes]
+    doc["phase"] = "planning"
+    save_worklist(store, project_id, doc)
+    _publish(hub, project_id, doc)
+
     spine = list(doc.get("orchestrator_spine") or [])
     try:
         from backend.supervisor.adk_finishing import run_orchestrator_rank_sync
@@ -368,6 +385,7 @@ def run_proposal_phase(
     doc["attendance"] = [n.to_doc() for n in all_notes]
     doc["ranked"] = list(proposed)
     doc["rank_reason"] = plan.reason
+    doc["phase"] = "executing"
     doc = dispatch_next(doc, queue=queue, project_id=project_id)
     refresh_final_refs(doc, store)
     save_worklist(store, project_id, doc)
@@ -386,20 +404,41 @@ def install_finish_routes(
     @app.post("/api/v1/projects/{project_id}/finish")
     def start_finish(project_id: str, body: FinishIn | None = None) -> dict[str, Any]:
         budget = body.budget_micros if body is not None else DEFAULT_BUDGET_MICROS
+        ingest_job_ids = body.ingest_job_ids if body is not None else None
         existing = load_worklist(store, project_id)
-        if existing and str(existing.get("status") or "") in {
-            "inspecting",
-            "running",
-            "waiting_for_ingest",
-        }:
+        existing_active = bool(
+            existing
+            and (
+                str(existing.get("status") or "")
+                in {"inspecting", "running", "waiting_for_ingest"}
+                or any(
+                    str(item.get("status") or "") in {"queued", "leased", "running"}
+                    for item in list(existing.get("items") or [])
+                )
+            )
+        )
+        if existing and existing_active:
+            if ingest_job_ids:
+                raise HTTPException(
+                    status_code=409,
+                    detail="a finishing turnover is already active for this project",
+                )
             return existing
+        try:
+            originals = collect_original_refs(store, project_id, ingest_job_ids)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         seed = worklist_doc(
             project_id=project_id,
             budget_micros=budget,
-            original_refs=collect_original_refs(store, project_id),
+            original_refs=originals,
             attendance=[n.to_doc() for n in attendance_rows([])],
             status="inspecting",
         )
+        if ingest_job_ids:
+            seed["ingest_job_ids"] = list(ingest_job_ids)
         save_worklist(store, project_id, seed)
         _publish(hub, project_id, seed)
 
@@ -413,6 +452,8 @@ def install_finish_routes(
                     hub=hub,
                     project_id=project_id,
                     budget_micros=budget,
+                    ingest_job_ids=ingest_job_ids,
+                    original_refs=originals,
                 )
             except Exception:
                 log.exception("finishing loop failed project=%s", project_id)
@@ -429,6 +470,8 @@ def install_finish_routes(
                 hub=hub,
                 project_id=project_id,
                 budget_micros=budget,
+                ingest_job_ids=ingest_job_ids,
+                original_refs=originals,
             )
         return seed
 
