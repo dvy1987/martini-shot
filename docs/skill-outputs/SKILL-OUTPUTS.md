@@ -93,6 +93,7 @@
 | 2026-09-08 22:15 | test-driven-development | tests/test_projects.py frontend/src/pages/TimelineRoute.test.tsx | TDD: open an empty show (existing picker + Start a new show) |
 | 2026-09-09 04:55 | debug-and-fix | frontend/src/components/FinishBar.test.tsx | Prove-it: choose-files stages mp4s with blank mime; visible list + Add clips |
 | 2026-09-09 05:05 | test-driven-development | frontend/src/lib/clipOrdering.test.ts frontend/src/components/FinishBar.test.tsx | TDD: accept clips on choose; drag reorder after upload |
-| 2026-09-09 05:10 | memory-handoff | agent-handoffs.md#2026-09-09-05:10 | New show + accept-on-choose; live lab wipe; deploy still needed |
+| 2026-09-09 05:15 | memory-handoff | agent-handoffs.md#2026-09-09-05:15 + current-state.md | Grafana watch on Analytics tab; owner commit+push |
+| 2026-09-09 05:15 | git-workflow-and-versioning | main | feat: Analytics tab + empty show + clip reorder |
 
 

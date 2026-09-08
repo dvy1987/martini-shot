@@ -1,5 +1,35 @@
 # Agent Handoffs
 
+## 2026-09-09 05:15 - Grafana watch lives on Analytics; commit+push
+
+### Done
+- Primary nav has **Analytics** (`/analytics`). Grafana watch (factory/burn/ETA/wheel + Cloud dashboard links) is on that page only.
+- Timeline no longer fetches or renders Run Pulse. Jumping a wheel job from Analytics returns to Timeline via `pendingJobId`.
+- Same dirty tree as 05:10: empty-show `POST /api/v1/projects`, FinishBar accept-on-choose + drag reorder, pulse `dashboards[]`.
+
+### Debated
+- Owner: Grafana was buried on Timeline / technical details. Ruling: dedicated Analytics tab, not a Timeline strip.
+
+### Decisions
+- Browser never calls Grafana. Pulse stays `GET /api/v1/projects/{id}/run-pulse`. Links open Grafana Cloud.
+
+### Deferred
+- Cloud Run + Replit frontend still unpublished for these routes (live `POST /projects` 405). Ask before deploy.
+- `make check` coverage still below 90%.
+
+### Next Agent Should Know
+- Demo Grafana: pick a show on Timeline, then **Analytics**. Do not look for Grafana watch on Timeline.
+- Do not run `scripts/provision_grafana.py --yes` unless the owner says yes.
+
+### Revisit Triggers
+- Owner cannot find Grafana or create a show on the published app.
+
+### Working Tree
+- Analytics + new show already on `origin/main` (`f066ea7`). Remaining: show→project / Upload media copy + this handoff.
+
+### Graph
+- Incremental graph build skipped (known hang).
+
 ## 2026-09-09 05:10 - New show + accept-on-choose + drag reorder
 
 ### Done

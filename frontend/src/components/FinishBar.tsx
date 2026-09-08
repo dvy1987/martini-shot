@@ -215,7 +215,7 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
       {showPrep ? <div className="grid gap-6 px-5 py-5 lg:grid-cols-[1fr_18rem]">
         <div>
           <div className="grid gap-2">
-            <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">Choose files</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">Upload media</p>
             <input
               id="turnover-clips"
               ref={fileInputRef}
@@ -223,7 +223,7 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
               accept=".mp4,.mov,.m4v,.webm,.wav,.mp3,.m4a,video/mp4,video/quicktime,video/*,audio/*"
               multiple
               disabled={pending || started}
-              aria-label="Choose files"
+              aria-label="Upload media"
               onChange={(event) => onFiles(event.target.files)}
               className="sr-only"
             />
@@ -233,14 +233,14 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
               onClick={() => fileInputRef.current?.click()}
               className="w-fit rounded-sm border border-line bg-surface-2 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-ink transition-colors ease-chrome hover:border-ink-muted disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
             >
-              Choose files
+              Upload media
             </button>
             <p className="text-xs leading-relaxed text-ink-muted">
               Choose one or more clips. They are accepted immediately, in that order. Drag a clip up or down if you need a different sequence.
             </p>
           </div>
           <ol className="mt-4 space-y-2" aria-label="Ordered clips">
-            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips added yet. Choose files to accept them in order.</li> : staged.map((file, index) => (
+            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips added yet. Upload media to accept them in order.</li> : staged.map((file, index) => (
               <li
                 key={`${file.name}-${index}`}
                 draggable={!pending && !started}

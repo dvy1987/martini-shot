@@ -52,7 +52,7 @@ describe("FinishBar", () => {
       original_refs: [],
     });
     render(<FinishBar projectId="p1" />);
-    fireEvent.change(screen.getByLabelText(/choose files/i), {
+    fireEvent.change(screen.getByLabelText(/upload media/i), {
       target: { files: [first, second] },
     });
     await waitFor(() => expect(ingestClip).toHaveBeenNthCalledWith(1, "p1", first));
@@ -83,7 +83,7 @@ describe("FinishBar", () => {
       original_refs: [],
     });
     render(<FinishBar projectId="p1" />);
-    fireEvent.change(screen.getByLabelText(/choose files/i), {
+    fireEvent.change(screen.getByLabelText(/upload media/i), {
       target: { files: [first, second] },
     });
     await waitFor(() => expect(screen.getByText("a.mp4")).toBeInTheDocument());
@@ -99,7 +99,7 @@ describe("FinishBar", () => {
     vi.mocked(ingestClip).mockResolvedValue(job("job-1", "take-01.mp4"));
     vi.mocked(getJob).mockResolvedValue(passed("job-1", "take-01.mp4"));
     render(<FinishBar projectId="p1" />);
-    fireEvent.change(screen.getByLabelText(/choose files/i), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText(/upload media/i), { target: { files: [file] } });
     expect(screen.getByText("take-01.mp4")).toBeInTheDocument();
     await waitFor(() => expect(ingestClip).toHaveBeenCalledWith("p1", file));
   });

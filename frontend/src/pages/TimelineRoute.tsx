@@ -287,8 +287,8 @@ export default function TimelineRoute({
       <section className="mx-auto max-w-3xl px-6 py-14">
         <EmptyState
           glyph="▤"
-          title="No shows yet"
-          body="Start a new show, then drop your clips in order. You can open any existing show from the list once you have one."
+          title="No projects yet"
+          body="Start a new project, then drop your clips in order. You can open any existing project from the list once you have one."
         />
         <div className="mt-5 text-center">
           <button
@@ -297,11 +297,11 @@ export default function TimelineRoute({
             onClick={() => createShow.mutate()}
             className="rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
           >
-            {createShow.isPending ? "Opening show…" : "Start a new show"}
+            {createShow.isPending ? "Opening project…" : "Start a new project"}
           </button>
           {createShow.isError ? (
             <p className="mt-3 text-sm text-danger">
-              A new show could not be opened. Check the connection and try again.
+              A new project could not be opened. Check the connection and try again.
             </p>
           ) : null}
         </div>
@@ -327,7 +327,7 @@ export default function TimelineRoute({
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
-            Show
+            Project
             <select
               value={selectedProjectId ?? ""}
               onChange={(event) => onSelectedProjectIdChange(event.target.value || null)}
@@ -346,10 +346,10 @@ export default function TimelineRoute({
             onClick={() => createShow.mutate()}
             className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
           >
-            {createShow.isPending ? "Opening…" : "New show"}
+            {createShow.isPending ? "Opening…" : "New project"}
           </button>
           {createShow.isError ? (
-            <p className="max-w-48 text-sm text-danger">A new show could not be opened.</p>
+            <p className="max-w-48 text-sm text-danger">A new project could not be opened.</p>
           ) : null}
         </div>
       </div>

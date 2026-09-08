@@ -117,17 +117,17 @@ describe("TimelineRoute investigation flow", () => {
     expect(listProjectShots).toHaveBeenCalledWith("project-1");
   });
 
-  it("lets the operator start a new show when none exist", async () => {
+  it("lets the operator start a new project when none exist", async () => {
     vi.mocked(listProjects).mockResolvedValue([]);
     renderRoute();
-    expect(await screen.findByRole("button", { name: /start a new show/i })).toBeInTheDocument();
-    expect(screen.getByText(/no shows yet/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /start a new project/i })).toBeInTheDocument();
+    expect(screen.getByText(/no projects yet/i)).toBeInTheDocument();
   });
 
-  it("opens a new show from the project picker and selects it", async () => {
+  it("opens a new project from the project picker and selects it", async () => {
     const created: Project = {
-      project_id: "show-new",
-      title: "Untitled show",
+      project_id: "project-new",
+      title: "Untitled project",
       created_at: "2026-09-08T00:00:00Z",
       station_counts: {},
       health: "healthy",
@@ -147,8 +147,8 @@ describe("TimelineRoute investigation flow", () => {
         />
       </QueryClientProvider>,
     );
-    fireEvent.click(await screen.findByRole("button", { name: /new show/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /new project/i }));
     await waitFor(() => expect(createProject).toHaveBeenCalled());
-    await waitFor(() => expect(onSelectedProjectIdChange).toHaveBeenCalledWith("show-new"));
+    await waitFor(() => expect(onSelectedProjectIdChange).toHaveBeenCalledWith("project-new"));
   });
 });
