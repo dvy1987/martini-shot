@@ -42,3 +42,7 @@ outputType = "webview"
 deploymentTarget = "static"
 build = ["sh", "-c", "cd frontend && npm run build"]
 publicDir = "frontend/dist"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
