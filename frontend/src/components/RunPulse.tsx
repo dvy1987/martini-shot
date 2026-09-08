@@ -101,18 +101,24 @@ export default function RunPulseStrip({
           </dt>
           <dd className="mt-1 text-sm text-ink">{pulse.burn.headline}</dd>
           {pulse.burn.top[0] ? (
+            (() => {
+              const topJob = pulse.burn.top[0];
+              if (!topJob) return null;
+              return (
             <p className="mt-1 font-mono text-xs tabular-nums text-tungsten">
-              {cost(pulse.burn.top[0].cost_micros)}
-              {onJumpToJob && pulse.burn.top[0].job_id ? (
+              {cost(topJob.cost_micros)}
+              {onJumpToJob && topJob.job_id ? (
                 <button
                   type="button"
-                  onClick={() => onJumpToJob(pulse.burn.top[0].job_id)}
+                  onClick={() => onJumpToJob(topJob.job_id)}
                   className="ml-3 uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
                 >
-                  {pulse.burn.top[0].job_id}
+                  {topJob.job_id}
                 </button>
               ) : null}
             </p>
+              );
+            })()
           ) : null}
           <EvidenceLink href={pulse.burn.evidence_url} />
         </div>

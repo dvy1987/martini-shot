@@ -23,6 +23,9 @@ export function nextWorklistOrder(
   const next = [...items];
   const a = waitingAt[pos];
   const b = waitingAt[swapWith];
+  if (a === undefined || b === undefined) {
+    return items.map((item) => item.id);
+  }
   const left = next[a];
   const right = next[b];
   if (!left || !right) {
