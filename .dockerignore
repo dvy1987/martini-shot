@@ -8,6 +8,10 @@ fixtures
 frontend
 scripts
 tests
+.venv
+venv
+node_modules
+tools
 *.md
 *.log
 .env
