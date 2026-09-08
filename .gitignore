@@ -56,3 +56,6 @@ docs/screenshots/
 
 # Replit Agent paste artifacts (existing files stay tracked; ignore future drops)
 attached_assets/
+
+# Replit-local workflow and port configuration
+.replit
