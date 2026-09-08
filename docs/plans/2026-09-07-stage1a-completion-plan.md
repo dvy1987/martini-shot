@@ -1,12 +1,10 @@
 # Stage 1a Completion Plan — handoff for the next agent
 
-Written 2026-09-07 by the previous agent. **Executor assumption: a cheaper
-model (Luna, high effort) — every step is explicit; do not improvise beyond
-this plan without owner approval.**
+Written 2026-09-07 by the previous agent. **Historical execution plan.**
 
-Deadline: hackathon submission 2026-09-09, target submit ≥24h early
-(2026-09-08). Budget remaining is small — prefer the cheapest step that
-advances the plan; never re-run billable evals that already passed.
+**Current-state reconciliation, 2026-09-08:** The main Stage 1a lookers, walk-away finishing path, live spend-pricing and rank evidence, supervisor retry evidence, current Cloud Run deployment path, and current judge-facing documentation have since landed. The opening handoff below still contains the older “96 jobs pending” and “live rank/spend pending” assumptions. Treat those paragraphs as historical provenance, not as current status. For current truth, use `README.md`, `docs/judge-guide.md`, `docs/pending-work.md`, and `docs/memory/current-state.md`.
+
+The remaining active items from this plan are the full-gate coverage gap, any unfinished E-3 evidence not already archived, and the final running-product rehearsal. Do not re-run billable evaluations that already passed without a new owner-approved reason.
 
 ---
 
@@ -19,7 +17,9 @@ advances the plan; never re-run billable evals that already passed.
 4. `docs/plans/2026-08-26-post-command-tasks.md` — only the A10-4 row (done)
    and the G3 / H-1h/i/j rows.
 
-## 1. Current state at handoff
+## 1. Historical state at handoff
+
+The following section records what was true when this plan was written. It is retained for provenance and is not a current release checklist.
 
 - HEAD on `main`, everything pushed. All work committed.
 - **96 REAL billable jobs are sitting in the Firestore lease queue**
@@ -74,7 +74,7 @@ Read it, then:
    the full suite + `make lint` + `make typecheck`.
 4. Commit: `feat(core): route all outbound API calls through api_resilience`.
 
-### A2. Process the 96 queued jobs
+### A2. Historical E-3 batch instruction: process the queued jobs
 
 - The worker runs inside the API lifespan (`backend/api/app.py`, `_run_worker`)
   OR can be driven directly. Preferred: a tiny runner
@@ -179,7 +179,9 @@ G3 = the guaranteed-fallback submission quality bar:
    `npm run build` + `npm run typecheck` must pass.
 Record `docs/evidence/G3/README.md` with links, then commit.
 
-## 6. After Stage 1a (only if time remains before 2026-09-08)
+## 5. Historical post-Stage-1a queue
+
+The following tasks were written before the current documentation and live-evidence updates. Use `docs/pending-work.md` for the current release decision.
 
 - Phase 4 scoped: H-2/H-3/H-4 (morning report, Firebase sign-in, approval
   UI polish) — demo-scoped only.

@@ -1,5 +1,7 @@
 # Feature Spec: Martini Shot (slug: `post-command`)
-Date: 2026-08-26 | Amended: 2026-08-28 (owner rulings: 4-stage split, Spend Control station, batch demo, product display name **Martini Shot** — codename/slug unchanged; §7 amendment: SSE envelope, sign-in-to-approve auth, Replit mechanics; A5: Stage 1a generative fast-follow, demo batch 3 languages, Vertex AI compute) | **2026-09-06 (A10: agentic stations — every judgment surface gets a bespoke agent; dub time-fit decision, ADR-0004)** | **2026-09-07 (walk-away finishing: ADK team, billed looks, high/medium/low, taste, $50, pause-assemble)** | **2026-09-08 (walk-away sequence: ingest watch → always mix → always pickups → leftover looks → spend prices → orchestrator ranks; AO-STATION-MAP §7 + A6)** | Status: **Approved** | Constitution: `docs/constitution.md@1`
+Date: 2026-08-26 | Amended: 2026-08-28, 2026-09-06, 2026-09-07, 2026-09-08 | Status: **Approved with current implementation addendum** | Constitution: `docs/constitution.md@1`
+
+**Current implementation addendum, 2026-09-08:** This specification contains historical planning sections that predate the current Cloud Run, Google Identity Services, eleven-station dispatcher, and walk-away finishing implementation. The current runtime authority is `README.md`, `docs/judge-guide.md`, `docs/pending-work.md`, `docs/memory/current-state.md`, and the production files linked from those documents. Historical plans remain useful for provenance but must not override current code.
 Mission context: `ideas/AO-STATION-MAP.md` (read first) · Catalog: `ideas/IDEAS.md`
 
 ---
@@ -37,61 +39,45 @@ ships. Roster + contract: `docs/specs/2026-09-06-agentic-stations-design.md`.
 |---|---|
 | **Primary: Post Supervisor** | One screen showing project health across all stations; automatic incident detection with evidence; morning report; ability to approve/reject agent-proposed fixes |
 | **Judge/Buyer** | Reproducible proof that everything shown is real; clear value story per station |
-| **Demo operator (us)** | Scripted-but-genuine journey: a BATCH of files (8–10 episodes × ~30 languages for localization) traverses every station — charts must look like a working system, not a 20-row list |
+| **Demo operator (us)** | Scripted-but-genuine journey: two or three ordered clips traverse the current walk-away path; a larger batch is optional evidence, not the primary claim |
 
 ## 3. Platform & Deployment Topology (C-6.1)
 
+The current implementation uses a Vite/React frontend and a FastAPI backend. The supported production backend target is Google Cloud Run. The frontend can run in the Replit development workflow or be built as `frontend/dist` for a compatible static or combined host.
+
 ```
-┌─────────────────────┐         ┌──────────────────────────────────┐
-│ Frontend            │  HTTPS  │ Backend (Cloud Run, container)   │
-│ Interim: Firebase   │───────▶ │ FastAPI + ADK supervisor +       │
-│ Final: Replit       │  /api/* │ workers + station services       │
-│ (React+Vite build)  │ ◀──SSE── │                                  │
-└─────────────────────┘         └────┬─────────────┬───────────────┘
-                                     │             │
-                    ┌────────────────▼───┐   ┌─────▼──────────────┐
-                    │ Google Cloud       │   │ Grafana Cloud      │
-                    │ GCS (media)        │   │ MCP server (agent) │
-                    │ Firestore (state)  │   │ OTLP (telemetry in)│
-                    │ Secret Manager     │   │ AI Observability   │
-                    └────────────────────┘   └────────────────────┘
-Generative calls: Gemini image editing (Nano Banana-class), Gemini text/vision,
-Google Cloud TTS. All real, all billed (C-1.1).
+┌─────────────────────┐       HTTPS / SSE       ┌──────────────────────────────┐
+│ React + Vite        │ ─────────────────────▶  │ FastAPI on Cloud Run         │
+│ Timeline + worklist │ ◀─────────────────────  │ ADK + workers + stations     │
+└─────────────────────┘                        └───────┬──────────┬───────────┘
+                                                        │          │
+                                          ┌─────────────▼───┐  ┌────▼──────────────┐
+                                          │ Google Cloud     │  │ Grafana MCP       │
+                                          │ Firestore + GCS  │  │ hosted or OSS     │
+                                          │ Gemini + ADK     │  │ OTLP + dashboards │
+                                          └──────────────────┘  └───────────────────┘
 ```
+
+Generative calls use Google Gemini or Vertex-backed services, Google ADK, Google Cloud TTS where required, and real media tooling. Grafana is reached through MCP, not raw HTTP wrappers.
 
 ## 4. Repository Layout
 
 ```
-post-command/
-├── backend/
-│   ├── api/                 # FastAPI app (/api/v1), auth, SSE
-│   ├── core/                # config, logging, otel init, gcp clients
-│   ├── jobs/                # queue, lease worker pool, runner (TDD)
-│   ├── supervisor/          # ADK agent + Grafana MCP toolset (EDD on decisions)
-│   ├── stations/
-│   │   ├── ingest/          # Stage 1 (TDD)
-│   │   ├── pickups/         # Stage 1 HERO (EDD)
-│   │   ├── loudness/        # Stage 1 (TDD)
-│   │   ├── dub/             # Stage 1 (EDD)
-│   │   ├── delivery/        # Stage 1 (TDD; includes caption-spec validation)
-│   │   ├── spend/           # Stage 1 (TDD; Spend Control — acts, not just reports)
-│   │   ├── cue_sheets/      # Stage 2 (TDD)
-│   │   ├── conform/         # Stage 2 (TDD)
-│   │   ├── accessibility/   # Stage 2 (TDD)
-│   │   ├── handoff_ui/      # Stage 2 (TDD; surfaces spine-level handoff checks)
-│   │   ├── restoration/     # Stage 3 (EDD stats + stretch)
-│   │   ├── dialogue_doctor/ # Stage 3 (EDD)
-│   │   ├── archive/         # Stage 3 (TDD)
-│   │   ├── continuity/      # Stage 4 (EDD)
-│   │   └── trailer_bench/   # Stage 4 (TDD)
-│   └── evals/               # datasets/, metrics/, thresholds.yaml, runner
-├── frontend/                # React+Vite (Firebase interim deploy)
-├── fixtures/                # labeled synthetic INPUT media only (C-1.3)
-├── infra/grafana/           # dashboards + alerts as code (C-4.5)
-├── docs/                    # adr/, evidence/, runbooks
-├── scripts/                 # spike, seed, provision, deploy
-└── tests/                   # unit + integration harness
+martini-shot/
+├── backend/api/             # FastAPI app, finish/worklist/SSE/approval routes
+├── backend/core/            # config, logging, OpenTelemetry, GCP clients
+├── backend/jobs/            # Firestore lease queue, worker, handoff guard
+├── backend/stations/        # Eleven explicit worker station implementations
+├── backend/supervisor/      # ADK finishing, Post Supervisor, Grafana MCP, Run Pulse
+├── frontend/                # React + Vite Timeline, worklist, alternates, approvals
+├── infra/grafana/           # Dashboards and alert rules as code
+├── scripts/                 # Evaluations, provisioning, seeding, deployment helpers
+├── docs/evidence/           # Real model/evaluation/integration evidence
+├── docs/runbooks/           # Local development and deployment runbooks
+└── tests/                   # Unit, integration, and contract tests
 ```
+
+The current worker roster is defined in `backend/stations/run.py`. Historical planning documents may describe future or stretch stations that are not current worker branches.
 
 ## 5. Scope & Build Stages (amended 2026-08-28)
 
@@ -114,16 +100,7 @@ spans regenerated via Omni + the dub pipeline for dialogue); **Camera Language**
 (preset vocabulary: dolly/tracking, dolly zoom, handheld/shaky, Steadicam, whip
 pan, crash zoom, SnorriCam, locked-off — plus Gemini genre-aware suggestions and
 reference-style transfer). In-1a stretch: **Transition Forge** (first/last-frame
-interpolation), **Versioning** (9:16 cutdowns). Every generated clip lands as an
-**alternate** attached to its shot — never silently overwriting a locked cut;
-adding/removing from continuity is an approval-tracked action. All 1a ops are
-EDD-gated and feasibility-probed at G0. Stage 1 + every named non-stretch Stage
-1a operation are the hackathon demo release: each must be exposed in the frontend
-and supported by real-model eval evidence, approval/queue execution, and
-Grafana-visible audit. Each feature must expose both an agent-assisted and a
-manual user path: manual requests select validated parameters and still use the
-same H-0 approval, queue, alternate, QC, cost, and evidence controls. G3/G3a are
-integrated release gates, not prerequisites for the remaining Stage 1a work.
+interpolation), **Versioning** (9:16 cutdowns). Every generated clip lands as an **alternate** attached to its shot — never silently overwriting a locked cut; adding/removing from continuity is an approval-tracked action. The currently wired Stage 1a paths are exposed through the frontend controls and worker dispatcher described in `README.md` and `docs/judge-guide.md`. Each path uses the approval, queue, alternate, QC, cost, and evidence controls that are present in code. Do not treat a historical roadmap row as a production capability unless it has a current dispatcher branch, frontend path, and evidence artifact.
 D-13 Transition Forge and D-14 Versioning remain stretch only.
 
 **Walk-away finishing (owner ruling 2026-09-07; sequence 2026-09-08):** the operator uploads clips **in order**, sets a finishing budget (this build: **$50**), and walks away. Demo beats: `ideas/AO-STATION-MAP.md` §7 + A6. **Locked sequence:** ingest **job** = file check only (corrupt file stops) → ingest **agent** watches the original and writes `spoken_words` + `scene` (silence is valid) → **loudness agent + job always runs** (listens, mixes; continuing shots stay in family) → **pickups agent + job always runs** on that mixed clip (repairs real damage) → wait until **every** clip has finished mix + pickups → leftover station agents (extend, corrections, relight, coverage, camera language, dub, delivery) watch the **updated** clips in upload order, with the ingest bag, and suggest must / nice / leave → **Spend** prices **each** leftover job → a **billed Gemini orchestrator** ranks by impact, names dependencies (what must wait on what vs what can run together), reads ingest/handoff spine notes, and keeps what still fits. Mix and pickups are not optional looks and cannot be skipped or reordered by the orchestrator. Code may not invent stations or run empty rows; a band-sort comparator is crash-fallback only. Ranked leftover work is **auto-enqueued** until the envelope is gone. If money dies mid-job, that work **pauses**; the playable final is **originals plus only `passed` jobs**. Originals are never overwritten. Unwired leftover stations show **empty** (not “all good”). Inspect, spend pricing, and rank are EDD-gated (≥0.8, 3 live runs).
@@ -138,7 +115,7 @@ Restoration; Dialogue Doctor; Archive Keeper.
 **Stage 4 — the editing side (most AI vision, upstream, least urgent):**
 Edit-Assist & Continuity; Trailer Bench.
 
-All 15 original stations are accounted for, plus Spend Control (16 total).
+The current production dispatcher recognizes eleven worker stations: ingest, loudness, delivery, spend, pickups, dub, extend, corrections, relight, coverage, and camera_language. Additional names in historical roadmaps are not current worker branches and must not be presented as production stations.
 
 ### Station capability definitions & acceptance criteria (AC)
 
@@ -220,11 +197,11 @@ All 15 original stations are accounted for, plus Spend Control (16 total).
 - Trailer/promo spec regime as a spec-pack variant (runtime caps, card counts, rating cards).
 - **AC-S14.1**: table-driven spec tests on compliant/violating trailer fixtures.
 
-**Supervisor Agent (ADK + Grafana MCP)** (built with the spine, Stage 1)
-- Tools bound: Grafana Cloud MCP (dashboard search, PromQL/LogQL/Tempo queries, annotations, incidents) + internal read APIs (job/project state).
-- Behaviors: alert triage → investigation chain (metrics→logs→trace) → severity verdict → action proposal (retry/reroute/block) → human-approve toggle (env-configurable autonomy) → annotation + morning report generation (Gemini text summarization over telemetry excerpts).
-- **AC-A.1** (integration): seeded corrupt-file scenario triggers alert; without human input agent produces investigation annotation containing correct job_id + root cause within 120 s (asserted in Grafana via query, not mocks).
-- **AC-A.2** (eval): morning-report rubric judge ≥ 4/5 on 5 seeded scenarios (faithfulness: every claim traceable to a real telemetry query result).
+**Supervisor and Finishing Agents (Google ADK + Grafana MCP)** (Stage 1 and Stage 1a)
+- The walk-away finishing path creates one ADK specialist per proposal station, then invokes a billed ADK finishing orchestrator over the complete note bag. The orchestrator returns a validated order, dependencies, dropped work, and reason. `backend/supervisor/finishing_loop.py` owns queue dispatch and budget enforcement.
+- The Post Supervisor path uses real specialist investigators, a Verification Agent, a Gemini synthesis call, the approval state machine, and Grafana MCP query/write tools. It currently fires for failed, quarantined, and needs-human terminal states. Additional signal types remain deferred and are recorded in `docs/pending-work.md`.
+- Grafana MCP tools include dashboard search, PromQL, LogQL, Tempo trace search, annotations, and incidents. Writes respect `propose_only` and the current autonomy mode.
+- **Current evidence:** live finishing-rank runs of 0.9 / 0.9 / 0.8, spend-pricing runs of 1.0 / 1.0 / 1.0, and supervisor retry-once runs of 1.0 / 1.0 / 1.0. The known `fr-05` ordering miss and below-target full-gate coverage remain disclosed in `docs/pending-work.md`.
 
 ## 6. Grafana Wiring Inventory (day 1, complete list — C-4.*)
 
@@ -235,12 +212,15 @@ All 15 original stations are accounted for, plus Spend Control (16 total).
 5. Supervisor consumes MCP tools; every intervention writes annotation `{project_id, job_id, verdict}`; incidents for quarantine/spend-enforcement.
 6. AI Observability SDK wraps ADK agent (traces, tokens, cost per LLM call).
 
-## 7. Frontend Plan
+## 7. Frontend Plan and Current Surface
 
-- **Interim (build target now):** Firebase Hosting, React+Vite TS. Pages: Projects list; Project Timeline (stations × jobs grid, live via SSE); Job detail (spans link-out to Grafana, evidence thumbnails, before/after slider); Approvals inbox (also receives Spend Control escalations); Morning report view; Settings (autonomy toggle).
-- **Final host swap (pre-submission):** identical build deployed to Replit static hosting; only base URL/CORS change. Swap rehearsed by G4. Replit URL is the submission URL; Firebase remains as documented fallback deployment (both real).
-- Design bar: dark cinematic console (matches Diverge-grade product taste), no lorem ipsum, real data only.
-- **Stage 1a UI surfaces (A5, built only after Stage 1 gates pass):** alternates lane in the Season Timeline (generated clips attach to their shot as alternates; continuity changes are approval actions); Revision Room (script panel aligned to shots; script edit → diff → affected spans → regeneration proposals); Camera Language suggestion chips (genre-aware, model-generated, labeled as such); Relight Studio preset row in the drawer; draft-first state badge on every generated artifact. All reuse the charter's existing components (lanes, drawer, folded evidence, wipes) — surfaces specified in `docs/design/DESIGN.md` "Stage 1a surfaces".
+The current frontend is a React + Vite application with a Timeline route, FinishBar upload and budget control, WorklistPanel, Run Pulse, AlternatesLane, manual Stage 1a controls, approvals, reports, and Google Identity Services for owner-only settings writes. The current Replit workflow runs `npm run dev -- --host 0.0.0.0 --port 5000`. The repository deployment target is Cloud Run; the backend deployment script is `deploy.sh`.
+
+The frontend uses `VITE_API_BASE_URL` and `VITE_API_KEY` at build time. Backend API routes require `X-API-Key`; the health endpoint is open. Settings writes use a Google ID token verified against the configured owner email. The current browser implementation uses the Google Identity Services script directly rather than a Firebase SDK.
+
+Stage 1a surfaces include the Alternates lane, Extend, Corrections, Relight, Coverage, Camera Language, Revision Room, draft-first badges, approvals, and Run Pulse. The current frontend does not present a single polished assembled-final player as the primary path; it exposes individual alternates and the backend final-reference list. Demo language should show the final references and a real artifact without claiming a dedicated final-cut player that is not present.
+
+Design bar: dark cinematic console, no placeholder production claims, and honest empty/unreachable states.
 
 ### 7.1 SSE event envelope (amendment 2026-08-28)
 
@@ -252,20 +232,20 @@ data: {"type":"<type>","at":"<RFC3339 UTC>","payload":{ ... }}
 
 Initial event set: `job.updated` (payload: `{job}`), `incident.opened` (payload: `{incident_id, job_id?, severity, title}`), `annotation.created` (payload: `{annotation_id, job_id?}`). Typed mirror: `frontend/src/types/api.ts` (`SseEvent` union).
 
-### 7.2 Auth model: sign-in-to-approve (amendment 2026-08-28, owner ruling)
+### 7.2 Auth model: API-key reads and Google Identity Services owner writes
 
-- **Reads** (projects, jobs, SSE, reports): no login; transport auth via `X-API-Key` header baked at build time (`VITE_API_KEY`). The key is extractable from a static bundle by a determined user — accepted demo trade-off; all enforcement stays server-side.
-- **Deciding writes** (`POST /api/v1/approvals/{id}/decision`, `PATCH /api/v1/settings`): require Google sign-in. Frontend uses Firebase Auth (Google provider); on first decision the sign-in opens, then the request carries `Authorization: Bearer <ID token>`. Backend verifies via firebase-admin; missing/invalid → `401 {"error":{"code":"auth_required"}}`.
-- Approver identity (uid + email) is stored on the approval record and included in the Grafana annotation (C-4.3) — the audit trail names the human.
-- Replit Auth is NOT used (no server-side runtime on Replit static hosting). Frontend adds the Firebase JS SDK (covered by this ruling); backend adds firebase-admin under the owner's standing security/auth autonomy.
+- **Reads** and browser event streams require the configured `X-API-Key`; `/api/v1/health` is the only open route.
+- **Settings writes** require a Google ID token and an owner email allowlist. The frontend obtains the token through the Google Identity Services browser script and sends it as `Authorization: Bearer <ID token>`.
+- If the Google client id or owner email is not configured, the sign-in control reports an honest unavailable state and the write gate remains closed.
+- The current code does not use Firebase Auth for this path. Documentation claiming Firebase SDK authentication is historical and has been corrected here.
 
-### 7.3 Replit hosting mechanics (amendment 2026-08-28)
+### 7.3 Current hosting mechanics
 
-- Replit static deployment serves `frontend/dist`; build command `cd frontend && npm ci && npm run build`.
-- SPA rewrites: all non-asset paths → `/index.html` so `/approvals` and `/reports` deep-link.
-- `VITE_API_BASE_URL`, `VITE_API_KEY` (and later `VITE_FIREBASE_*` web config — public by design) are BUILD-time env vars, baked per host; two hosts = two builds.
-- `.replit` sits at repo root and points build/serve at `frontend/`. Deploy/undeploy actions remain owner-approved ("ask first" boundary).
-- Track compliance: features built via Replit Agent (step prompts); deployed URL on replit.app is the submission URL, rehearsed at G4.
+- Local or Replit development runs the Vite app with `npm run dev -- --host 0.0.0.0 --port 5000`.
+- A static frontend build is produced with `cd frontend && npm ci && npm run build` and written to `frontend/dist`.
+- `VITE_API_BASE_URL` and `VITE_API_KEY` are build-time variables. A rebuild is required after changing them.
+- `deploy.sh` deploys the backend container to Cloud Run, installs the Linux OSS Grafana MCP binary, and prints the public URL and health endpoint.
+- The hosted submission must be the actual running web project. A local development preview is only a rehearsal surface.
 
 ## 8. Non-Goals
 
@@ -281,12 +261,12 @@ Multi-tenant auth/RBAC (reads stay API-key-only; Google sign-in gates decision w
 | Agent framework | Google ADK + hosted Grafana MCP (fallback OSS server + service-account token behind env flag) | track requirement + headless reliability |
 | Frame pipeline | OpenCV/ffmpeg classical + Gemini edits | flicker control + honest hybrid |
 | Testing split | TDD deterministic / EDD generative | owner mandate |
-| Hosting | Backend Cloud Run; FE Firebase→Replit | owner mandate |
+| Hosting | Backend Cloud Run; frontend Vite development or compatible hosted build | current repository configuration |
 | Scope model | 4 build stages by product story (2026-08-28 owner ruling) | Stage 1 is self-sellable; compliance, depth, editing follow |
 | Captions | Part of delivery check, not own screen | rule check, not a workflow |
 | Spend Control | NEW station in Stage 1 (acts: throttle/stop/approve) | real action vs reporting; Diverge retry-loop pain; protects budget |
-| Demo dataset | Batch: 8–10 episodes × ~30 languages | charts must look like a working system, not a list |
-| FE auth | Public reads (API key); Google sign-in (Firebase) gates decision writes; approver identity in audit trail (§7.2) | owner ruling 2026-08-28 — accountability without demo friction |
+| Demo dataset | Two or three ordered clips for the walk-away story; larger batches remain optional evidence | the primary demo must show the running product clearly |
+| FE auth | Public health only; API-key reads; Google Identity Services owner token gates settings writes | current frontend and backend implementation |
 | Agentic stations | Bespoke agent per judgment surface (8 + batch orchestrator); deterministic verdicts advisory with logged overrides; EDD gate ≥0.8 per agent (A10, 2026-09-06) | owner ruling — numeric proxies underfit quality; remediation/strategy is reasoned work (design doc after adversarial self-review) |
 | Dub time-fit | ONE TTS render + deterministic ffmpeg atempo stretch to the source window (ADR-0004) | Chirp 3 HD rate response measured nonlinear (0.8 → 1.34×) — re-render fitting cannot hit the 45 ms bar; atempo is exact, free, pitch-preserving |
 

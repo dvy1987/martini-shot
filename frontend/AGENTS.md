@@ -3,9 +3,9 @@
 See root `AGENTS.md` for project-wide context (constitution, boundaries, Session Lifecycle, Orchestration Map). This file adds frontend-only rules.
 
 ## What this is
-React + Vite + TypeScript SPA in `frontend/`. Interim deploy: Firebase Hosting; final: Replit (static deployment serving `frontend/dist`) — identical build, only base-URL/CORS change (spec §7, task J-3). The SPA talks ONLY to the backend `/api/v1` API, never directly to Google AI or Grafana.
+React + Vite + TypeScript SPA in `frontend/`. The current development workflow runs Vite on port 5000 through `.replit`; the repository deployment target is Cloud Run. A production-compatible host may serve the built `frontend/dist` bundle. The SPA talks ONLY to the backend `/api/v1` API, never directly to Google AI or Grafana.
 
-**No-backend period is expected:** the frontend builds, deploys, and runs truthfully before the backend exists (build needs no API). Until G1 connects them, every view shows its designed empty state and the connection pill reads "backend unreachable." NEVER create a mock API, seed script, or fake data server to "see something" — banned by C-1.2/A2. Unit tests may use labeled fixture data (C-1.3); the app may not.
+**No-backend period is expected:** the frontend builds without cloud credentials, but production views must remain truthful when the backend is absent. Every view shows its designed empty or unreachable state. NEVER create a mock API, seed script, or fake data server to "see something" — banned by C-1.2/A2. Unit tests may use labeled fixture data (C-1.3); the app may not.
 
 ## Key Commands (after scaffold task C-1 creates package.json)
 ```
@@ -22,7 +22,7 @@ Lint:     npm run lint
 - SSE (`/api/v1/projects/{id}/events`) is the only live channel; reconnect with backoff; no polling unless the plan adds it.
 - Design is DECIDED: `docs/design/DESIGN.md` (owner-approved 2026-08-28, evidence-first / exception-first / film-native grammar) is the binding direction — read it before any component work. Future visual changes still run the `frontend-design` chain (root Agent-Led Design block) and amend DESIGN.md. No lorem ipsum, no placeholder data — the UI renders only real API state.
 - The Approvals inbox renders Spend Control escalations (S5b) — same inbox component, distinct badge.
-- Replit static hosting: SPA routing needs the platform's SPA/rewrite option enabled (verify at task J-3); `.replit` lives at repo root and only points build/serve commands at `frontend/`.
+- A static host serving `frontend/dist` must enable SPA rewrites for deep links. `.replit` lives at repo root and starts the Vite development workflow; Cloud Run deployment is configured separately by `deploy.sh`.
 
 ## Boundaries (frontend-scoped)
 

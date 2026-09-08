@@ -1,5 +1,7 @@
 #Agentic Cinema: The Blockbuster Hackathon
 
+> **Archive notice, updated 2026-09-08:** This file is a captured reference, not the authority for current requirements. Use `docs/hackathon-requirements-current.md` together with the live [Devpost overview](https://agentic-cinema.devpost.com/) and [official rules](https://agentic-cinema.devpost.com/rules). For Martini Shot’s current implementation and Grafana-track claims, use `README.md`, `docs/judge-guide.md`, and `docs/grafana-track-notes.md`.
+
 ##Lights. Camera. Code.
 Hackathon URL: https://agentic-cinema.devpost.com/?ref_feature=challenge&ref_medium=homepage-recommended-hackathons&_gl=1*18gwrk8*_gcl_au*NDE1NTcyOTM2LjE3ODA5OTc5ODc.*_ga*MjUxNTg0MjU4LjE3NzMxMzgzNTg.*_ga_0YHJK3Y10M*czE3ODc2NDQ4MzEkbzE4JGcwJHQxNzg3NjQ0ODkwJGoxJGwwJGgw
 

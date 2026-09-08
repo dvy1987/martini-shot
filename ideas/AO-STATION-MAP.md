@@ -304,20 +304,22 @@ outside the observability fabric.
 
 ## 10. Status & immediate next steps
 
-Done: idea convergence (51 ideas, 13 batches), full-catalog mapping to AO, gap
-analysis (+7 stations), three sequencings, scope frozen (§9 as amended by A4),
-formal spec + plan written (`docs/specs/`, `docs/plans/`, staged 2026-08-28).
-Remaining actions, in order:
-1. Run the **Day-0 spike (G0)**: one Gemini background-swap on 3 frames of
-   public-domain footage; judge quality/flicker with our own eyes (~1 hour,
-   cents in credits). Mandatory FIRST build action (re-affirmed 2026-08-28).
-2. **Adversarial stress-test** of AO (theme fit, rules, tech risk, demo logic).
-3. Execute per `docs/plans/2026-08-26-post-command-plan.md` (phases map to
-   Stages 1–4).
+The implementation has moved beyond the original planning phase. The current
+walk-away path, specialist attendance team, spend pricing, ADK ranker, Grafana
+MCP connector, Run Pulse surface, Stage 1a lookers, and current evidence are in
+the repository. The current judge-facing route is:
 
-Timeline sketch (14 days): D0 spike+sign-off · D1–3 spine+Grafana wiring ·
-D3–5 Wave 1 stations · D5–8 Wave 2 · D8–12 Wave 3 hero ops · D12–14 supervisor
-intelligence + polish · D13–15 video + README + submit EARLY.
+1. Read `README.md` for the product story and quick start.
+2. Read `docs/judge-guide.md` for code-path verification and evidence.
+3. Read `docs/pending-work.md` for honest limitations.
+4. Rehearse the live two- or three-clip walk-away run and capture the Grafana
+   moment before recording the final video.
+5. Run the final hosted URL, repository, license, and three-minute video
+   checks required by Devpost.
+
+Historical G0, wave sequencing, and batch-planning instructions remain below
+for provenance. They are not current next steps unless a new owner amendment
+explicitly reactivates them.
 
 ---
 

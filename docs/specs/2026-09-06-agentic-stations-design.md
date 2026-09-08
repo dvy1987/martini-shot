@@ -1,12 +1,10 @@
 # Design: Agentic Stations (Amendment A10)
-Date: 2026-09-06 | Status: Approved (owner, 2026-09-06 dialogue, revised after adversarial self-review)
+Date: 2026-09-06 | Status: Approved with current implementation addendum (owner, 2026-09-06 dialogue, revised after adversarial self-review)
+
+**Current implementation addendum, 2026-09-08:** The implemented walk-away production path is `backend/supervisor/adk_finishing.py` plus `backend/supervisor/finishing_loop.py`. It creates the specialist attendance team, runs the billed finishing orchestrator over the complete proposal bag, converts the returned plan into validated worklist rows, and dispatches real jobs. The Post Supervisor path in `backend/supervisor/team.py` is a separate Grafana-centered failure and intervention loop. The original batch-oriented vocabulary below remains design provenance and should not be read as a claim that every historical station is a current worker branch.
 
 ## Summary
-Every station with a judgment surface becomes agentic: four QC agents own quality/strategy
-calls in Pickups, Extend, Dub, and Spend; four measurement-station agents own the RESPONSE to
-deterministic reports (ingest triage, loudness remediation, caption fixes, delivery strategy);
-a Batch Orchestrator agent plans the episode×language station sequence. Measurements
-themselves (checksum, LUFS, rule verdicts) stay deterministic and machine-checkable.
+Every station with a judgment surface becomes agentic: media lookers own the specialist inspection proposal, spend pricing assigns real costs, the finishing orchestrator ranks the complete proposal bag, and the Post Supervisor owns bounded failure investigation and intervention. Measurements themselves (checksum, LUFS, rule verdicts) stay deterministic and machine-checkable.
 
 ## Problem
 Numeric QC proxies underfit real quality; retry/escalation strategy is policy-shaped rather
@@ -51,11 +49,12 @@ Prompts are iterated on actual model outputs (the H-1b hardening loop).
   - **Delivery Strategist Agent** (D-4): profile selection when multiple destinations qualify,
     accept-with-deviation calls with stated rationale, fix-suggestion generation routed through
     H-0.
-- **Batch Orchestrator Agent** (`backend/supervisor/orchestrator.py`, E-3): reads an approved
-  episode×language manifest, plans the station chain per item (real station vocabulary only),
-  submits through the Firestore lease queue, monitors, re-plans on failure using the H-0b
-  signal path. Bounded: only manifest items, only real stations, cost estimate printed before
-  any billable run (C-7.2).
+- **Finishing Orchestrator Agent** (`backend/supervisor/adk_finishing.py`): reads the complete
+  proposal bag after cleanup, uses scene context, upload order, handoff spine messages,
+  dependencies, and remaining budget, then returns a validated order and drop set. The
+  finishing loop converts that plan into Firestore worklist items and dispatches only real
+  worker stations. The Post Supervisor’s separate signal path uses `backend/supervisor/team.py`
+  and `backend/supervisor/budget_loop.py` for failure investigation and bounded autonomy.
 
 ## Key Decisions
 1. Deterministic verdicts are ADVISORY (owner ruling) — QC agents may override numeric gates;
