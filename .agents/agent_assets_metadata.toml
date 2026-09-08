@@ -14,3 +14,17 @@ mtime_ms = 1788857229522
 storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:f53d30af-c447-47ab-8ff0-ec2fb7adda38/5a2d06e4-e9d3-46be-b74c-9017a54d9f8d/0c619347-f38b-47b0-8d9e-f96bac6084c2"
 storage_version_token = "1788857235292188"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "j7E9kgefKPZpIMi9ffnm0"
+uri = "file://exports/martini-shot-full-workspace.zip"
+type = "unspecified"
+title = "Martini Shot full workspace export"
+description = "Archive of the live Replit workspace, including project source, .replit configuration, and attached assets. Excludes Git internals, dependencies, caches, and environment-secret files."
+logical_id = "5264a96f-ed98-4861-896b-ab752a64d997"
+content_hash = "sha256:7266c19bbdfc37d76990276395b55e543cf8e5fec401ce08f7721ae58ced00ae"
+size = 35963118
+mtime_ms = 1788858484877
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:f53d30af-c447-47ab-8ff0-ec2fb7adda38/5264a96f-ed98-4861-896b-ab752a64d997/e5f39527-fa61-44fc-8990-3e5364b67f19"
+storage_version_token = "1788858504950861"
+content_type = "application/octet-stream"
