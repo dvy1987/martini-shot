@@ -1,0 +1,15 @@
+{
+  "suite": "coverage_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 1.0,
+  "omni_render_rate": 0.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "n": 1,
+  "renders_completed": 0,
+  "pass": false,
+  "fail_reason": "omni_fallback_or_non_omni_model,missing_flicker,mean_flicker_gate,qc_not_pass,alternate_not_draft,alternate_not_op,omni_stop",
+  "stopped": "BadRequestError: Error code: 400 - {'error': {'message': 'Exactly one input video is required for edit task.', 'code': 'invalid_request'}}",
+  "note": "Not an Omni recitation refusal. Worker sent the source clip twice (input + reference_uris). Fixed in omni_edit_refs; passing eval is coverage_quality_summary_20260907T215706Z.json.",
+  "project_id": "proj-coverage-omni-20260907t214423z"
+}

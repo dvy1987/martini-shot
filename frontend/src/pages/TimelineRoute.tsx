@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
+import { getJob, getProject, getRunPulse, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
 import AlternatesLane from "@/components/AlternatesLane";
 import EmptyState from "@/components/EmptyState";
 import FinishBar from "@/components/FinishBar";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
+import RevisionRoom from "@/components/RevisionRoom";
+import RunPulseStrip from "@/components/RunPulse";
 import TimelineBoard from "@/components/TimelineBoard";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
@@ -118,6 +120,18 @@ export default function TimelineRoute({
     queryFn: () => getWorklist(selectedProjectId ?? ""),
     enabled: selectedProjectId !== null,
     retry: false,
+  });
+  const worklistStatus = worklistQuery.data?.status ?? "";
+  const pulseLive =
+    worklistStatus === "running" ||
+    worklistStatus === "waiting_for_ingest" ||
+    worklistStatus === "inspecting";
+  const pulseQuery = useQuery({
+    queryKey: ["run-pulse", selectedProjectId],
+    queryFn: () => getRunPulse(selectedProjectId ?? ""),
+    enabled: selectedProjectId !== null,
+    retry: false,
+    refetchInterval: pulseLive ? 15_000 : false,
   });
 
   const handleJobSelection = useCallback(
@@ -261,6 +275,24 @@ export default function TimelineRoute({
           onFinished={() => {
             void projectQuery.refetch();
             void worklistQuery.refetch();
+            void pulseQuery.refetch();
+          }}
+        />
+      ) : null}
+
+      {selectedProjectId ? (
+        <RunPulseStrip
+          pulse={pulseQuery.data ?? null}
+          isLoading={pulseQuery.isPending}
+          errorMessage={
+            pulseQuery.isError
+              ? "Run pulse could not be loaded from Grafana."
+              : null
+          }
+          onJumpToJob={(jobId) => {
+            const match = jobs.find((job) => job.job_id === jobId);
+            if (!match) return;
+            setSelectedJobId(jobId);
           }}
         />
       ) : null}
@@ -320,6 +352,8 @@ export default function TimelineRoute({
       {projectQuery.isSuccess && selectedProjectId ? (
         <AlternatesLane shots={shotsQuery.data ?? []} />
       ) : null}
+
+      {selectedProjectId ? <RevisionRoom projectId={selectedProjectId} /> : null}
 
       {selectedProjectId ? (
         <WorklistPanel

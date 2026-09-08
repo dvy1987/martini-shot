@@ -146,6 +146,47 @@ def plan_finishing(
     return RankResult(ordered=take, waiting=ranked.waiting + wait)
 
 
+GENERATIVE = frozenset(
+    {"extend", "corrections", "relight", "coverage", "camera_language"}
+)
+
+
+def stamp_generative_job_result(
+    result: dict[str, Any],
+    station: str,
+    *,
+    summary: str = "",
+    source_uri: str = "",
+) -> dict[str, Any]:
+    """Looker named args + defaults so a walk-away job can actually run."""
+    if station not in GENERATIVE:
+        return result
+    result.setdefault("tier", "draft")
+    if station == "corrections" and not str(result.get("intent") or "").strip():
+        result["intent"] = summary
+    if station == "relight":
+        from backend.stations.relight.run import PRESETS
+
+        if str(result.get("preset") or "") not in PRESETS:
+            result["preset"] = "practical_lamp"
+    if station == "coverage":
+        from backend.stations.coverage.run import ANGLES
+
+        if str(result.get("angle") or "") not in ANGLES:
+            result["angle"] = "close_up"
+        if not str(result.get("intent") or "").strip():
+            result["intent"] = summary or "new coverage angle of the same subjects"
+        refs = result.get("reference_uris") or []
+        if not refs and source_uri:
+            result["reference_uris"] = [source_uri]
+    if station == "camera_language":
+        from backend.stations.camera_language.run import MOVEMENTS
+
+        if str(result.get("movement") or "") not in MOVEMENTS:
+            result["movement"] = "dolly_tracking"
+    return result
+
+
 def jobs_from_notes(
     notes: list[InspectNote],
     *,
@@ -160,17 +201,16 @@ def jobs_from_notes(
             continue
         target = str(note.proposal.get("station") or note.station)
         args = dict(note.proposal.get("args") or {})
-        result = {
-            "shot_id": shot_id or note.shot_id or args.get("shot_id") or "",
-            "finishing": True,
-            **args,
-        }
-        if target == "extend":
-            result.setdefault("tier", "draft")
-        if target == "corrections":
-            result.setdefault("tier", "draft")
-            if not str(result.get("intent") or "").strip():
-                result["intent"] = note.summary
+        result = stamp_generative_job_result(
+            {
+                "shot_id": shot_id or note.shot_id or args.get("shot_id") or "",
+                "finishing": True,
+                **args,
+            },
+            target,
+            summary=note.summary,
+            source_uri=source_uri,
+        )
         _stamp_job_scene(
             result,
             scene_understanding,
@@ -221,9 +261,6 @@ def enqueue_jobs(queue: Any, jobs: list[Job]) -> list[str]:
     return ids
 
 
-GENERATIVE = frozenset(
-    {"extend", "corrections", "relight", "coverage", "camera_language"}
-)
 _ACTIVE = frozenset({"queued", "leased", "running"})
 _BLOCKING = frozenset({"waiting", "queued", "leased", "running"})
 
@@ -253,18 +290,17 @@ def _job_from_item(
     station = str(proposal.get("station") or item.get("station") or "")
     source = str(item.get("source_uri") or "")
     shot_id = str(item.get("shot_id") or args.get("shot_id") or "")
-    result = {
-        "shot_id": shot_id,
-        "finishing": True,
-        "worklist_item": item.get("id"),
-        **args,
-    }
-    if station == "extend":
-        result.setdefault("tier", "draft")
-    if station == "corrections":
-        result.setdefault("tier", "draft")
-        if not str(result.get("intent") or "").strip():
-            result["intent"] = str(item.get("summary") or "")
+    result = stamp_generative_job_result(
+        {
+            "shot_id": shot_id,
+            "finishing": True,
+            "worklist_item": item.get("id"),
+            **args,
+        },
+        station,
+        summary=str(item.get("summary") or ""),
+        source_uri=source,
+    )
     bag = item.get("scene_understanding")
     if not isinstance(bag, dict) and scene_by_shot:
         bag = scene_by_shot.get(shot_id)
@@ -575,12 +611,134 @@ def dispatch_next(
     return doc
 
 
+def apply_draft_qc(
+    doc: dict[str, Any],
+    job: Job,
+    *,
+    settings: Any | None = None,
+    store: Any | None = None,
+) -> dict[str, Any]:
+    """After a generative draft, Visual QC (Gemini when settings exist) names
+    master_eligible / revise / escalate. Flicker breach never waves through.
+    """
+    from backend.stations.draft_first import (
+        MAX_REVISIONS,
+        map_visual_qc_decision,
+        metrics_from_job_result,
+    )
+    from backend.supervisor.station_agents.visual_qc import suggestion_for_metrics
+
+    if job.station not in GENERATIVE or job.status != "passed":
+        return doc
+    result = dict(job.result or {})
+    revision_count = int(result.get("revision_count") or 0)
+    metrics = metrics_from_job_result(result)
+    qc_cost = 0
+    if settings is not None:
+        from backend.supervisor.station_agents.visual_qc import decide_visual_qc
+
+        decision, qc_cost = decide_visual_qc(
+            settings,
+            job={"id": job.id, "station": job.station, "result": result},
+            metrics_doc=metrics,
+        )
+        qc = decision.decision
+        reason = decision.reason
+    else:
+        qc = suggestion_for_metrics(metrics)
+        reason = "deterministic visual qc (no live settings)"
+    state = map_visual_qc_decision(qc, revision_count=revision_count)
+    result["visual_qc"] = qc
+    result["draft_state"] = state
+    result["visual_qc_reason"] = reason
+    if qc_cost:
+        result["visual_qc_cost_micros"] = qc_cost
+    try:
+        from backend.core.generative import estimate_extend_cost_micros
+        from backend.stations.draft_first import cost_delta_micros
+
+        result["cost_delta_micros"] = cost_delta_micros(
+            int(job.cost_micros or 0),
+            estimate_extend_cost_micros(7.0, resolution="720p"),
+        )
+    except Exception:
+        result.setdefault("cost_delta_micros", 0)
+    job.result = result
+    items = list(doc.get("items") or [])
+    worklist_item = str(result.get("worklist_item") or "")
+    for item in items:
+        if str(item.get("job_id") or "") == job.id or (
+            worklist_item and str(item.get("id") or "") == worklist_item
+        ):
+            item["draft_state"] = state
+            item["visual_qc"] = qc
+            if state == "escalate":
+                item["status"] = "needs_human"
+            if state == "master_eligible":
+                item["master_eligible"] = True
+            break
+    if state == "revise" and revision_count < MAX_REVISIONS:
+        shot_id = str(result.get("shot_id") or "")
+        source = ""
+        if job.input_refs:
+            source = str(job.input_refs[0])
+        retry_id = f"{job.station}::{shot_id}::revise"
+        if not any(str(item.get("id") or "") == retry_id for item in items):
+            items.append(
+                {
+                    "id": retry_id,
+                    "station": job.station,
+                    "status": "waiting",
+                    "impact": "medium",
+                    "kind": "defect",
+                    "summary": f"bounded revision after visual QC: {reason}"[:240],
+                    "shot_id": shot_id,
+                    "source_uri": source,
+                    "cost_estimate_micros": int(
+                        result.get("cost_estimate_micros") or job.cost_micros or 0
+                    ),
+                    "proposal": {
+                        "kind": "station_job",
+                        "station": job.station,
+                        "args": {
+                            key: result[key]
+                            for key in (
+                                "preset",
+                                "intent",
+                                "angle",
+                                "movement",
+                                "reference_uris",
+                                "tier",
+                            )
+                            if key in result
+                        }
+                        | {"revision_count": revision_count + 1, "tier": "draft"},
+                    },
+                }
+            )
+    doc["items"] = items
+    alternate_id = str(result.get("alternate_id") or "")
+    if store is not None and alternate_id:
+        from backend.shots import lifecycle as shots
+
+        shots.stamp_alternate_qc(
+            store,
+            alternate_id,
+            draft_state=state,
+            visual_qc=qc,
+            cost_delta_micros=int(result.get("cost_delta_micros") or 0) or None,
+        )
+    return doc
+
+
 def on_finishing_terminal(
     doc: dict[str, Any],
     job: Job,
     *,
     queue: Any,
     project_id: str,
+    settings: Any | None = None,
+    store: Any | None = None,
 ) -> dict[str, Any]:
     """Tick the finished item, count real spend, start the next ranked work."""
     items = list(doc.get("items") or [])
@@ -609,6 +767,7 @@ def on_finishing_terminal(
         spine.append(spine_note)
         doc["orchestrator_spine"] = spine
     apply_cleanup_artifacts(doc, job)
+    apply_draft_qc(doc, job, settings=settings, store=store)
     doc["spent_micros"] = int(doc.get("spent_micros") or 0) + int(job.cost_micros or 0)
     remaining = _remaining(doc)
     if remaining <= 0:

@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-08 06:00 | handoff | agent-handoffs.md#2026-09-08-06:00 | current | stage-1a, relight, coverage, camera, revision, draft-first, edd | Remaining Stage 1a lookers + Omni EDD green; Coverage one-video Omni edit; owner commit+push |
+| 2026-09-08 | state | current-state.md | current | stage-1a | Relight/Coverage/Camera inspect 3×1.0 and Omni 9/9; D-11 Visual QC; D-15 alignment |
 | 2026-09-07 22:10 | handoff | agent-handoffs.md#2026-09-07-22:10 | current | walk-away, orchestrator, spend, finishing | Mix then pickups jobs; leftover Gemini looks; orchestrator ranks with spine notes |
 | 2026-09-07 20:41 | handoff | agent-handoffs.md#2026-09-07-20:41 | current | ingest-adk, handoff, finishing | Ingest ADK look + handoff repair; fields on every agent; owner commit+push |
 | 2026-09-07 | handoff | agent-handoffs.md#2026-09-07-1738 | current | d-9, omni, stage-1a, coverage | D-9 Omni 6/6 draft+master PASS; Stage 1a stations in tree; make check blocked on 74% coverage |

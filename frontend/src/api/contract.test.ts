@@ -38,6 +38,13 @@ describe.skipIf(!live)("live /api/v1 contract", () => {
     }
   });
 
+  it("rejects unauthenticated run-pulse with the error envelope (C-5.2)", async () => {
+    const response = await fetch(`${base}/api/v1/projects/g1/run-pulse`);
+    expect(response.status).toBe(401);
+    const body = (await response.json()) as { error?: { code?: string } };
+    expect(body.error?.code).toBe("unauthorized");
+  });
+
   it("does not leave other routes open without a key", async () => {
     const response = await fetch(`${base}/api/v1/projects`);
     expect(response.status).toBe(401);

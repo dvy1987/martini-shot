@@ -1,0 +1,89 @@
+{
+  "apiVersion": 1,
+  "groups": [
+    {
+      "orgId": 1,
+      "name": "martini-shot-run-pulse",
+      "folder": "Martini Shot",
+      "interval": "1m",
+      "rules": [
+        {
+          "uid": "pc-station-fail-rate",
+          "title": "Station failure rate high",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 600, "to": 0 },
+              "datasourceUid": "grafanacloud-prom",
+              "model": {
+                "expr": "sum(rate(pc_job_outcome_total{outcome=~\"fail|failed|quarantined\"}[10m])) / sum(rate(pc_job_outcome_total[10m]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "model": {
+                "type": "threshold",
+                "conditions": [
+                  {
+                    "evaluator": { "params": [0.25], "type": "gt" },
+                    "operator": { "type": "and" },
+                    "query": { "params": ["A"] }
+                  }
+                ]
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "OK",
+          "for": "5m",
+          "annotations": {
+            "summary": "Martini Shot factory failure rate exceeded 25% over 10m."
+          },
+          "labels": { "service": "martini-shot" }
+        },
+        {
+          "uid": "pc-spend-80",
+          "title": "AI spend approaching daily cap (80%)",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "relativeTimeRange": { "from": 86400, "to": 0 },
+              "datasourceUid": "grafanacloud-prom",
+              "model": {
+                "expr": "sum(increase(pc_job_cost_micros_sum[1d])) / 500000000",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200
+              }
+            },
+            {
+              "refId": "C",
+              "datasourceUid": "__expr__",
+              "model": {
+                "type": "threshold",
+                "conditions": [
+                  {
+                    "evaluator": { "params": [0.8], "type": "gt" },
+                    "operator": { "type": "and" },
+                    "query": { "params": ["A"] }
+                  }
+                ]
+              }
+            }
+          ],
+          "noDataState": "OK",
+          "execErrState": "OK",
+          "for": "10m",
+          "annotations": {
+            "summary": "Martini Shot spend crossed 80% of the $500 daily cap (C-7.1)."
+          },
+          "labels": { "service": "martini-shot" }
+        }
+      ]
+    }
+  ]
+}

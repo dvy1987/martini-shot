@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects } from "@/api/endpoints";
+import { getJob, getProject, getRunPulse, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
 
@@ -13,8 +13,10 @@ vi.mock("@/api/endpoints", async (importOriginal) => {
     getJob: vi.fn(),
     getProject: vi.fn(),
     getWorklist: vi.fn(),
+    getRunPulse: vi.fn(),
     listProjectShots: vi.fn(),
     listProjects: vi.fn(),
+    listScripts: vi.fn(),
     ingestClip: vi.fn(),
     startFinish: vi.fn(),
     listDeliberations: vi.fn(),
@@ -64,7 +66,9 @@ function mockBoard() {
   vi.mocked(getProject).mockResolvedValue(observedProject);
   vi.mocked(getJob).mockResolvedValue(observedJob);
   vi.mocked(listProjectShots).mockResolvedValue([]);
+  vi.mocked(listScripts).mockResolvedValue([]);
   vi.mocked(getWorklist).mockRejectedValue(new Error("no worklist"));
+  vi.mocked(getRunPulse).mockRejectedValue(new Error("no pulse"));
   vi.mocked(listDeliberations).mockResolvedValue([]);
 }
 
@@ -111,5 +115,20 @@ describe("TimelineRoute investigation flow", () => {
     expect(await screen.findByText(/Scene 12 — chaser/)).toBeInTheDocument();
     expect(await screen.findByText("DRAFT")).toBeInTheDocument();
     expect(listProjectShots).toHaveBeenCalledWith("project-1");
+  });
+
+  it("renders run pulse headlines from the Grafana-backed endpoint", async () => {
+    mockBoard();
+    vi.mocked(getRunPulse).mockResolvedValue({
+      project_id: "project-1",
+      grafana: "ok",
+      factory: { verdict: "healthy", headline: "Factory looks healthy." },
+      burn: { headline: "No metered work on this dump yet.", top: [] },
+      eta: { headline: "Nothing left in the worklist.", eta_seconds: 0, remaining_items: 0 },
+      wheel: { items: [] },
+    });
+    renderRoute();
+    expect(await screen.findByText(/factory looks healthy/i)).toBeInTheDocument();
+    expect(getRunPulse).toHaveBeenCalledWith("project-1");
   });
 });

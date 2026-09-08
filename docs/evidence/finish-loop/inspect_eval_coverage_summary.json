@@ -1,0 +1,32 @@
+{
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 1.0,
+      "hits": 3,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": true
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 1.0,
+      "hits": 3,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": true
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 1.0,
+      "hits": 3,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": true
+    }
+  ],
+  "stations": [
+    "coverage"
+  ],
+  "estimate_micros": 1350000
+}

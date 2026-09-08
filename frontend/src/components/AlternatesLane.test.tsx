@@ -102,6 +102,9 @@ describe("AlternatesLane", () => {
     expect(screen.getByRole("form", { name: /extend/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /propose extend/i })).toBeInTheDocument();
     expect(screen.getByRole("form", { name: /corrections/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /relight/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /coverage/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /camera language/i })).toBeInTheDocument();
     expect(
       screen.getByText(/locked cut — extend is blocked/i),
     ).toBeInTheDocument();

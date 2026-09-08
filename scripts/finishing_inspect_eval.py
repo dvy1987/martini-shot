@@ -100,6 +100,7 @@ def run_suite(
                         "eval_id": row["id"],
                         "shot_id": f"eval-{row['id']}",
                         "budget_micros": 50_000_000,
+                        **dict(row.get("context") or {}),
                     },
                     images=images,
                     audio=audio,

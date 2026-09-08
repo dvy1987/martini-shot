@@ -99,6 +99,7 @@ class RenderMasterIn(BaseModel):
 class ScriptVersionIn(BaseModel):
     text: str
     based_on_version_id: str | None = Field(default=None)
+    consult_agent: bool = True
 
 
 class RegenerateSpansIn(BaseModel):
@@ -322,6 +323,9 @@ def install_spine_routes(
                 "eval_scores": row.get("eval_scores"),
                 "tier": row.get("tier") or "draft",
                 "status": row.get("status"),
+                "draft_state": row.get("draft_state"),
+                "visual_qc": row.get("visual_qc"),
+                "cost_delta_micros": row.get("cost_delta_micros"),
                 "created_at": row.get("created_at"),
             }
             for row in rows
@@ -612,6 +616,37 @@ def install_spine_routes(
         previous_id = body.based_on_version_id
         diffs: list[dict[str, Any]] = []
         affected: list[dict[str, Any]] = []
+        agent_payload: dict[str, Any] | None = None
+        alignment_cost = 0
+        shot_rows = store.list_where(shots.SHOTS, "project_id", project_id)
+        shot_bags = [
+            {
+                "shot_id": str(row.get("shot_id") or row.get("id") or ""),
+                "spoken_words": (row.get("scene_understanding") or {}).get(
+                    "spoken_words"
+                )
+                if isinstance(row.get("scene_understanding"), dict)
+                else None,
+                "scene": (row.get("scene_understanding") or {}).get("scene")
+                if isinstance(row.get("scene_understanding"), dict)
+                else None,
+            }
+            for row in shot_rows
+            if str(row.get("shot_id") or row.get("id") or "")
+        ]
+        if body.consult_agent and settings is not None and shot_bags:
+            from backend.supervisor.station_agents.revision_room import decide_alignment
+
+            try:
+                spans, alignment_cost = decide_alignment(
+                    settings, script_text=body.text, shots=shot_bags
+                )
+                if spans:
+                    revision.persist_alignment(
+                        store, version_id=str(version["version_id"]), spans=spans
+                    )
+            except Exception:
+                log.exception("revision alignment Gemini call failed")
         if previous_id:
             previous = store.get_doc(revision.VERSIONS, previous_id) or {}
             span_diffs = revision.diff_spans(str(previous.get("text") or ""), body.text)
@@ -625,10 +660,35 @@ def install_spine_routes(
                 }
                 for item in span_diffs
             ]
-            affected = revision.affected_spans(
-                span_diffs, revision.get_alignment(store, previous_id)
-            )
-        return {**version, "diffs": diffs, "affected": affected}
+            alignment_spans = revision.get_alignment(store, str(version["version_id"]))
+            if not alignment_spans:
+                alignment_spans = revision.get_alignment(store, previous_id)
+            affected = revision.affected_spans(span_diffs, alignment_spans)
+            if body.consult_agent and settings is not None:
+                from backend.supervisor.station_agents.revision_room import (
+                    decide_revision_room,
+                )
+
+                try:
+                    decision, cost = decide_revision_room(
+                        settings,
+                        old_text=str(previous.get("text") or ""),
+                        new_text=body.text,
+                        diffs=diffs,
+                        affected=affected,
+                    )
+                    agent_payload = {
+                        "name": "revision_room",
+                        "decision": decision.decision,
+                        "rationale": decision.reason,
+                        "cost_micros": cost + alignment_cost,
+                    }
+                except Exception:
+                    log.exception("revision impact Gemini call failed")
+        payload = {**version, "diffs": diffs, "affected": affected}
+        if agent_payload is not None:
+            payload["agent"] = agent_payload
+        return payload
 
     @app.post("/api/v1/projects/{project_id}/scripts/{version_id}/regenerate")
     def propose_regenerate(

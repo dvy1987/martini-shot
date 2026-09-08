@@ -422,3 +422,244 @@ def test_corrections_clean_clip_is_ok_with_no_job() -> None:
         shot_id="shot-clean",
     )
     assert jobs == []
+
+
+def test_relight_looker_has_must_nice_and_leave_buckets() -> None:
+    agent = build_station_agent(
+        "relight",
+        settings=None,
+        context={"clip_uri": "gs://b/dark.mp4"},
+    )
+    text = str(agent.instruction).lower()
+    assert agent.name == "finish_relight"
+    assert "must" in text
+    assert "leave" in text or "status=ok" in text
+    assert "preset" in text
+    assert "do not propose" in text or "no proposal" in text
+    assert "already matches" in text
+
+
+def test_relight_inspect_stamps_named_preset_and_draft() -> None:
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "relight",
+                "status": "needs_work",
+                "impact": "high",
+                "kind": "defect",
+                "summary": "Faces lost in shadow",
+            }
+        ),
+        "relight",
+    )
+    assert note.proposal["station"] == "relight"
+    assert note.proposal["args"]["tier"] == "draft"
+    assert note.proposal["args"]["preset"] == "practical_lamp"
+
+
+def test_relight_leave_it_is_ok_with_no_job() -> None:
+    from backend.supervisor.finishing_loop import jobs_from_notes
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "relight",
+                "status": "ok",
+                "impact": "none",
+                "kind": "none",
+                "summary": "Lighting already matches; faces readable.",
+                "cost_estimate_micros": 0,
+            }
+        ),
+        "relight",
+    )
+    assert note.status == "ok"
+    assert note.proposal == {}
+    jobs = jobs_from_notes(
+        [note],
+        project_id="p",
+        source_uri="gs://b/florist.mp4",
+        shot_id="shot-lit",
+    )
+    assert jobs == []
+
+
+def test_relight_finishing_job_carries_preset() -> None:
+    from backend.supervisor.finishing_loop import jobs_from_notes
+    from backend.supervisor.inspect import validate_inspect_note
+
+    note = validate_inspect_note(
+        {
+            "station": "relight",
+            "agent": "relight",
+            "status": "needs_work",
+            "impact": "high",
+            "kind": "defect",
+            "summary": "Faces unreadable",
+            "cost_estimate_micros": 3_000_000,
+            "proposal": {
+                "kind": "station_job",
+                "station": "relight",
+                "args": {"preset": "noir"},
+            },
+            "shot_id": "shot-dark",
+        }
+    )
+    jobs = jobs_from_notes(
+        [note],
+        project_id="p",
+        source_uri="gs://b/dark.mp4",
+        shot_id="shot-dark",
+    )
+    assert len(jobs) == 1
+    assert jobs[0].station == "relight"
+    assert jobs[0].result["preset"] == "noir"
+    assert jobs[0].result["tier"] == "draft"
+
+
+def test_coverage_looker_has_must_nice_and_leave_buckets() -> None:
+    agent = build_station_agent(
+        "coverage",
+        settings=None,
+        context={"clip_uri": "gs://b/cafe.mp4"},
+    )
+    text = str(agent.instruction).lower()
+    assert "must" in text
+    assert "geography" in text
+    assert "leave" in text or "status=ok" in text
+    assert "do not propose" in text or "no proposal" in text
+    assert "two-shot" in text or "ots" in text
+    assert "hands" in text or "insert" in text
+
+
+def test_coverage_inspect_uses_clip_as_subject_reference() -> None:
+    from backend.supervisor.finishing_loop import jobs_from_notes
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "coverage",
+                "status": "needs_work",
+                "impact": "medium",
+                "kind": "defect",
+                "summary": "Cannot tell where we are",
+            }
+        ),
+        "coverage",
+    )
+    assert note.proposal["args"]["angle"] in {
+        "reverse_angle",
+        "close_up",
+        "wide_establishing",
+        "over_the_shoulder",
+        "insert",
+    }
+    jobs = jobs_from_notes(
+        [note],
+        project_id="p",
+        source_uri="gs://b/cafe.mp4",
+        shot_id="shot-geo",
+    )
+    assert jobs[0].result["reference_uris"] == ["gs://b/cafe.mp4"]
+    assert jobs[0].result["tier"] == "draft"
+
+
+def test_coverage_leave_it_is_ok_with_no_job() -> None:
+    from backend.supervisor.finishing_loop import jobs_from_notes
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "coverage",
+                "status": "ok",
+                "impact": "none",
+                "kind": "none",
+                "summary": "Geography already clear.",
+                "cost_estimate_micros": 0,
+            }
+        ),
+        "coverage",
+    )
+    assert (
+        jobs_from_notes(
+            [note],
+            project_id="p",
+            source_uri="gs://b/florist.mp4",
+            shot_id="shot-cov",
+        )
+        == []
+    )
+
+
+def test_camera_language_looker_has_must_nice_and_leave_buckets() -> None:
+    agent = build_station_agent(
+        "camera_language",
+        settings=None,
+        context={
+            "clip_uri": "gs://b/table.mp4",
+            "requested_movement": "dolly_tracking",
+        },
+    )
+    text = str(agent.instruction).lower()
+    assert "must" in text
+    assert "leave" in text or "status=ok" in text
+    assert "dolly" in text or "vocabulary" in text
+    assert "still life" in text or "dialogue" in text
+    assert "do not invent a dolly" in text
+
+
+def test_camera_language_inspect_stamps_movement() -> None:
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "camera_language",
+                "status": "needs_work",
+                "impact": "low",
+                "kind": "improvement",
+                "summary": "Locked-off; a motivated dolly would help",
+                "proposal": {
+                    "kind": "station_job",
+                    "station": "camera_language",
+                    "args": {"movement": "dolly_tracking"},
+                },
+            }
+        ),
+        "camera_language",
+    )
+    assert note.proposal["args"]["movement"] == "dolly_tracking"
+    assert note.proposal["args"]["tier"] == "draft"
+
+
+def test_camera_language_leave_it_is_ok_with_no_job() -> None:
+    from backend.supervisor.finishing_loop import jobs_from_notes
+    from backend.supervisor.inspect_impl import parse_inspect_text
+
+    note = parse_inspect_text(
+        json.dumps(
+            {
+                "station": "camera_language",
+                "status": "ok",
+                "impact": "none",
+                "kind": "none",
+                "summary": "This still life should stay locked-off.",
+                "cost_estimate_micros": 0,
+            }
+        ),
+        "camera_language",
+    )
+    assert (
+        jobs_from_notes(
+            [note],
+            project_id="p",
+            source_uri="gs://b/florist.mp4",
+            shot_id="shot-cam",
+        )
+        == []
+    )

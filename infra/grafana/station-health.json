@@ -1,0 +1,53 @@
+{
+  "uid": "pc-station-health",
+  "title": "Martini Shot Station Health",
+  "tags": ["martini-shot", "run-pulse", "factory"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Factory — job outcomes",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "grafanacloud-prom" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (station, outcome) (rate(pc_job_outcome_total[1h]))",
+          "legendFormat": "{{station}} {{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Duration p50 by station (when wrap)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "grafanacloud-prom" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.5, sum by (le, station) (rate(pc_job_duration_seconds_bucket[1h])))",
+          "legendFormat": "{{station}}"
+        }
+      ]
+    }
+  ]
+}

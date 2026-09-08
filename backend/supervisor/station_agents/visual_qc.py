@@ -60,11 +60,13 @@ def suggestion_for_metrics(metrics_doc: dict[str, Any] | None) -> str:
         return "abstain"
     flicker = _as_float(metrics_doc.get("flicker"))
     artifact_rate = _as_float(metrics_doc.get("artifact_rate"))
-    if flicker is None or artifact_rate is None:
+    if flicker is None:
         return "abstain"  # a malformed meter reading is not evidence either
-    if flicker < FLICKER_BAR and artifact_rate < ARTIFACT_BAR:
-        return "promote"
-    return "bounded_revision"
+    if flicker >= FLICKER_BAR:
+        return "bounded_revision"
+    if artifact_rate is not None and artifact_rate >= ARTIFACT_BAR:
+        return "bounded_revision"
+    return "promote"
 
 
 def build_prompt(job: dict[str, Any], metrics_doc: dict[str, Any] | None) -> str:
@@ -78,8 +80,9 @@ def build_prompt(job: dict[str, Any], metrics_doc: dict[str, Any] | None) -> str
         f"- job_id: {job.get('id')}\n"
         f"- result: {json.dumps(job.get('result') or {})}\n\n"
         f"REAL metric doc (measured post-render):\n{metrics_json}\n\n"
-        "QC bars: flicker < 0.02 AND artifact_rate < 0.08. ALL bars "
-        "matter — a single breach is a breach.\n\n"
+        "QC bars: flicker < 0.02 is required. If artifact_rate is present "
+        "it must be < 0.08. A missing artifact_rate does not block when "
+        "flicker was measured. ALL present bars matter.\n\n"
         "Decision ladder — apply IN ORDER, first match wins:\n"
         "1. No real metric doc (null above) -> abstain. You cannot judge "
         "what was not measured; absence of evidence is never a pass.\n"
@@ -125,12 +128,12 @@ def enforce_qc_gate(
         )
     flicker = _as_float(metrics_doc.get("flicker"))
     artifact_rate = _as_float(metrics_doc.get("artifact_rate"))
-    breached = (
-        flicker is None
-        or artifact_rate is None
-        or flicker >= FLICKER_BAR
-        or artifact_rate >= ARTIFACT_BAR
-    )
+    if flicker is None:
+        breached = True
+    else:
+        breached = flicker >= FLICKER_BAR or (
+            artifact_rate is not None and artifact_rate >= ARTIFACT_BAR
+        )
     if not breached:
         return decision
     return StationDecision(

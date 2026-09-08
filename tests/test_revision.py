@@ -92,3 +92,42 @@ def test_revision_agent_abstains_without_impact() -> None:
     )
     assert decision.decision == "abstain"
     assert decision.overridden is True
+
+
+def test_alignment_parser_keeps_known_shots_only() -> None:
+    import json
+
+    from backend.supervisor.station_agents.revision_room import parse_alignment_spans
+
+    script = "I'll take the usual, thanks."
+    spans = parse_alignment_spans(
+        json.dumps(
+            {
+                "agent": "revision_room",
+                "spans": [
+                    {
+                        "span_id": "sp-1",
+                        "start_char": 0,
+                        "end_char": len(script),
+                        "shot_id": "shot-table",
+                        "language": "en",
+                        "reason": "matches spoken words",
+                    },
+                    {
+                        "span_id": "sp-x",
+                        "start_char": 0,
+                        "end_char": 4,
+                        "shot_id": "invented",
+                        "language": "en",
+                    },
+                ],
+                "reason": "mapped from ingest",
+                "confidence": "high",
+            }
+        ),
+        script_text=script,
+        shot_ids={"shot-table"},
+    )
+    assert len(spans) == 1
+    assert spans[0]["shot_id"] == "shot-table"
+    assert spans[0]["end_char"] == len(script)

@@ -30,17 +30,26 @@ def job_span(station: str, job_id: str, project_id: str) -> Iterator[object]:
         yield span
 
 
+def job_metric_labels(station: str, project_id: str | None = None) -> dict[str, str]:
+    """PromQL slice: station always; project_id when the dump is known."""
+    labels = {"station": station}
+    if project_id:
+        labels["project_id"] = project_id
+    return labels
+
+
 def record_job(
     station: str,
     *,
     duration_s: float,
     cost_micros: int,
     outcome: str,
+    project_id: str | None = None,
 ) -> None:
-    labels = {"station": station}
+    labels = job_metric_labels(station, project_id)
     _duration.record(duration_s, labels)
     _cost.record(float(cost_micros), labels)
-    _outcome.add(1, {"station": station, "outcome": outcome})
+    _outcome.add(1, {**labels, "outcome": outcome})
 
 
 def record_loudness(station: str, lufs: float) -> None:

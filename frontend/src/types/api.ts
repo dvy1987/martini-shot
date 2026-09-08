@@ -133,6 +133,9 @@ export interface Alternate {
   eval_scores?: Record<string, number> | null;
   tier?: "draft" | "master" | string | null;
   status?: "draft" | "continuity" | "retired" | (string & {}) | null;
+  draft_state?: string | null;
+  visual_qc?: string | null;
+  cost_delta_micros?: number | null;
   created_at?: string | null;
 }
 
@@ -199,4 +202,37 @@ export interface Worklist {
   final_refs: string[];
   original_refs: string[];
   rank_reason?: string;
+}
+
+/** GET /api/v1/projects/{id}/run-pulse — Grafana MCP + Firestore, no LLM. */
+export type GrafanaReach = "ok" | "unavailable";
+export type FactoryVerdict = "healthy" | "degraded" | "unknown";
+
+export interface RunPulseTopBurn {
+  job_id: string;
+  station: string;
+  cost_micros: number;
+  why: string;
+}
+
+export interface RunPulseWheelItem {
+  at: string;
+  kind: string;
+  text: string;
+  job_id?: string | null;
+  evidence_url?: string;
+}
+
+export interface RunPulse {
+  project_id: string;
+  grafana: GrafanaReach;
+  factory: { verdict: FactoryVerdict; headline: string; evidence_url?: string };
+  burn: { headline: string; top: RunPulseTopBurn[]; evidence_url?: string };
+  eta: {
+    headline: string;
+    eta_seconds: number | null;
+    remaining_items: number;
+    evidence_url?: string;
+  };
+  wheel: { items: RunPulseWheelItem[] };
 }

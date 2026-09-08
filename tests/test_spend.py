@@ -84,6 +84,12 @@ def test_throttle_writes_approval_and_grafana() -> None:
     names = [name for name, _ in session.calls]
     assert "create_annotation" in names or "add_annotation" in names
     assert "create_incident" in names
+    ann_args = next(
+        args
+        for name, args in session.calls
+        if name in {"create_annotation", "add_annotation"}
+    )
+    assert "project:g2" in (ann_args.get("tags") or [])
 
 
 def test_throttle_survives_grafana_outage() -> None:

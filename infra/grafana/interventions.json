@@ -1,0 +1,44 @@
+{
+  "uid": "pc-interventions",
+  "title": "Martini Shot Interventions",
+  "tags": ["martini-shot", "run-pulse", "wheel"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-7d", "to": "now" },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 0,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": false,
+        "iconColor": "yellow",
+        "name": "Grabbed the wheel",
+        "type": "tags",
+        "tags": ["martini-shot"]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "annolist",
+      "title": "Grabbed the wheel",
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "limit": 50,
+        "navigateAfter": "10m",
+        "navigateBefore": "10m",
+        "navigateToPanel": true,
+        "onlyFromThisDashboard": false,
+        "onlyInTimeRange": false,
+        "showTags": true,
+        "showTime": true,
+        "showUser": false,
+        "tags": ["martini-shot"]
+      }
+    }
+  ]
+}

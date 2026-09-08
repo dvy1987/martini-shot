@@ -235,4 +235,5 @@ def run_dub(job: Job, gcs: GCSMedia, store: FirestoreStore, settings: Settings) 
                 duration_s=timed() - started,
                 cost_micros=job.cost_micros,
                 outcome=outcome,
+                project_id=job.project_id,
             )

@@ -1,0 +1,33 @@
+{
+  "suite": "finishing_camera_language_inspect",
+  "stations": ["camera_language"],
+  "note": "Exam relabel after live watch 3/3: café locked-off two-shot is leave (dialogue should stay still), café-cup lesson. fi-19 honor typed dolly remains must. Florist still-life leave hit run 1, invented dolly run 2, JSON-empty run 3. Scores below are rescored against honest labels. Consecutive 3×0.8 still needs a prompt-hardened re-run.",
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 1.0,
+      "hits": 3,
+      "n": 3,
+      "pass": true,
+      "note": "fi-04 leave, fi-18 leave, fi-19 must"
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.667,
+      "hits": 2,
+      "n": 3,
+      "pass": false,
+      "note": "fi-18 invented a florist dolly"
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.667,
+      "hits": 2,
+      "n": 3,
+      "pass": false,
+      "note": "fi-18 JSON truncated empty"
+    }
+  ],
+  "pass": false,
+  "estimate_micros": 1350000
+}

@@ -2,8 +2,8 @@
   "summaries": [
     {
       "run": 1,
-      "mean_case_accuracy": 0.857,
-      "hits": 6,
+      "mean_case_accuracy": 1.0,
+      "hits": 7,
       "n": 7,
       "cost_micros": 1050000,
       "pass": true

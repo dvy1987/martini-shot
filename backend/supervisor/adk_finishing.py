@@ -24,6 +24,49 @@ from backend.supervisor.inspect_impl import run_inspect, station_inspect_prompt
 
 log = logging.getLogger("pc.finishing.adk")
 
+_LOOKER_RAILS = {
+    "extend": (
+        " D-9: must / nice / leave. MUST = dies mid-thought "
+        "(defect). NICE = breath of air (low improvement). LEAVE = "
+        "already complete (status=ok, do not propose). Draft "
+        "alternate only when needs_work. Never overwrite a locked "
+        "cut."
+    ),
+    "corrections": (
+        " D-10: must / nice / leave. MUST = wrong signage or "
+        "graphic (defect). NICE = unmotivated prop (improvement). "
+        "LEAVE = nothing to fix (status=ok, do not propose). Draft "
+        "alternate only when needs_work. Never overwrite a locked "
+        "cut."
+    ),
+    "relight": (
+        " E-1: must / nice / leave. MUST = unreadable faces or "
+        "inconsistent lighting (defect). NICE = prettier lamp (low "
+        "improvement). LEAVE = lighting already matches (status=ok, "
+        "do not propose). Name a preset from looking. Draft "
+        "alternate only when needs_work. Never overwrite a locked "
+        "cut."
+    ),
+    "coverage": (
+        " D-12: must / nice / leave. MUST = missing geography "
+        "(defect). NICE = extra insert/OTS/reverse for a two-shot "
+        "or hands-at-work. LEAVE = a wide that already tells us "
+        "where we are (status=ok, do not propose). Name an angle "
+        "and use this clip as the subject reference. Draft "
+        "alternate only when needs_work. Never overwrite a locked "
+        "cut."
+    ),
+    "camera_language": (
+        " D-16: must / nice / leave. MUST = honor a typed camera "
+        "move the picture ignores (defect). NICE = motivated move "
+        "when action asks for it. LEAVE = dialogue two-shots, still "
+        "lifes, and shots that should stay still (status=ok, do not "
+        "propose). Do not invent a dolly on a still life. Name a "
+        "vocabulary move. Draft alternate only when needs_work. Never "
+        "overwrite a locked cut."
+    ),
+}
+
 APP_NAME = "martini-shot-finishing"
 ORCHESTRATOR_NAME = "finishing_orchestrator"
 
@@ -115,24 +158,7 @@ def build_station_agent(
             + f"\nCall look_{station} and return that JSON unchanged "
             "unless you genuinely improve impact/kind with taste. "
             "The tool watches extracted frames and audio from the clip."
-            + (
-                " D-9: must / nice / leave. MUST = dies mid-thought "
-                "(defect). NICE = breath of air (low improvement). LEAVE = "
-                "already complete (status=ok, do not propose). Draft "
-                "alternate only when needs_work. Never overwrite a locked "
-                "cut."
-                if station == "extend"
-                else ""
-            )
-            + (
-                " D-10: must / nice / leave. MUST = wrong signage or "
-                "graphic (defect). NICE = unmotivated prop (improvement). "
-                "LEAVE = nothing to fix (status=ok, do not propose). Draft "
-                "alternate only when needs_work. Never overwrite a locked "
-                "cut."
-                if station == "corrections"
-                else ""
-            )
+            + _LOOKER_RAILS.get(station, "")
         ),
         description=f"Finishing inspect agent for {station}",
         tools=[_station_tool(station, settings, context, preview_cache)],

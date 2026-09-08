@@ -265,6 +265,22 @@ def run_proposal_phase(
             "ingested": bag.get("ingested"),
             "spoken_words": bag.get("spoken_words"),
             "scene": bag.get("scene"),
+            "neighbor_shots": [
+                {
+                    "shot_id": other_id,
+                    "upload_index": int(other_idx),
+                    "scene": (scene_by_shot.get(other_id) or {}).get("scene")
+                    if isinstance(scene_by_shot.get(other_id), dict)
+                    else None,
+                    "spoken_words": (scene_by_shot.get(other_id) or {}).get(
+                        "spoken_words"
+                    )
+                    if isinstance(scene_by_shot.get(other_id), dict)
+                    else None,
+                }
+                for other_id, other_idx in ordered_shots
+                if other_id != shot_id
+            ],
         }
         notes: list[Any]
         try:
@@ -437,3 +453,9 @@ def install_finish_routes(
         save_worklist(store, project_id, updated)
         _publish(hub, project_id, updated)
         return updated
+
+    @app.get("/api/v1/projects/{project_id}/run-pulse")
+    def get_run_pulse(project_id: str) -> dict[str, Any]:
+        from backend.supervisor.run_pulse import assemble_run_pulse
+
+        return assemble_run_pulse(store, project_id, settings=settings)

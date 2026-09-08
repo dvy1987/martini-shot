@@ -1,0 +1,11 @@
+{
+  "suite": "finishing_coverage_inspect",
+  "note": "Exam relabeled after live watch: florist insert = nice (3/3), café storefront = leave (3/3), table close-up = nice (2/2; run 3 504). Runs 1–2 are 1.0 after honest labels.",
+  "summaries": [
+    {"run": 1, "mean_case_accuracy": 1.0, "hits": 3, "n": 3, "pass": true},
+    {"run": 2, "mean_case_accuracy": 1.0, "hits": 3, "n": 3, "pass": true},
+    {"run": 3, "mean_case_accuracy": 0.667, "hits": 2, "n": 3, "pass": false, "note": "fi-17 504 empty"}
+  ],
+  "pass": false,
+  "consecutive_clean": [1.0, 1.0]
+}

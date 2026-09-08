@@ -1,5 +1,41 @@
 # Agent Handoffs
 
+## 2026-09-08 06:00 - Stage 1a remaining lookers + Omni EDD (owner commit+push)
+
+### Done
+- **E-1 Relight, D-12 Coverage, D-16 Camera Language:** walk-away lookers must/nice/leave; named preset/angle/movement from the picture. Inspect **3×1.0** on original tape. Omni quality **9/9** each (mean flicker ~0.002). Relight/Coverage/Camera drawers on Alternates lane.
+- **D-11 Draft-first:** Visual QC in the live draft loop (promote / one revision / escalate). Flicker 0.02 stays a hard gate. Draft vs master badges + cost delta.
+- **D-15 Revision Room:** live Gemini alignment (not string match). Inspect **3×1.0**. Script edit → affected spans → regenerate. UI on Timeline.
+- Exam relabels (café-cup lesson): Relight chalkboard = leave; Coverage florist insert = nice, café wide = leave; Camera café two-shot = leave (honor typed dolly remains must).
+- Coverage Omni first attempt 400 was **our** extra-video bug (`Exactly one input video`). Fixed: source clip is the only Omni edit video. Not recitation. Retry 9/9.
+
+### Debated
+- Optional dolly on a locked-off café two-shot: live watch 3/3 said leave. Relabeled the exam; did not loosen the model.
+
+### Decisions
+- Walk-away intelligence is the looker, not H-0 `suggestion_for_brief` (that path still abstains without a filled operator brief).
+- Omni edit: exactly one input video. Coverage identity lives in the prompt; stills may attach; extra mp4s are dropped.
+
+### Deferred
+- Live rank + spend-pricing 3-run (~$6, `--yes`).
+- `make check` coverage still below 90%.
+- Stretch D-13 / D-14.
+
+### Next Agent Should Know
+- Product: Omni first, Veo fallback, record `render_model` / `omni_fallback` / `omni_error`. Eval: original deficit tape; Veo-finished ≠ Omni pass; if Omni fails in eval, tell the owner.
+- Quality harness: `scripts/stage1a_quality_eval.py --station relight|coverage|camera_language`. Inspect: `scripts/finishing_inspect_eval.py --stations … --runs 3`.
+- Do not regenerate kitchen/florist/café already on GCS `original-probes/`.
+
+### Revisit Triggers
+- Inspect JSON truncation / Vertex 504 emptying a row (fails the 0.8 consecutive gate; empty ≠ all-good).
+- Omni recitation on original tape during eval — stop, do not pass on Veo.
+
+### Working Tree
+- Owner asked commit+push of this dirty tree (Stage 1a stations + Run Pulse Grafana + evidence).
+
+### Graph
+- `build_graph.py --incremental` hung with no output; killed so commit+push is not blocked.
+
 ## 2026-09-07 22:10 - Walk-away: mix then pickups, then leftover Gemini looks + orchestrator
 
 ### Done

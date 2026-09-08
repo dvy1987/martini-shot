@@ -79,5 +79,9 @@
 | 2026-09-07 21:55 | eval-pipeline | docs/evals/2026-09-07-walkaway-orchestrator-eval-pipeline.md | Live Gemini rank + spend pricing; bar 0.8 |
 | 2026-09-07 21:55 | memory-decision | docs/memory/decision-log.md | Walk-away: leftover Gemini looks only after all pickups; orchestrator ranks with spine notes |
 | 2026-09-07 22:10 | memory-handoff | agent-handoffs.md#2026-09-07-22:10 | Walk-away wiring; owner commit+push |
+| 2026-09-07 22:30 | test-driven-development | tests/test_run_pulse.py tests/test_provision_grafana.py frontend/src/components/RunPulse.test.tsx | TDD: Run Pulse Grafana user jobs (factory/burn/ETA/wheel) + dashboards-as-code |
+| 2026-09-07 22:45 | test-driven-development | tests/test_adk_finishing.py tests/test_draft_first.py tests/test_revision.py frontend Relight/Coverage/Camera/RevisionRoom | TDD: Stage 1a remaining lookers must/nice/leave + Visual QC in the draft loop + script alignment parse |
+| 2026-09-08 06:00 | eval-pipeline | docs/evidence/{relight,coverage,camera_language,D-15,finish-loop}/ | Live inspect 3×1.0 + Omni quality 9/9 on original tape; Coverage extra-video 400 fixed |
+| 2026-09-08 06:00 | memory-handoff | agent-handoffs.md#2026-09-08-06:00 | Stage 1a remaining stations green; owner commit+push |
 
 

@@ -201,3 +201,27 @@ def _set_alternate_status(
         return {**doc, "status": status, "updated_at": utc_now_iso()}
 
     store.transactional_update(ALTERNATES, alternate_id, _apply)
+
+
+def stamp_alternate_qc(
+    store: FirestoreStore,
+    alternate_id: str,
+    *,
+    draft_state: str,
+    visual_qc: str,
+    cost_delta_micros: int | None = None,
+) -> None:
+    """Persist Visual QC / draft-first state onto the alternate (D-11)."""
+
+    def _apply(doc: dict[str, Any]) -> dict[str, Any]:
+        updated = {
+            **doc,
+            "draft_state": draft_state,
+            "visual_qc": visual_qc,
+            "updated_at": utc_now_iso(),
+        }
+        if cost_delta_micros is not None:
+            updated["cost_delta_micros"] = int(cost_delta_micros)
+        return updated
+
+    store.transactional_update(ALTERNATES, alternate_id, _apply)

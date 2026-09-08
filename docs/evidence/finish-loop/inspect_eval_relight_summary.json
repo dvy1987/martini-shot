@@ -1,0 +1,32 @@
+{
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 0.333,
+      "hits": 1,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": false
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.667,
+      "hits": 2,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": false
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.667,
+      "hits": 2,
+      "n": 3,
+      "cost_micros": 450000,
+      "pass": false
+    }
+  ],
+  "stations": [
+    "relight"
+  ],
+  "estimate_micros": 1350000
+}

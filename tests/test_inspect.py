@@ -152,7 +152,7 @@ def test_relight_inspect_prompt_asks_about_dark_faces() -> None:
     assert "dark" in lowered or "shadow" in lowered
 
 
-def test_parse_dark_faces_as_high_improvement() -> None:
+def test_parse_dark_faces_as_defect() -> None:
     from backend.supervisor.inspect_impl import parse_inspect_text
 
     note = parse_inspect_text(
@@ -162,7 +162,7 @@ def test_parse_dark_faces_as_high_improvement() -> None:
                 "agent": "relight",
                 "status": "needs_work",
                 "impact": "high",
-                "kind": "improvement",
+                "kind": "defect",
                 "summary": "Faces unreadable in consistent shadow",
                 "cost_estimate_micros": 3000000,
                 "proposal": {
@@ -174,8 +174,10 @@ def test_parse_dark_faces_as_high_improvement() -> None:
         ),
         "relight",
     )
-    assert note.kind == "improvement"
+    assert note.kind == "defect"
     assert note.impact == "high"
+    assert note.proposal["args"]["preset"] == "practical_lamp"
+    assert note.proposal["args"]["tier"] == "draft"
 
 
 def test_needs_work_without_proposal_gets_a_station_job() -> None:

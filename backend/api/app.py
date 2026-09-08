@@ -247,6 +247,8 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
                         job,
                         queue=app.state.queue,
                         project_id=job.project_id,
+                        settings=cfg,
+                        store=store,
                     )
                     if cleanup_finished(updated.get("items") or []) and not updated.get(
                         "proposals_started"

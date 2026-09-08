@@ -71,7 +71,13 @@ def throttle_station(
         )
         try:
             grafana_out["annotation"] = grafana.add_annotation(
-                text, tags=["martini-shot", "spend", station]
+                text,
+                tags=[
+                    "martini-shot",
+                    "spend",
+                    station,
+                    f"project:{project_id}",
+                ],
             )
             grafana_out["incident"] = grafana.create_incident(
                 title=f"Spend Control throttled {station}",

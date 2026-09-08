@@ -123,6 +123,46 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: finishing_relight_inspect
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: finishing_coverage_inspect
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: finishing_camera_language_inspect
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
+  - name: relight_quality
+    metric: mean_output_flicker
+    threshold: 0.02
+    comparison: "<"
+  - name: relight_omni_primary
+    metric: omni_render_rate
+    threshold: 1.0
+    comparison: ">="
+  - name: coverage_quality
+    metric: mean_output_flicker
+    threshold: 0.02
+    comparison: "<"
+  - name: coverage_omni_primary
+    metric: omni_render_rate
+    threshold: 1.0
+    comparison: ">="
+  - name: camera_language_quality
+    metric: mean_output_flicker
+    threshold: 0.02
+    comparison: "<"
+  - name: camera_language_omni_primary
+    metric: omni_render_rate
+    threshold: 1.0
+    comparison: ">="
+  - name: revision_alignment_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: spend_pricing_judgment
     metric: mean_case_accuracy
     threshold: 0.8

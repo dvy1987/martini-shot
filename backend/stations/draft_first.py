@@ -134,6 +134,33 @@ def evaluate_readiness(
     )
 
 
+def map_visual_qc_decision(decision: str, *, revision_count: int) -> str:
+    """Promote / one more draft / escalate. Flicker hard gate stays in Visual QC."""
+    if decision == "promote":
+        return "master_eligible"
+    if decision == "bounded_revision":
+        return "revise" if revision_count < MAX_REVISIONS else "escalate"
+    return "escalate"
+
+
+def metrics_from_job_result(result: dict[str, Any]) -> dict[str, Any] | None:
+    scores = (
+        result.get("eval_scores") if isinstance(result.get("eval_scores"), dict) else {}
+    )
+    flicker = _as_float(result.get("flicker"))
+    if flicker is None:
+        flicker = _as_float(scores.get("flicker"))
+    if flicker is None:
+        return None
+    artifact = _as_float(result.get("artifact_rate"))
+    if artifact is None:
+        artifact = _as_float(scores.get("artifact_rate"))
+    metrics: dict[str, Any] = {"flicker": flicker}
+    if artifact is not None:
+        metrics["artifact_rate"] = artifact
+    return metrics
+
+
 def cost_delta_micros(draft_cost: int, master_cost: int) -> int:
     """Actual/estimated cost delta surfaced to the FE cost-comparison badge
     (C-6.4: integer micros)."""

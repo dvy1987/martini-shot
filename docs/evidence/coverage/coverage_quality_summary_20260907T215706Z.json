@@ -1,0 +1,14 @@
+{
+  "suite": "coverage_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 0.00262,
+  "omni_render_rate": 1.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "n": 9,
+  "renders_completed": 9,
+  "pass": true,
+  "fail_reason": "",
+  "stopped": "",
+  "project_id": "proj-coverage-omni-20260907t215706z"
+}

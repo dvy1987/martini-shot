@@ -1,0 +1,40 @@
+{
+  "uid": "pc-finishing-cost",
+  "title": "Martini Shot Finishing Cost",
+  "tags": ["martini-shot", "run-pulse", "burn"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Job cost micros by station",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "grafanacloud-prom" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (station) (rate(pc_job_cost_micros_sum[1h]))",
+          "legendFormat": "{{station}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "AI cost micros (supervisor looks)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "grafanacloud-prom" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(pc_ai_cost_micros_sum[1h]))",
+          "legendFormat": "ai"
+        }
+      ]
+    }
+  ]
+}

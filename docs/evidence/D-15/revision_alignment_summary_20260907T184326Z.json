@@ -1,0 +1,31 @@
+{
+  "suite": "revision_alignment_judgment",
+  "runs": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 0.0,
+      "hits": 0,
+      "n": 3,
+      "cost_micros": 0,
+      "pass": false
+    },
+    {
+      "run": 2,
+      "mean_case_accuracy": 0.0,
+      "hits": 0,
+      "n": 3,
+      "cost_micros": 0,
+      "pass": false
+    },
+    {
+      "run": 3,
+      "mean_case_accuracy": 0.0,
+      "hits": 0,
+      "n": 3,
+      "cost_micros": 0,
+      "pass": false
+    }
+  ],
+  "mean_case_accuracy": 0.0,
+  "pass": false
+}

@@ -1,8 +1,11 @@
 import { useState } from "react";
 
 import { getAlternateMedia } from "@/api/endpoints";
+import CameraLanguageControls from "@/components/CameraLanguageControls";
 import CorrectionsControls from "@/components/CorrectionsControls";
+import CoverageControls from "@/components/CoverageControls";
 import ExtendControls from "@/components/ExtendControls";
+import RelightControls from "@/components/RelightControls";
 import type { Alternate, ShotRow } from "@/types/api";
 
 interface AlternatesLaneProps {
@@ -89,6 +92,16 @@ function AlternateCard({
             {alternate.tier}
           </span>
         ) : null}
+        {alternate.draft_state ? (
+          <span className="font-mono text-[11px] uppercase tracking-wider text-tungsten">
+            {alternate.draft_state.replace("_", " ")}
+          </span>
+        ) : null}
+        {typeof alternate.cost_delta_micros === "number" && alternate.cost_delta_micros > 0 ? (
+          <span className="font-mono text-[11px] text-ink-muted">
+            master Δ {(alternate.cost_delta_micros / 1_000_000).toFixed(2)}
+          </span>
+        ) : null}
         {alternate.artifact_ref ? (
           <button
             type="button"
@@ -165,6 +178,9 @@ function ShotCard({
       ) : null}
       <ExtendControls shot={shot} />
       <CorrectionsControls shot={shot} />
+      <RelightControls shot={shot} />
+      <CoverageControls shot={shot} />
+      <CameraLanguageControls shot={shot} />
     </li>
   );
 }

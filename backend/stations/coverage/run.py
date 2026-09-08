@@ -31,11 +31,26 @@ ANGLES: tuple[str, ...] = (
 )
 
 
+def omni_edit_refs(source_uri: str, reference_uris: Iterable[str]) -> tuple[str, ...]:
+    """Omni edit allows exactly one input video. The source clip is that
+    video. Extra mp4s (including a duplicate of the source) are dropped;
+    stills may still travel as image refs."""
+    extras: list[str] = []
+    for uri in reference_uris:
+        if not uri or uri == source_uri:
+            continue
+        if str(uri).endswith(".mp4"):
+            continue
+        extras.append(str(uri))
+    return tuple(extras)
+
+
 def build_coverage_prompt(
     *,
     angle: str,
     intent: str,
     reference_count: int,
+    extra_still_count: int = 0,
 ) -> str:
     if angle not in ANGLES:
         raise ValueError(f"unknown coverage angle {angle!r} (table: {sorted(ANGLES)})")
@@ -44,13 +59,16 @@ def build_coverage_prompt(
         raise ValueError("coverage requires explicit intent")
     if reference_count <= 0:
         raise ValueError("coverage requires at least one subject reference")
+    if extra_still_count > 0:
+        refs = f"the source video and {extra_still_count} attached still(s)"
+    else:
+        refs = "this source video (the clip is the subject reference)"
     return (
         f"Generate a new {angle.replace('_', ' ')} shot covering the same "
-        f"scene and subjects shown in the source video and the "
-        f"{reference_count} attached subject reference(s): {clean_intent}\n"
-        "Preserve subject identity exactly from the references. The new "
-        "angle must remain visually and continuity-compatible with the "
-        "source shot's lighting, wardrobe, and setting."
+        f"scene and subjects shown in {refs}: {clean_intent}\n"
+        "Preserve subject identity exactly. The new angle must remain "
+        "visually and continuity-compatible with the source shot's "
+        "lighting, wardrobe, and setting."
     )
 
 
@@ -75,23 +93,27 @@ def run_coverage(
             shot_id = str(job.result.get("shot_id") or "")
             if not shot_id:
                 raise ValueError("coverage requires result.shot_id")
-            reference_uris: Iterable[str] = tuple(
+            reference_uris: tuple[str, ...] = tuple(
                 job.result.get("reference_uris") or ()
             )
+            if not reference_uris:
+                reference_uris = (source_uri,)
             angle = str(job.result.get("angle") or "")
+            edit_refs = omni_edit_refs(source_uri, reference_uris)
             prompt = str(
                 job.result.get("prompt")
                 or build_coverage_prompt(
                     angle=angle,
                     intent=str(job.result.get("intent") or ""),
-                    reference_count=len(list(reference_uris)),
+                    reference_count=len(reference_uris),
+                    extra_still_count=len(edit_refs),
                 )
             )
             render = omni_edit(
                 settings,
                 input_uri=source_uri,
                 prompt=prompt,
-                reference_uris=tuple(reference_uris),
+                reference_uris=edit_refs,
             )
             destination_key = str(
                 job.result.get("destination_key")
@@ -164,4 +186,5 @@ def run_coverage(
                 duration_s=timed() - started,
                 cost_micros=job.cost_micros,
                 outcome=outcome,
+                project_id=job.project_id,
             )

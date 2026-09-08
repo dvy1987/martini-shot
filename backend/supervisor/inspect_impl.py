@@ -89,22 +89,52 @@ _SPECIALTY = {
         "human brief."
     ),
     "relight": (
-        "Inconsistent lighting is a defect. Consistent but too dark, faces "
-        "unreadable, eyes lost in shadow is high improvement — propose a "
-        "named preset (practical_lamp, ambient_daylight, overhead_ceiling, "
-        "noir). Already-visible scenes that could be more cinematic are low."
+        "Pick exactly one bucket. MUST: lighting that jumps between setups, "
+        "or faces unreadable / eyes lost in shadow so the audience cannot "
+        "see who is talking — status=needs_work, kind=defect, impact=high "
+        "or medium, name a preset (practical_lamp, ambient_daylight, "
+        "overhead_ceiling, noir), propose a 360p draft alternate. NICE: "
+        "faces are already readable; a prettier or more cinematic lamp "
+        "would help — status=needs_work, kind=improvement, impact=low, "
+        "name a preset, propose that draft. LEAVE: lighting already matches "
+        "the scene and faces are readable (window daylight, motivated "
+        "practicals, a lamp that already works) — status=ok, impact=none, "
+        "kind=none, do not propose, no proposal object. Never overwrite a "
+        "locked cut. You MAY name the preset from looking; do not wait for "
+        "a human to pick one."
     ),
     "coverage": (
-        "Missing geography is medium/high. A reverse, close-up, or insert "
-        "that would help the audience is an improvement even if an angle "
-        "exists. Choose reverse_angle, close_up, wide_establishing, "
-        "over_the_shoulder, or insert."
+        "Pick exactly one bucket. MUST: the audience cannot tell where we "
+        "are (missing geography) — status=needs_work, kind=defect, "
+        "impact=medium or high, name an angle (reverse_angle, close_up, "
+        "wide_establishing, over_the_shoulder, insert), use this clip as "
+        "the subject reference, propose a 360p draft alternate. NICE: "
+        "geography is already clear; a helpful extra angle would help "
+        "the editor — seated two-shots of people talking (reverse/OTS/"
+        "close-up) and craft/hands-at-work (insert) are NICE, not leave "
+        "— status=needs_work, kind=improvement, impact=low, name that "
+        "angle, propose that draft. LEAVE: only a wide or establishing "
+        "shot that already tells us where we are — status=ok, "
+        "impact=none, kind=none, do not propose, no proposal object. "
+        "Use neighbor_shots for context. Never "
+        "overwrite a locked cut. Do not wait for a human to pre-fill "
+        "reference_uris."
     ),
     "camera_language": (
-        "If the brief asks for a move, honor it. If the shot is locked-off "
-        "and a motivated move would help (dolly_tracking, steadicam, etc.), "
-        "propose it as low improvement. Do not abstain only because nobody "
-        "typed a movement."
+        "Pick exactly one bucket. MUST: the operator typed a camera move "
+        "(requested_movement in context) that the picture ignores — "
+        "status=needs_work, kind=defect, impact=medium or high, name that "
+        "vocabulary move, propose a 360p draft alternate. NICE: nobody "
+        "typed a move AND the picture has action a camera should follow "
+        "(walking, traveling with a beat) — status=needs_work, "
+        "kind=improvement, impact=low, name dolly_tracking, steadicam, or "
+        "similar from the vocabulary, propose that draft. LEAVE: intimate "
+        "dialogue two-shots, still lifes, and any shot that should stay "
+        "still — status=ok, impact=none, kind=none, do not propose, no "
+        "proposal object. Do not invent a dolly on flowers or a seated "
+        "café conversation. Vocabulary: dolly_tracking, dolly_zoom, "
+        "handheld_shaky, steadicam, whip_pan, crash_zoom, snorricam, "
+        "locked_off. Never overwrite a locked cut."
     ),
 }
 
@@ -142,6 +172,39 @@ def station_inspect_prompt(station: str, context: dict[str, Any]) -> str:
     )
 
 
+def _stamp_draft_proposal(
+    proposal: dict[str, Any], station: str, *, summary: str
+) -> dict[str, Any]:
+    """Named args come from the looker. Defaults keep the worker executable."""
+    args = dict(proposal.get("args") or {})
+    args.setdefault("tier", "draft")
+    if station == "corrections" and not str(args.get("intent") or "").strip():
+        args["intent"] = summary.strip()
+    if station == "relight":
+        from backend.stations.relight.run import PRESETS
+
+        if str(args.get("preset") or "") not in PRESETS:
+            args["preset"] = "practical_lamp"
+    if station == "coverage":
+        from backend.stations.coverage.run import ANGLES
+
+        if str(args.get("angle") or "") not in ANGLES:
+            args["angle"] = "close_up"
+        if not str(args.get("intent") or "").strip():
+            args["intent"] = (
+                summary.strip() or "new coverage angle of the same subjects"
+            )
+    if station == "camera_language":
+        from backend.stations.camera_language.run import MOVEMENTS
+
+        if str(args.get("movement") or "") not in MOVEMENTS:
+            args["movement"] = "dolly_tracking"
+    proposal["kind"] = str(proposal.get("kind") or "station_job")
+    proposal["station"] = station
+    proposal["args"] = args
+    return proposal
+
+
 def parse_inspect_text(text: str, station: str) -> InspectNote:
     stripped = text.strip()
     if not stripped.startswith("{"):
@@ -162,24 +225,18 @@ def parse_inspect_text(text: str, station: str) -> InspectNote:
             "station": station,
             "args": {},
         }
-    if station == "extend" and str(payload.get("status") or "") == "needs_work":
-        proposal = dict(payload.get("proposal") or {})
-        args = dict(proposal.get("args") or {})
-        args.setdefault("tier", "draft")
-        proposal["kind"] = str(proposal.get("kind") or "station_job")
-        proposal["station"] = "extend"
-        proposal["args"] = args
-        payload["proposal"] = proposal
-    if station == "corrections" and str(payload.get("status") or "") == "needs_work":
-        proposal = dict(payload.get("proposal") or {})
-        args = dict(proposal.get("args") or {})
-        args.setdefault("tier", "draft")
-        if not str(args.get("intent") or "").strip():
-            args["intent"] = str(payload.get("summary") or "").strip()
-        proposal["kind"] = str(proposal.get("kind") or "station_job")
-        proposal["station"] = "corrections"
-        proposal["args"] = args
-        payload["proposal"] = proposal
+    if str(payload.get("status") or "") == "needs_work" and station in {
+        "extend",
+        "corrections",
+        "relight",
+        "coverage",
+        "camera_language",
+    }:
+        payload["proposal"] = _stamp_draft_proposal(
+            dict(payload.get("proposal") or {}),
+            station,
+            summary=str(payload.get("summary") or ""),
+        )
     if payload.get("cost_estimate_micros") in (None, ""):
         payload["cost_estimate_micros"] = DEFAULT_COST_MICROS[station]
     return validate_inspect_note(payload)

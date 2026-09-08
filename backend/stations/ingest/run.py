@@ -86,4 +86,5 @@ def run_ingest(
                 duration_s=timed() - started,
                 cost_micros=job.cost_micros,
                 outcome=outcome,
+                project_id=job.project_id,
             )

@@ -22,6 +22,10 @@ Firestore, media in GCS, ADK supervisor via Grafana Cloud MCP) · React+Vite
 frontend in `frontend/` served on Replit (Firebase interim) · OpenTelemetry
 telemetry into Grafana Cloud · both deployables in this one repo.
 
+**Run Pulse dashboards (Grafana Cloud):** JSON in `infra/grafana/`. Preview with
+`python scripts/provision_grafana.py` (dry-run). Writes require owner `--yes`
+because they change the live Grafana folder via MCP (C-2.2, C-4.5).
+
 ---
 
 ## Idea lab archive

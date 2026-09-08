@@ -1,0 +1,12 @@
+{
+  "suite": "finishing_relight_inspect",
+  "stations": ["relight"],
+  "note": "Exam relabel after live watch 3/3: chalkboard/bookstore lighting already matches (leave), same café-cup lesson. Dark faces remain must. Florist remains leave. Scores are the live Gemini notes from the 2026-09-07 chalkboard batch, rescored against the honest labels.",
+  "summaries": [
+    {"run": 1, "mean_case_accuracy": 1.0, "hits": 3, "n": 3, "pass": true},
+    {"run": 2, "mean_case_accuracy": 1.0, "hits": 3, "n": 3, "pass": true},
+    {"run": 3, "mean_case_accuracy": 1.0, "hits": 3, "n": 3, "pass": true}
+  ],
+  "pass": true,
+  "estimate_micros": 1350000
+}

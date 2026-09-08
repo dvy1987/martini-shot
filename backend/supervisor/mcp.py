@@ -47,6 +47,9 @@ _TOOL_PREFERENCES: dict[str, tuple[str, ...]] = {
     "create_incident": ("create_incident",),
     "list_incidents": ("list_incidents",),
     "get_incident": ("get_incident",),
+    "generate_deeplink": ("generate_deeplink",),
+    "update_dashboard": ("update_dashboard",),
+    "create_folder": ("create_folder",),
 }
 
 
@@ -358,3 +361,12 @@ class GrafanaMcpConnector:
                 **extra,
             },
         )
+
+    def generate_deeplink(self, **extra: Any) -> dict:
+        return self.call_tool("generate_deeplink", dict(extra))
+
+    def update_dashboard(self, **extra: Any) -> dict:
+        return self.call_tool("update_dashboard", dict(extra))
+
+    def create_folder(self, **extra: Any) -> dict:
+        return self.call_tool("create_folder", dict(extra))
