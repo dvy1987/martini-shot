@@ -83,5 +83,12 @@
 | 2026-09-07 22:45 | test-driven-development | tests/test_adk_finishing.py tests/test_draft_first.py tests/test_revision.py frontend Relight/Coverage/Camera/RevisionRoom | TDD: Stage 1a remaining lookers must/nice/leave + Visual QC in the draft loop + script alignment parse |
 | 2026-09-08 06:00 | eval-pipeline | docs/evidence/{relight,coverage,camera_language,D-15,finish-loop}/ | Live inspect 3×1.0 + Omni quality 9/9 on original tape; Coverage extra-video 400 fixed |
 | 2026-09-08 06:00 | memory-handoff | agent-handoffs.md#2026-09-08-06:00 | Stage 1a remaining stations green; owner commit+push |
+| 2026-09-08 07:45 | test-driven-development | tests/test_retry_once.py tests/test_budget_loop.py | TDD: admit_retry_once hard gates + one retry_job without ACT gate |
+| 2026-09-08 07:45 | eval-rubric-design | docs/evals/2026-09-08-supervisor-retry-once-rubric.md | retry / propose / abstain; corrupt/locked/runaway known-bad |
+| 2026-09-08 07:45 | eval-pipeline | docs/evals/2026-09-08-supervisor-retry-once-eval-pipeline.md | Live Gemini + code gates; bar 0.8 × 3 |
+| 2026-09-08 09:10 | test-driven-development | tests/test_budget_loop.py tests/test_settings_route.py | TDD: rank then spend night envelope; receipt unlocks dispatch |
+| 2026-09-08 09:30 | test-driven-development | tests/test_continuity_agent.py tests/test_continuity_investigator.py tests/test_budget_loop.py tests/test_shot_locking.py | TDD: supervisor add/remove from the cut inside the night envelope |
+| 2026-09-08 09:30 | memory-decision | docs/memory/decision-log.md | Owner: supervisor may add/remove from the cut; retry_once-as-default superseded |
+| 2026-09-08 09:45 | memory-handoff | agent-handoffs.md#2026-09-08-09:45 | Ranked night spend + cut + demo A6 + live exams; owner asked batch commit |
 
 

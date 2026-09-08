@@ -1,5 +1,39 @@
 # Agent Handoffs
 
+## 2026-09-08 09:45 - Ranked night spend, cut pointer moves, demo A6, live exams
+
+### Done
+- Default autonomy is **act**: rank, then spend the $20 night envelope. `propose_only` is the kill switch. Boot writes the ranking-quality receipt to `pc-control/act-gate`.
+- `retry_once` stays a tighter mode (Gemini + hard gates). Live exam **3×1.0**.
+- Supervisor may **add/remove from the cut** (`add_to_continuity` / `remove_from_continuity`). Lock still blocks overwrite renders/retries.
+- Demo plan is the walk-away house order (AO-STATION-MAP §7 + A6). FinishBar copy matches.
+- Live finishing exams **ran**: spend-pricing **3×1.0**; rank 10-row (incl. fr-07..fr-10) **0.9 / 0.9 / 0.8**. Rank summary `cost_micros: 0` is a script meter bug, not a heuristic fallback.
+
+### Debated
+- Earlier handoff said rank/spend exams were still pending. Evidence on disk already passed; that 06:00 line was stale.
+
+### Decisions
+- `decision-log.md` — ranked night spend; supervisor cut add/remove; demo A6.
+
+### Deferred
+- `make check` coverage still below 90%.
+- `fr-05` failed 3/3 on the new rank exam (extend before loudness); mean still ≥ 0.8.
+- Stretch D-13 / D-14. Demo freeze / G5.
+
+### Next Agent Should Know
+- Do not describe live rank/spend-pricing as pending. Evidence: `docs/evidence/finish-loop/` and `docs/evidence/supervisor-retry/`.
+- Product: Omni first, Veo fallback. Eval: Veo-finished ≠ Omni pass.
+
+### Revisit Triggers
+- Owner flips `propose_only`. Live rank or spend-pricing mean < 0.8.
+- J-5 cannot film a §7 beat from the running product.
+
+### Working Tree
+- Owner asked to batch-commit this dirty tree (deploy binary, supervisor, demo, eval evidence).
+
+### Graph
+- `build_graph.py --incremental` hung again; killed so commit is not blocked.
+
 ## 2026-09-08 06:00 - Stage 1a remaining lookers + Omni EDD (owner commit+push)
 
 ### Done

@@ -1,5 +1,10 @@
 # Project Memory Index
 
+| 2026-09-08 09:45 | handoff | agent-handoffs.md#2026-09-08-09:45 | current | autonomy, continuity, demo, edd | Ranked night spend; cut add/remove; demo A6; live rank/spend/retry exams |
+| 2026-09-08 | state | current-state.md | current | autonomy, demo, edd | act default; cut pointer moves; walk-away §7; live exams green |
+| 2026-09-08 | decision | decision-log.md (cut add/remove) | current | autonomy, continuity, cut | Supervisor may add/remove from the cut inside the night envelope |
+| 2026-09-08 | decision | decision-log.md (ranked night spend) | current | autonomy, envelope, rank | Rank, then spend the $20 night envelope; propose_only is the kill switch |
+| 2026-09-08 | decision | decision-log.md (demo A6) | current | demo, walk-away, j-5 | 3-min video = ingest→mix→pickups→leftover looks→spend→orchestrator; AO §7 + A6 |
 | 2026-09-08 06:00 | handoff | agent-handoffs.md#2026-09-08-06:00 | current | stage-1a, relight, coverage, camera, revision, draft-first, edd | Remaining Stage 1a lookers + Omni EDD green; Coverage one-video Omni edit; owner commit+push |
 | 2026-09-08 | state | current-state.md | current | stage-1a | Relight/Coverage/Camera inspect 3×1.0 and Omni 9/9; D-11 Visual QC; D-15 alignment |
 | 2026-09-07 22:10 | handoff | agent-handoffs.md#2026-09-07-22:10 | current | walk-away, orchestrator, spend, finishing | Mix then pickups jobs; leftover Gemini looks; orchestrator ranks with spine notes |

@@ -1,6 +1,6 @@
 # Current State
 
-**Where:** 2026-09-08 06:00 — Stage 1a remaining stations have live Gemini lookers and original-tape Omni EDD: Relight, Coverage, Camera Language (inspect 3×1.0, Omni 9/9 each), Draft-first Visual QC in the walk-away loop, Revision Room alignment. Walk-away order unchanged: ingest watch → mix → pickups → leftover looks → spend prices → orchestrator ranks.
-**In flight:** live Gemini rank + spend-pricing evals still not run (rank ~$6 needs `--yes`). `make check` coverage still below 90%.
-**Next queue:** `scripts/spend_pricing_eval.py` and `scripts/finishing_rank_eval.py`; demo freeze / G5; do not treat Veo-finished eval rows as Omni passes.
-**Full handover:** `docs/memory/agent-handoffs.md` (2026-09-08 06:00).
+**Where:** 2026-09-08 09:45 — Default autonomy is ranked spend inside the $20 night envelope (`act`; `propose_only` is the kill switch). Supervisor may add/remove from the cut. Walk-away demo is AO-STATION-MAP §7 + A6. Live exams: spend-pricing 3×1.0, finishing rank 0.9/0.9/0.8, supervisor retry-once 3×1.0.
+**In flight:** `make check` coverage still below 90%. Demo freeze / G5. Rank `fr-05` still fails (extend before loudness) but the suite mean clears 0.8.
+**Next queue:** film J-5 from the running product using §7; do not treat Veo-finished eval rows as Omni passes.
+**Full handover:** `docs/memory/agent-handoffs.md` (2026-09-08 09:45).

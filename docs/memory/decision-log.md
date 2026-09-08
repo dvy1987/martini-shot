@@ -1,5 +1,138 @@
 # Decision Log
 
+## 2026-09-08 - Supervisor may add or remove from the cut
+Status: active
+Scope: Post Supervisor + continuity + H-0 lock guard
+Confidence: high
+Tags: autonomy, continuity, cut, envelope
+
+### Decision
+The supervisor has discretion to **add a take to the cut** and **take a
+take out of the cut** (`add_to_continuity` / `remove_from_continuity`)
+inside the night envelope. A human is not required. Lock still blocks
+renders/retries that would overwrite frozen media.
+
+### Context
+2026-09-02 already put continuity adds inside the envelope. A later agent
+told the owner the supervisor would not change the cut. Owner corrected
+that: add/remove from the cut is part of ranked night spend.
+
+### Alternatives Considered
+- Keep cut changes human-only: rejected by owner.
+- Unlock the shot, then mutate, then re-lock: more dangerous than a
+  pointer move.
+
+### Revisit When
+Owner flips `propose_only`, or a cut change needs a human freeze that
+lock no longer covers.
+
+### Consequences
+- Continuity specialist is routed on needs-human, quarantine, and
+  picture stations.
+- Pointer moves may have a $0 cost estimate and still dispatch.
+- Grafana annotation trail + one-click revert still apply.
+
+---
+
+## 2026-09-08 - Rank, then spend the night envelope (owner demanded)
+Status: active
+Scope: Post Supervisor + finishing orchestrator
+Confidence: high
+Tags: autonomy, envelope, rank, spend
+
+### Decision
+The supervisor ranks work, then **spends the night envelope (default $20)
+down that list**. That is the product default. `propose_only` is the off
+switch. The ranking-quality exam already passed 3×1.0; the receipt is written
+to live `pc-control/act-gate`.
+
+### Context
+Owner had asked repeatedly to let the supervisor prioritize and spend. A
+paper receipt was left unwritten in Firestore, so ranked dispatch did nothing.
+
+### Alternatives Considered
+- Keep one-retry-only as the default: rejected by owner.
+- Wait for another rehearsal: rejected by owner.
+
+### Revisit When
+Owner flips `propose_only`, or rank quality drops below 0.8.
+
+### Consequences
+- `ensure_budgeted_spend` on app boot.
+- Envelope, daily house cap, and human-wins still bound spend.
+
+---
+
+## 2026-09-08 - Supervisor may diagnose and retry once; full ACT stays locked
+Status: superseded
+Scope: Post Supervisor autonomy (`budget_loop` + settings default)
+Confidence: high
+Tags: autonomy, retry_once, supervisor, edd
+
+### Decision
+Superseded the same day: owner demanded ranked night-envelope spend, then
+cut add/remove. `retry_once` remains a tighter mode, not the default.
+
+See: Rank, then spend the night envelope; Supervisor may add or remove
+from the cut.
+
+### Context
+Owner asked to sit the finishing rank/spend exams and to let the supervisor
+retry once after real thinking. Corrupt ingest, locked cuts, runaway loops, and
+a second supervisor retry stay code-blocked.
+
+### Alternatives Considered
+- Unlock full ACT: rejected (owner did not watch a live gate; P-5 stands).
+- Keep propose-only as the production default: rejected (owner wanted one
+  autonomous retry).
+- Heuristic retry without Gemini: rejected (fuzzy transient-vs-permanent needs
+  live Gemini + EDD).
+
+### Revisit When
+The owner watches a live ACT gate, or the one-retry eval falls below 0.8.
+
+### Consequences
+- Hard gates in `admit_retry_once`; Gemini `decide_retry_once` for fuzzy rows.
+- Stamp `result.supervisor_retries` so the next cycle cannot retry again.
+
+---
+
+## 2026-09-08 - Demo plan is the walk-away house order (AO §7 + A6)
+Status: active
+Scope: demo video (J-5), AO-STATION-MAP §7, spec walk-away paragraph, FinishBar copy
+Confidence: high
+Tags: demo, walk-away, finishing, grafana
+
+### Decision
+The 3-minute demo is **walk away from a real post house**, not a station-by-station
+fault tour. Narration and on-screen beats follow AO-STATION-MAP §7: upload in
+order → ingest file check (corrupt stops) → ingest watch (script + scene) →
+**always mix** → **always pickups** on that mixed clip → wait until every clip is
+through pickups → leftover agents look in upload order → Spend prices each leftover
+→ orchestrator ranks impact, dependencies, and spine notes → run what still
+fits. Grafana moments stay on those beats. Batch volume is a **finale**, not the
+spine. J-5 records that script from the running product.
+
+### Context
+Owner locked the product sequence and asked to put that flow in the demo plan.
+The 2026-08-26 §7 table (ingest corrupt → pickups hero → dub → captions →
+delivery loudness fail) no longer matches the product.
+
+### Alternatives Considered
+- Keep the old fault-injection tour and mention walk-away in a caption: rejected
+  (owner asked to update the demo plan with this flow).
+- Make the video a season-batch heatmap first: rejected (volume sits in the finale).
+
+### Revisit When
+J-5 rehearsal shows a beat that cannot be filmed from the running product (C-1.5),
+or the owner re-cuts the house order.
+
+### Consequences
+- Spec walk-away paragraph and FinishBar copy must match §7.
+- Do not demo “every station looks at once after ingest.”
+
+---
+
 ## 2026-09-07 - Walk-away: mix then pickups, then leftover Gemini looks, then orchestrator
 Status: active
 Scope: finishing loop, ADK propose team, spend pricing, orchestrator rank
@@ -160,7 +293,8 @@ Live `finishing_rank_quality` 3-run mean is below 0.8.
 ---
 
 ## 2026-09-07 - Walk-away finishing (billed looks, taste, high/medium/low)
-Status: active
+Status: superseded (all-at-once roster looks). Taste bands still apply after
+mix and pickups. Replacement: mix-then-pickups (2026-09-07) + demo A6 (2026-09-08).
 Scope: finishing orchestrator + every existing station inspect
 Confidence: high
 Tags: finishing, adk, inspect, rank, walk-away
