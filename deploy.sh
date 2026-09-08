@@ -60,6 +60,9 @@ if 'GCP_PROJECT_ID' not in env_vars and 'GOOGLE_CLOUD_PROJECT' in env_vars:
 if 'CORS_ALLOWED_ORIGINS' not in env_vars:
     env_vars['CORS_ALLOWED_ORIGINS'] = 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173'
 
+# Always force the Linux binary path for Cloud Run deployment
+env_vars['MCP_GRAFANA_BIN'] = '/usr/bin/mcp-grafana'
+
 out.write_text(yaml.safe_dump(env_vars), encoding='utf-8')
 print(f'Prepared {len(env_vars)} runtime configuration keys for Cloud Run.')
 "

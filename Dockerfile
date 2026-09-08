@@ -22,6 +22,10 @@ COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /app/backend/requirements.txt
 
+# Download mcp-grafana Linux binary (OSS MCP fallback path)
+RUN curl -sL https://github.com/grafana/mcp-grafana/releases/download/v1.3.0/mcp-grafana_Linux_x86_64.tar.gz | tar -xz -C /usr/bin mcp-grafana && \
+    chmod +x /usr/bin/mcp-grafana
+
 # Copy application source
 COPY backend /app/backend
 
