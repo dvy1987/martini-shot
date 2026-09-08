@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "PMphpaGw3bpIRvLW3MBoX"
+uri = "file://exports/martini-shot-source.zip"
+type = "unspecified"
+title = "Martini Shot source export"
+description = "Downloadable source archive from the current Replit workspace. It contains the committed project files and no GitHub credentials or secret environment files."
+logical_id = "5a2d06e4-e9d3-46be-b74c-9017a54d9f8d"
+content_hash = "sha256:b64fe3ab095839f4a526464afeb09843096d0775a1eb5c4cb3d4743db95b108f"
+size = 35909147
+mtime_ms = 1788857229522
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/repl:f53d30af-c447-47ab-8ff0-ec2fb7adda38/5a2d06e4-e9d3-46be-b74c-9017a54d9f8d/0c619347-f38b-47b0-8d9e-f96bac6084c2"
+storage_version_token = "1788857235292188"
+content_type = "application/octet-stream"
