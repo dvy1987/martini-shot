@@ -8,6 +8,8 @@ import { ROUTES } from "@/lib/navigation";
 
 interface TopBarProps {
   connected: boolean;
+  checking: boolean;
+  streamEnabled: boolean;
   sseStatus: SseStatus;
   proposedCount: number;
   onOpenPalette: () => void;
@@ -18,6 +20,8 @@ interface TopBarProps {
 /** Charter top bar: brand, mono UTC clock, primary nav, ⌘K, slate replay, connection pill. */
 export default function TopBar({
   connected,
+  checking,
+  streamEnabled,
   sseStatus,
   proposedCount,
   onOpenPalette,
@@ -77,7 +81,12 @@ export default function TopBar({
         >
           ⌘K
         </button>
-        <ConnectionPill connected={connected} sseStatus={sseStatus} />
+        <ConnectionPill
+          connected={connected}
+          checking={checking}
+          streamEnabled={streamEnabled}
+          sseStatus={sseStatus}
+        />
       </div>
     </header>
   );

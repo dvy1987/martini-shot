@@ -170,6 +170,8 @@ export default function App() {
     <div className="flex h-dvh flex-col bg-bg text-ink">
       <TopBar
         connected={health.isSuccess}
+        checking={health.isPending}
+        streamEnabled={selectedProjectId !== null}
         sseStatus={sse.status}
         proposedCount={proposedCount}
         onOpenPalette={openPalette}
