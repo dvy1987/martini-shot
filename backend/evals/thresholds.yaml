@@ -167,6 +167,10 @@ suites:
     metric: mean_case_accuracy
     threshold: 0.8
     comparison: ">="
+  - name: supervisor_retry_judgment
+    metric: mean_case_accuracy
+    threshold: 0.8
+    comparison: ">="
   - name: ingest_transcript_judgment
     metric: mean_case_accuracy
     threshold: 0.8

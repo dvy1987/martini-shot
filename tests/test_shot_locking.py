@@ -5,9 +5,9 @@ Contract (plan task AL-1 + H-0 design "Locked-target guard"):
   eval_scores, status} attached to its shot — never a silent overwrite.
 - add/remove-from-continuity is an approval-tracked action THROUGH H-0
   (default_registry commands), not a second action path.
-- A locked shot refuses any command that targets it, centrally, at dispatch
-  time — for every caller. Only the lock/unlock commands themselves may act
-  on a locked shot (unlock is the whole point).
+- A locked shot refuses any command that would overwrite it, centrally, at
+  dispatch time — for every caller. Lock/unlock and add/remove-from-cut
+  are exempt (pointer moves are how the cut changes).
 
 Real Firestore (C-6.2), per-run collections; Harness reused from the
 executor suite.
@@ -130,35 +130,84 @@ def test_lock_and_unlock_route_through_the_executor(env, approvals_col, jobs_col
 def test_locked_shot_refuses_targeted_commands_at_dispatch(
     env, approvals_col, jobs_col
 ):
-    """The locked-target guard is central: ANY command carrying a shot_id
-    that resolves to a locked shot is refused at dispatch — for every
-    caller (human, Spend Control, H-0b loop)."""
+    """The locked-target guard is central: a render/retry carrying a shot_id
+    that resolves to a locked shot is refused at dispatch. add/remove from
+    the cut are the sanctioned pointer-move path (owner 2026-09-08)."""
     h = Harness(env, approvals_col, jobs_col)
     project_id = f"it-{uuid.uuid4().hex[:6]}"
     shot_id = _make_shot(env, project_id)
-    alternate_id = _record(env, shot_id, project_id)
+    _record(env, shot_id, project_id)
     shots.lock_shot(env, shot_id, locked_by="human-1")
 
-    promote_ap = propose_approval(
+    extend_ap = propose_approval(
         env,
         {
             "project_id": project_id,
             "kind": "fix",
-            "title": "Promote to continuity",
+            "title": "Extend a locked shot",
             "command": {
-                "name": "add_to_continuity",
-                "args": {"shot_id": shot_id, "alternate_id": alternate_id},
+                "name": "extend_shot",
+                "args": {
+                    "shot_id": shot_id,
+                    "project_id": project_id,
+                    "source_uri": "gs://b/locked.mp4",
+                },
             },
         },
         collection=approvals_col,
     )
-    out = h.machine.dispatch(promote_ap, "approve", approver="human-1")
+    out = h.machine.dispatch(extend_ap, "approve", approver="human-1")
 
     assert out["status"] == "failed"
     assert out["result"].get("locked") is True
-    assert env.get_doc(shots.ALTERNATES, alternate_id)["status"] == "draft", (
-        "a locked shot must never be mutated by a targeted command"
+
+
+def test_locked_shot_allows_add_and_remove_from_the_cut(env, approvals_col, jobs_col):
+    """Pointer moves are how the cut changes. Lock still blocks overwrites."""
+    h = Harness(env, approvals_col, jobs_col)
+    project_id = f"it-{uuid.uuid4().hex[:6]}"
+    shot_id = _make_shot(env, project_id)
+    first = _record(env, shot_id, project_id, artifact="gs://b/alt-a.mp4")
+    second = _record(env, shot_id, project_id, artifact="gs://b/alt-b.mp4")
+    shots.promote_to_continuity(env, shot_id, first)
+    shots.lock_shot(env, shot_id, locked_by="human-1")
+
+    add_ap = propose_approval(
+        env,
+        {
+            "project_id": project_id,
+            "kind": "fix",
+            "title": "Swap the cut",
+            "command": {
+                "name": "add_to_continuity",
+                "args": {"shot_id": shot_id, "alternate_id": second},
+            },
+        },
+        collection=approvals_col,
     )
+    added = h.machine.dispatch(add_ap, "approve", approver="system:supervisor_budget")
+    assert added["status"] == "resolved"
+    assert env.get_doc(shots.SHOTS, shot_id)["current_alternate_id"] == second
+
+    remove_ap = propose_approval(
+        env,
+        {
+            "project_id": project_id,
+            "kind": "fix",
+            "title": "Take it out of the cut",
+            "command": {
+                "name": "remove_from_continuity",
+                "args": {"shot_id": shot_id, "alternate_id": second},
+            },
+        },
+        collection=approvals_col,
+    )
+    removed = h.machine.dispatch(
+        remove_ap, "approve", approver="system:supervisor_budget"
+    )
+    assert removed["status"] == "resolved"
+    assert env.get_doc(shots.ALTERNATES, second)["status"] == "retired"
+    assert env.get_doc(shots.SHOTS, shot_id)["current_alternate_id"] is None
 
 
 def test_unlock_command_is_allowed_on_a_locked_shot(env, approvals_col, jobs_col):
@@ -211,28 +260,31 @@ def test_unlocked_shot_accepts_targeted_commands(env, approvals_col, jobs_col):
 def test_sweeper_never_redrives_a_command_whose_target_is_now_locked(
     env, approvals_col, jobs_col
 ):
-    """Crash-then-lock race: a crashed fast command must not replay over a
-    shot a human locked in the meantime — the guard holds at redrive time."""
+    """Crash-then-lock race: a crashed render must not replay over a shot a
+    human locked in the meantime — the guard holds at redrive time."""
     h = Harness(env, approvals_col, jobs_col)
     project_id = f"it-{uuid.uuid4().hex[:6]}"
     shot_id = _make_shot(env, project_id)
-    alternate_id = _record(env, shot_id, project_id)
+    _record(env, shot_id, project_id)
 
-    # Seed a crashed fast action (approved, no result) that promotes.
-    promote_ap = propose_approval(
+    extend_ap = propose_approval(
         env,
         {
             "project_id": project_id,
             "kind": "fix",
-            "title": "Promote",
+            "title": "Extend",
             "command": {
-                "name": "add_to_continuity",
-                "args": {"shot_id": shot_id, "alternate_id": alternate_id},
+                "name": "extend_shot",
+                "args": {
+                    "shot_id": shot_id,
+                    "project_id": project_id,
+                    "source_uri": "gs://b/alt-a.mp4",
+                },
             },
         },
         collection=approvals_col,
     )
-    doc = env.get_doc(approvals_col, promote_ap) or {}
+    doc = env.get_doc(approvals_col, extend_ap) or {}
     doc.update(
         {
             "status": "approved",
@@ -240,17 +292,15 @@ def test_sweeper_never_redrives_a_command_whose_target_is_now_locked(
             "decided_at": "2026-09-03T00:00:00.000000Z",  # stale on purpose
         }
     )
-    env.set_doc(approvals_col, promote_ap, doc)
+    env.set_doc(approvals_col, extend_ap, doc)
 
-    # A human locks the shot AFTER the action was approved.
     shots.lock_shot(env, shot_id, locked_by="human-1")
 
     sweep_once(env, h.queue, h.machine, collection=approvals_col)
 
-    after = env.get_doc(approvals_col, promote_ap)
+    after = env.get_doc(approvals_col, extend_ap)
     assert after is not None and after["status"] == "failed"
     assert after["result"].get("locked") is True
-    assert env.get_doc(shots.ALTERNATES, alternate_id)["status"] == "draft"
 
 
 def test_api_lock_route_proposes_through_h0_never_flips_directly(env) -> None:

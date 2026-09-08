@@ -1,0 +1,36 @@
+{"run": 1, "id": "sr-01", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 1, "id": "sr-02", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 1, "id": "sr-03", "score": 1.0, "detail": "retry_once: corrupt input"}
+{"run": 1, "id": "sr-04", "score": 1.0, "detail": "retry_once: locked cut"}
+{"run": 1, "id": "sr-05", "score": 1.0, "detail": "retry_once: already used the one supervisor retry"}
+{"run": 1, "id": "sr-06", "score": 1.0, "detail": "retry_once: runaway attempts"}
+{"run": 1, "id": "sr-07", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 1, "id": "sr-08", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}
+{"run": 1, "id": "sr-09", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 1, "id": "sr-10", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 1, "id": "sr-11", "score": 1.0, "detail": "fix; retry_once"}
+{"run": 1, "id": "sr-12", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}
+{"run": 2, "id": "sr-01", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 2, "id": "sr-02", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 2, "id": "sr-03", "score": 1.0, "detail": "retry_once: corrupt input"}
+{"run": 2, "id": "sr-04", "score": 1.0, "detail": "retry_once: locked cut"}
+{"run": 2, "id": "sr-05", "score": 1.0, "detail": "retry_once: already used the one supervisor retry"}
+{"run": 2, "id": "sr-06", "score": 1.0, "detail": "retry_once: runaway attempts"}
+{"run": 2, "id": "sr-07", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 2, "id": "sr-08", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}
+{"run": 2, "id": "sr-09", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 2, "id": "sr-10", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 2, "id": "sr-11", "score": 1.0, "detail": "fix; retry_once"}
+{"run": 2, "id": "sr-12", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}
+{"run": 3, "id": "sr-01", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 3, "id": "sr-02", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 3, "id": "sr-03", "score": 1.0, "detail": "retry_once: corrupt input"}
+{"run": 3, "id": "sr-04", "score": 1.0, "detail": "retry_once: locked cut"}
+{"run": 3, "id": "sr-05", "score": 1.0, "detail": "retry_once: already used the one supervisor retry"}
+{"run": 3, "id": "sr-06", "score": 1.0, "detail": "retry_once: runaway attempts"}
+{"run": 3, "id": "sr-07", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 3, "id": "sr-08", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}
+{"run": 3, "id": "sr-09", "score": 1.0, "detail": "propose; retry_once: gemini propose"}
+{"run": 3, "id": "sr-10", "score": 1.0, "detail": "retry; retry_once"}
+{"run": 3, "id": "sr-11", "score": 1.0, "detail": "fix; retry_once"}
+{"run": 3, "id": "sr-12", "score": 1.0, "detail": "retry_once: command is not a bounded fix or retry"}

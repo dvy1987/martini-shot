@@ -24,22 +24,25 @@ RELIABILITY = "reliability_investigator"
 DELIVERY_QC = "delivery_qc"
 SPEND_GUARDIAN = "spend_guardian"
 LOCALIZATION = "localization"
+CONTINUITY = "continuity"
 
 SPECIALIST_ROUTES: dict[str, list[str]] = {
     "job_failed": [RELIABILITY],
     "stuck_lease": [RELIABILITY],
     "crash_recovered": [RELIABILITY],
-    "quarantine": [RELIABILITY],
+    "quarantine": [RELIABILITY, CONTINUITY],
     "qc_breach": [DELIVERY_QC, RELIABILITY],
     "spend_breach": [SPEND_GUARDIAN, RELIABILITY],
     "runaway": [SPEND_GUARDIAN, RELIABILITY],
     "daily_budget": [SPEND_GUARDIAN, RELIABILITY],
     "dub_breach": [LOCALIZATION, RELIABILITY],
-    "pickups_needs_human": [DELIVERY_QC, RELIABILITY],
+    "pickups_needs_human": [DELIVERY_QC, RELIABILITY, CONTINUITY],
 }
 
 # Stations whose own QC verdicts are worth a Delivery QC look on failure.
 _QC_STATIONS = {"loudness", "delivery", "pickups", "captions"}
+# Stations whose jobs may need a cut add/remove, not just a retry.
+_CONTINUITY_STATIONS = {"pickups", "extend", "correct", "relight", "coverage"}
 
 
 @dataclass(frozen=True)
@@ -142,4 +145,6 @@ def route_specialists(trigger: dict[str, Any]) -> list[str]:
         and DELIVERY_QC not in specialists
     ):
         specialists.append(DELIVERY_QC)
+    if station in _CONTINUITY_STATIONS and CONTINUITY not in specialists:
+        specialists.append(CONTINUITY)
     return specialists

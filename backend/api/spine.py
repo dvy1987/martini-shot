@@ -111,7 +111,7 @@ class SettingsIn(BaseModel):
     """Partial body for PATCH /settings (H-0b round-trip): the autonomy
     toggle and the nightly envelope. Only provided fields move."""
 
-    autonomy: Literal["propose_only", "act"] | None = Field(default=None)
+    autonomy: Literal["propose_only", "retry_once", "act"] | None = Field(default=None)
     post_command_budget_micros: PositiveInt | None = Field(default=None)
 
 

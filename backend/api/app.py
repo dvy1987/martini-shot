@@ -151,6 +151,9 @@ def create_app(
         from backend.jobs.queue import FirestoreLeaseQueue
 
         store = get_firestore(cfg)
+        from backend.supervisor.budget_loop import ensure_budgeted_spend
+
+        ensure_budgeted_spend(store)
         gcs = get_gcs(cfg)
         queue = FirestoreLeaseQueue(store)
         from backend.api.spine import _grafana_annotator
@@ -189,9 +192,9 @@ async def _run_worker(app: FastAPI, cfg: Settings, hub: EventHub) -> None:
         # H-0: approval bookkeeping first (never delayed by deliberation).
         if machine is not None:
             machine.on_job_terminal(job)
-        # H-0b signal-fired deliberation: fire-and-forget, propose-only
-        # unless the ACT gate receipt is present, idempotent per job,
-        # never raises into the worker path (see supervisor/team.py).
+        # H-0b signal-fired deliberation: rank, then spend the night envelope
+        # down that list. propose_only is the kill switch. Never raises into
+        # the worker path (see supervisor/team.py).
         if store is not None and getattr(app.state, "worker_enabled", False):
             from backend.api.spine import _grafana_annotator
 

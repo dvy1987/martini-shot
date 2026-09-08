@@ -1,6 +1,6 @@
 # Pending Work — Multi-Agent Recon
 
-Updated: 2026-09-07
+Updated: 2026-09-08
 
 This document records unresolved items from the earlier implementation review.
 It is intentionally separate from the approved task plans: it is a readiness
@@ -25,62 +25,23 @@ the items below must be resolved or honestly disclosed within that release.
 
 ### P-1 — Production path does not pass the real Verification Agent
 
-`team.maybe_deliberate()` supplies the real specialist map but does not supply a
-`verifier` callback. `run_budgeted_cycle()` therefore forwards `None`, and
-`run_deliberation_cycle()` falls back to `_default_verifier`, which admits all
-findings. The verification implementation exists and is tested, but the
-running production path does not use it.
-
-Impact: the ACT-gated production path can rank actions without the intended
-independent verification pass.
-
-Required completion evidence:
-
-- Production team wiring passes the real Verification Agent.
-- A production-path test proves a verifier veto prevents ranking and dispatch.
-- A real propose-only run records the verifier verdict in `pc-deliberations`.
-
-References: `backend/supervisor/team.py`, `backend/supervisor/deliberation.py`,
-`backend/supervisor/budget_loop.py`.
+**Addressed (stale as of 2026-09-08).** `team.maybe_deliberate` passes
+`production_verifier(settings)`. Test:
+`test_maybe_deliberate_fires_one_act_cycle_per_job` asserts a callable
+verifier on the production cycle.
 
 ### P-2 — Post Supervisor synthesis is still deterministic, not agentic
 
-The specialist fan-out and Verification Agent are real Gemini calls, but the
-default post-verification synthesis remains `_default_synthesizer()`:
-fixed action ranking with `retry_job` given a hard-coded weight. There is no
-production Post Supervisor Gemini call that reconciles specialist findings,
-explains disagreement, and produces the final recommendation.
-
-The separate `backend/supervisor/station_agents/orchestrator.py` is a real
-batch station-chain planner, but it is not the Post Supervisor synthesis stage
-described in Amendment A9.
-
-Required decision/evidence:
-
-- Either implement and EDD-gate a real synthesis agent, or explicitly amend
-  the plan to define deterministic synthesis as the accepted supervisor
-  behavior.
-- If implemented, preserve deterministic schema validation, evidence
-  citations, H-0 command validation, and single-call-site AI observability.
-
-References: `backend/supervisor/deliberation.py`,
-`backend/supervisor/station_agents/orchestrator.py`,
-`docs/plans/2026-09-03-multiagent-supervisor-plan.md`.
+**Addressed (stale as of 2026-09-08).** Production passes
+`production_synthesizer(settings)` (live Gemini Post Supervisor). The finishing
+orchestrator (impact, dependencies, budget) is a separate brain and sat its
+live 3×0.8 exam on 2026-09-08 (`docs/evidence/finish-loop/rank_eval_summary.json`,
+`spend_pricing_summary.json`).
 
 ### P-3 — Daily house-cap check is still a read/check/dispatch race
 
-The nightly envelope has an atomic reservation ledger, but the daily
-Spend-Control cap still uses a local `house_spent + cost` snapshot before
-dispatch. Concurrent cycles can both pass that check and collectively exceed
-the daily cap.
-
-Required completion evidence:
-
-- A shared transactional daily-cap reservation, or an equivalent
-  transactionally enforced Spend-Control admission decision.
-- A concurrent integration test proving the daily cap cannot be exceeded.
-
-Reference: `backend/supervisor/budget_loop.py::run_budgeted_dispatch`.
+**Addressed (stale as of 2026-09-08).** `reserve_daily_cap` is transactional.
+Test: `test_parallel_daily_cap_reservations_cannot_overspend`.
 
 ### P-4 — Signal taxonomy is only partially runtime-wired
 
@@ -100,59 +61,35 @@ Required completion evidence:
 References: `backend/supervisor/case.py`,
 `backend/supervisor/team.py`.
 
-### P-5 — ACT mode has not been activated or observed live
+### P-5 — Ranked night-envelope spend was not turned on in live Firestore
 
-The current-version ACT-gate receipt exists and the code fails closed without
-it, but the receipt has deliberately not been written to the live
-`pc-control/act-gate` document. A watched real ACT rehearsal remains pending.
-
-Required completion evidence:
-
-- Owner-approved live gate activation.
-- A watched real run within the configured autonomy envelope (currently $20;
-  separate remaining Stage 1a eval/demo spend is capped at $50 by A11).
-- Grafana annotation, H-0 transition, actual cost reconciliation, and
-  rollback/revert evidence.
-
-This is an intentional release gate, not a code defect.
+**Addressed (2026-09-08, owner demanded).** Ranking eval already passed 3×1.0.
+The receipt is now written to `pc-control/act-gate` on app boot
+(`ensure_budgeted_spend`). Default settings are `act`: rank, then spend the
+$20 night envelope down that list. `propose_only` remains the kill switch.
 
 ### P-6 — H-1 evidence wording still contains stale runtime claims
 
-`docs/evidence/H-1/H-1g.md` correctly discloses the historical artifact
-problem, but its runtime-readiness paragraph still says the budget loop has
-“no production caller wired in `app.py` yet,” which is contradicted by the
-current `team.py` and `app.py` implementation.
-
-Required completion evidence:
-
-- Refresh the paragraph to describe the current production wiring.
-- Keep the honest limitations: ACT remains fail-closed and the latest full
-  shadow run had 3/4 completed cycles with zero committed vetoes.
+**Addressed (2026-09-08).** Worker hook is in `app.py`. Default is ranked
+spend inside the night envelope. The 2026-09-05 shadow run still had 3/4
+completed cycles.
 
 ### P-7 — Fire-and-forget deliberation task lifecycle needs a clean outcome
 
-`maybe_deliberate()` schedules a task and deliberately avoids blocking the
-worker. Its exception path logs and re-raises inside the detached task.
-Confirm that task failures are collected/observed by the runtime and that
-shutdown cannot leave an unobserved exception or an in-flight guard entry.
+**Mostly addressed.** `maybe_deliberate` uses `add_done_callback` and clears
+`_in_flight` in `finally`. A dedicated fail/shutdown test is still missing.
 
 Required completion evidence:
 
 - Runtime test for failed deliberation task cleanup.
-- Confirmed logging/metrics for cycle failure.
-- Confirmed `_in_flight` cleanup on cancellation and shutdown.
 
 ## Current assessment
 
-The project now has a real multi-agent implementation in two related layers:
-
-1. A Post Supervisor specialist team with deterministic routing, parallel
-   specialist calls, verification, H-0 dispatch, and Grafana/Firestore
-   records.
-2. A batch station orchestrator that plans the allowed station chain for each
-   episode-language item.
-
-The earlier review concerns are therefore mostly addressed. The system should
-not yet be described as fully complete multi-agent autonomous orchestration
-until P-1 and P-2 are resolved, and ACT mode should remain locked until P-3,
-P-5, and the final runtime evidence are complete.
+The finishing boss and the Post Supervisor verifier/synthesis path are in the
+product. Live rank exam (2026-09-08): 0.9 / 0.9 / 0.8. Live spend-pricing exam:
+1.0 × 3. Live one-retry exam: 1.0 × 3 (`docs/evidence/supervisor-retry/`).
+Default autonomy is **rank, then spend the night envelope**. The
+ranking-quality receipt is written to `pc-control/act-gate`. `propose_only`
+is the kill switch. The supervisor may **add or remove a take from the
+cut** inside that envelope. Worker still only fires deliberation on failed /
+quarantined / needs_human (P-4, deferred).

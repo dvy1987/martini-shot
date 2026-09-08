@@ -63,9 +63,8 @@ rendered a real persisted cycle from the 2026-09-04 session.
 This system is a **custom Python-orchestrated Gemini specialist team with
 parallel investigation, independent verification, deterministic safety
 filtering, and Grafana-observed deliberation**. It is NOT an "ADK multi-agent
-runtime", there is no "agent-to-agent delegation", and it is not a
-"production autonomous network": the only external full-cycle caller is this
-propose-only shadow script; the H-0b budgeted loop
-(`backend/supervisor/budget_loop.py`) exists and is tested but has no
-production caller wired in `app.py` yet, and ACT mode remains fail-closed
-behind a versioned eval receipt that has not been activated.
+runtime" and there is no "agent-to-agent delegation". The production caller
+is the worker terminal hook in `backend/api/app.py` →
+`team.maybe_deliberate` → `run_budgeted_cycle`. Default autonomy is
+ranked spend inside the night envelope (`act`). The ranking-quality
+receipt lives in `pc-control/act-gate`. `propose_only` is the kill switch.

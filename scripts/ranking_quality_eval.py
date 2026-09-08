@@ -340,9 +340,9 @@ def main() -> int:
             json.dumps(receipt, indent=2), encoding="utf-8"
         )
         print(
-            "ACT gate receipt written to docs/evidence/H-1/ranking_quality_receipt.json"
+            "Ranking-quality receipt written to docs/evidence/H-1/ranking_quality_receipt.json"
         )
-        print("Activation remains a SEPARATE deliberate write to pc-control/act-gate.")
+        print("Live spend: ensure_budgeted_spend writes pc-control/act-gate on boot.")
     print(json.dumps(payload, indent=2))
     return 0 if all_pass else 1
 

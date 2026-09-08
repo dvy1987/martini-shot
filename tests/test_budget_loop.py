@@ -204,6 +204,43 @@ def test_garbage_or_negative_cost_is_never_dispatchable(h):
     assert h.store.list_where(h.approvals_col, "project_id", "proj-1") == []
 
 
+def test_act_mode_dispatches_add_and_remove_from_the_cut(h):
+    """Owner ruling: supervisor may change the cut inside the night envelope.
+    Pointer moves are not renders — a $0 estimate still dispatches."""
+    h.register_fast(
+        "add_to_continuity",
+        lambda ctx, ap: {"ok": True, "in_continuity": True, "cost_micros": 0},
+    )
+    h.register_fast(
+        "remove_from_continuity",
+        lambda ctx, ap: {"ok": True, "in_continuity": False, "cost_micros": 0},
+    )
+    summary = _act(
+        h,
+        [
+            _action(
+                name="add_to_continuity",
+                cost=0,
+                shot_id="shot-1",
+                alternate_id="alt-new",
+            ),
+            _action(
+                name="remove_from_continuity",
+                cost=0,
+                shot_id="shot-1",
+                alternate_id="alt-old",
+            ),
+        ],
+    )
+
+    assert [d["decision"] for d in summary["decisions"]] == ["dispatched", "dispatched"]
+    assert summary["spent_micros"] == 0
+    approvals = h.store.list_where(h.approvals_col, "project_id", "proj-1")
+    names = sorted(ap["command"]["name"] for ap in approvals)
+    assert names == ["add_to_continuity", "remove_from_continuity"]
+    assert all(ap["approver"] == SUPERVISOR_APPROVER for ap in approvals)
+
+
 def test_human_wins_rule_loop_cannot_refight_a_human_decision(h, approvals_col):
     # A human already decided on this exact target tonight (a revert).
     propose_approval(
@@ -242,6 +279,143 @@ def test_propose_only_mode_records_ranked_proposals_and_dispatches_nothing(
     assert summary["decisions"][0]["ranked_for_morning_report"] is True
     assert h.store.list_where(approvals_col, "project_id", "proj-1") == []
     assert h.handler_calls == 0
+
+
+def test_retry_once_dispatches_one_retry_without_an_act_gate(h, jobs_col) -> None:
+    """Owner ruling: diagnose, one repair, one retry. Will not lock shots."""
+    h.store.set_doc(
+        jobs_col,
+        "job-1",
+        {
+            "id": "job-1",
+            "status": "failed",
+            "attempts": 1,
+            "station": "loudness",
+            "project_id": "proj-1",
+            "error": "firestore write failed: 429 RESOURCE_EXHAUSTED",
+            "result": {},
+        },
+    )
+    h.register_fast(
+        "retry_job",
+        lambda ctx, ap: {"requeued": True, "job_id": "job-1", "cost_micros": 50_000},
+    )
+    empty_gate = f"it-gate-{uuid.uuid4().hex[:8]}"
+    summary = _act(
+        h,
+        [
+            _action(name="retry_job", job_id="job-1", cost=50_000),
+            _action(name="lock_shot", shot_id="shot-x", cost=1),
+            _action(name="retry_job", job_id="job-2", cost=50_000),
+        ],
+        env="retry_once",
+        jobs_col=jobs_col,
+        gate_collection=empty_gate,
+    )
+    assert summary["mode"] == "retry_once"
+    dispatched = [d for d in summary["decisions"] if d["decision"] == "dispatched"]
+    skipped = [d for d in summary["decisions"] if d["decision"] == "skipped"]
+    assert len(dispatched) == 1
+    assert dispatched[0]["command_name"] == "retry_job"
+    assert dispatched[0]["args"]["job_id"] == "job-1"
+    assert any("command" in str(d.get("reason") or "") for d in skipped)
+    second = [
+        d
+        for d in skipped
+        if d.get("command_name") == "retry_job"
+        and (d.get("args") or {}).get("job_id") == "job-2"
+    ]
+    assert second, skipped
+    assert "already chosen" in str(second[0]["reason"])
+    stamped = h.store.get_doc(jobs_col, "job-1") or {}
+    assert int((stamped.get("result") or {}).get("supervisor_retries") or 0) == 1
+
+
+def test_retry_once_dispatches_a_fix_then_one_retry(h, jobs_col) -> None:
+    h.store.set_doc(
+        jobs_col,
+        "job-1",
+        {
+            "id": "job-1",
+            "status": "failed",
+            "attempts": 1,
+            "station": "pickups",
+            "project_id": "proj-1",
+            "error": "cup still in frame",
+            "result": {"locked": False},
+        },
+    )
+    h.register_fast(
+        "correct_shot",
+        lambda ctx, ap: {"ok": True, "cost_micros": 3_000_000},
+    )
+    h.register_fast(
+        "retry_job",
+        lambda ctx, ap: {"requeued": True, "job_id": "job-1", "cost_micros": 50_000},
+    )
+    summary = _act(
+        h,
+        [
+            _action(
+                name="correct_shot",
+                job_id="job-1",
+                cost=3_000_000,
+                shot_id="shot-a",
+                project_id="proj-1",
+                source_uri="gs://bucket/clip.mp4",
+                intent="remove the cup",
+            ),
+            _action(name="retry_job", job_id="job-1", cost=50_000),
+            _action(name="lock_shot", shot_id="shot-a", cost=1),
+        ],
+        env="retry_once",
+        jobs_col=jobs_col,
+        gate_collection=f"it-gate-{uuid.uuid4().hex[:8]}",
+    )
+    dispatched = [
+        d["command_name"] for d in summary["decisions"] if d["decision"] == "dispatched"
+    ]
+    assert dispatched == ["correct_shot", "retry_job"]
+
+
+def test_retry_once_refuses_a_second_cycle_after_the_stamp(h, jobs_col) -> None:
+    h.store.set_doc(
+        jobs_col,
+        "job-1",
+        {
+            "id": "job-1",
+            "status": "failed",
+            "attempts": 2,
+            "station": "loudness",
+            "project_id": "proj-1",
+            "error": "still failing",
+            "result": {"supervisor_retries": 1},
+        },
+    )
+    h.register_fast(
+        "retry_job",
+        lambda ctx, ap: {"requeued": True, "job_id": "job-1", "cost_micros": 50_000},
+    )
+    summary = _act(
+        h,
+        [_action(name="retry_job", job_id="job-1", cost=50_000)],
+        env="retry_once",
+        jobs_col=jobs_col,
+    )
+    assert summary["mode"] == "retry_once"
+    assert summary["decisions"][0]["decision"] == "skipped"
+    assert "already" in str(summary["decisions"][0]["reason"])
+    assert h.handler_calls == 0
+
+
+def test_ensure_act_gate_receipt_unlocks_ranked_dispatch(h) -> None:
+    empty_gate = f"it-gate-{uuid.uuid4().hex[:8]}"
+    assert budget_loop.act_gate_passed(h.store, collection=empty_gate) is False
+    budget_loop.ensure_act_gate_receipt(h.store, collection=empty_gate)
+    assert budget_loop.act_gate_passed(h.store, collection=empty_gate) is True
+    summary = _act(h, [_action(job_id="job-1")], env="act", gate_collection=empty_gate)
+    assert summary["mode"] == "act"
+    assert summary["decisions"][0]["decision"] == "dispatched"
 
 
 def test_act_mode_without_a_passing_gate_receipt_is_fail_closed_to_propose_only(
@@ -334,6 +508,7 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
     from backend.core.config import get_settings
     from backend.supervisor.budget_loop import run_budgeted_cycle
     from backend.supervisor.case import (
+        CONTINUITY,
         DELIVERY_QC,
         RELIABILITY,
         Claim,
@@ -409,6 +584,18 @@ def test_budgeted_cycle_end_to_end_collect_rank_dispatch_persist(
             gate_collection=gate_col,
             specialists={
                 DELIVERY_QC: delivery_specialist,
+                CONTINUITY: lambda name, case: Finding(
+                    specialist=CONTINUITY,
+                    case_id=case.case_id,
+                    claims=[
+                        Claim(
+                            text="no cut change on this stuck delivery job",
+                            evidence_ref=f"firestore://{jobs_col}/job-stuck",
+                            confidence="low",
+                        )
+                    ],
+                    proposed_actions=[],
+                ),
                 # A REAL persona callable (review round 2: a stand-in would
                 # now correctly demote this cycle to propose-only).
                 RELIABILITY: lambda name, case: Finding(

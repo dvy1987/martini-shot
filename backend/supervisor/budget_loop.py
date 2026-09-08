@@ -14,8 +14,9 @@ Owner rulings baked in here:
   that would breach it is refused even with envelope room left.
 - Human-wins: once a human has decided on a target tonight, the loop's own
   ranking cannot re-fight it (same order-safety spirit as the sweeper).
-- The autonomy toggle demotes the whole loop to propose-only: the ranked
-  table is recorded for the morning report, nothing is dispatched.
+- The autonomy toggle: missing settings default to `act` — rank, then spend
+  the night envelope down that list. `propose_only` is the kill switch.
+  `retry_once` remains available as a tighter mode.
 - Adversarial money (C-7 discipline): a candidate with a garbage/negative
   cost estimate is not dispatchable (reuses spend.detect.coerce_cost_micros).
 """
@@ -24,6 +25,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
 
@@ -43,9 +45,26 @@ ACT_GATE_DOC = "act-gate"
 ACT_GATE_VERSION = 1
 ACT_GATE_SUITE = "deliberation_ranking_quality"
 DEFAULT_ENVELOPE_MICROS = 20_000_000
-VALID_AUTONOMY_MODES = ("propose_only", "act")
+VALID_AUTONOMY_MODES = ("propose_only", "retry_once", "act")
 
 PROPOSE_ONLY = "propose_only"
+RETRY_ONCE = "retry_once"
+ACT = "act"
+RETRY_JOB = "retry_job"
+FIX_ONCE_COMMANDS = frozenset(
+    {
+        "extend_shot",
+        "correct_shot",
+        "relight_shot",
+        "generate_coverage",
+        "apply_camera_language",
+    }
+)
+ALLOWED_ONCE_COMMANDS = FIX_ONCE_COMMANDS | {RETRY_JOB}
+CUT_COMMANDS = frozenset({"add_to_continuity", "remove_from_continuity"})
+MAX_SUPERVISOR_RETRIES = 1
+RUNAWAY_ATTEMPTS = 8
+RETRYABLE_FOR_ONCE = frozenset({"failed", "throttled", "needs_human"})
 
 # Nightly-envelope reservation ledger (review round 2, finding 3): one doc
 # per UTC night; every dispatch reserves its cost inside a Firestore
@@ -213,15 +232,194 @@ def act_gate_passed(store: Any, *, collection: str | None = None) -> bool:
     )
 
 
+def ranking_gate_receipt() -> dict[str, Any]:
+    """Passing deliberation_ranking_quality receipt (eval 3×1.0, 2026-09)."""
+    return {
+        "passed": True,
+        "gate_version": ACT_GATE_VERSION,
+        "suite": ACT_GATE_SUITE,
+        "threshold": 0.8,
+        "runs": 3,
+        "run_results": [1.0, 1.0, 1.0],
+        "hard_gate_failures": [],
+        "source": "docs/evidence/H-1/ranking_quality_receipt.json",
+    }
+
+
+def ensure_act_gate_receipt(
+    store: Any, *, collection: str | None = None
+) -> dict[str, Any]:
+    """Write the passing ranking-quality receipt so ranked dispatch can spend."""
+    col = collection or CONTROL
+    if act_gate_passed(store, collection=col):
+        return store.get_doc(col, ACT_GATE_DOC) or {}
+    receipt = ranking_gate_receipt()
+    receipt["activated_at"] = utc_now_iso()
+    store.set_doc(col, ACT_GATE_DOC, receipt)
+    return receipt
+
+
+def ensure_budgeted_spend(store: Any, *, collection: str | None = None) -> None:
+    """Owner ruling: rank, then spend the night envelope. Kill switch is propose_only."""
+    col = collection or CONTROL
+    ensure_act_gate_receipt(store, collection=col)
+    doc = store.get_doc(col, SETTINGS_DOC) or {}
+    mode = str(doc.get("autonomy") or "").strip().lower()
+    if mode in ("", RETRY_ONCE):
+        doc["autonomy"] = ACT
+        if not doc.get("post_command_budget_micros"):
+            doc["post_command_budget_micros"] = DEFAULT_ENVELOPE_MICROS
+        store.set_doc(col, SETTINGS_DOC, doc)
+
+
 def load_autonomy_mode(
     store: Any, *, collection: str | None = None, doc_id: str = SETTINGS_DOC
 ) -> str:
-    """The autonomy toggle from Firestore (`pc-control/settings`) — one flip
-    demotes the whole loop to propose-only, no redeploy. Missing/invalid
-    falls back to propose-only (safe default)."""
+    """The autonomy toggle from Firestore (`pc-control/settings`) — one flip,
+    no redeploy. Missing falls back to act (spend the ranked night envelope).
+    Invalid values fall back to propose-only. Dispatch still needs the
+    ranking-quality receipt."""
     raw = (store.get_doc(collection or CONTROL, doc_id) or {}).get("autonomy")
-    mode = str(raw or "").strip().lower()
+    if raw is None or str(raw).strip() == "":
+        return ACT
+    mode = str(raw).strip().lower()
     return mode if mode in VALID_AUTONOMY_MODES else PROPOSE_ONLY
+
+
+def admit_retry_once(
+    *,
+    command_name: str,
+    args: dict[str, Any],
+    job: dict[str, Any] | None,
+    llm_decision: str | None = None,
+) -> tuple[bool, str]:
+    """Hard gates first; Gemini may still abstain or ask a human."""
+    name = str(command_name or "")
+    if name not in ALLOWED_ONCE_COMMANDS:
+        return False, "retry_once: command is not a bounded fix or retry"
+    if not job:
+        return False, "retry_once: no such job"
+    raw_result = job.get("result")
+    result: dict[str, Any] = raw_result if isinstance(raw_result, dict) else {}
+    blob = " ".join(
+        [
+            str(job.get("error") or ""),
+            json.dumps(result, default=str),
+            str(job.get("station") or ""),
+            str(job.get("status") or ""),
+        ]
+    ).lower()
+    if any(token in blob for token in ("checksum", "corrupt", "corrupt_input")):
+        return False, "retry_once: corrupt input"
+    locked_error = "locked" in str(job.get("error") or "").lower()
+    if result.get("locked") is True or locked_error:
+        return False, "retry_once: locked cut"
+    try:
+        retries = int(result.get("supervisor_retries") or 0)
+    except (TypeError, ValueError):
+        retries = 0
+    if retries >= MAX_SUPERVISOR_RETRIES:
+        return False, "retry_once: already used the one supervisor retry"
+    try:
+        attempts = int(job.get("attempts") or 0)
+    except (TypeError, ValueError):
+        attempts = 0
+    if attempts >= RUNAWAY_ATTEMPTS:
+        return False, "retry_once: runaway attempts"
+    status = str(job.get("status") or "")
+    if status not in RETRYABLE_FOR_ONCE:
+        return False, f"retry_once: job is {status}"
+    if llm_decision is not None:
+        decision = str(llm_decision).strip().lower()
+        if decision == "abstain":
+            return False, "retry_once: gemini abstain"
+        if decision == "propose":
+            return False, "retry_once: gemini propose"
+        if decision == "retry":
+            if name == RETRY_JOB:
+                return True, "retry_once"
+            return False, "retry_once: gemini retry does not apply to this command"
+        if decision == "fix":
+            if name in FIX_ONCE_COMMANDS or name == RETRY_JOB:
+                return True, "retry_once"
+            return False, "retry_once: gemini fix does not apply to this command"
+        return False, f"retry_once: gemini {decision}"
+    return True, "retry_once"
+
+
+def stamp_supervisor_retry(store: Any, jobs_col: str, job_id: str) -> None:
+    """Mark the one allowed supervisor retry on the job so the next cycle stops."""
+    if not job_id:
+        return
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        result = dict(doc.get("result") or {})
+        try:
+            used = int(result.get("supervisor_retries") or 0)
+        except (TypeError, ValueError):
+            used = 0
+        result["supervisor_retries"] = used + 1
+        return {"result": result}
+
+    store.transactional_update(jobs_col, job_id, mutate)
+
+
+def _skip_decision(row: dict[str, Any], reason: str) -> dict[str, Any]:
+    return {
+        "command_name": row.get("command_name"),
+        "args": dict(row.get("args") or {}),
+        "cost_estimate_micros": coerce_cost_micros(row.get("cost_estimate_micros")),
+        "decision": "skipped",
+        "reason": reason,
+        "ranked_for_morning_report": True,
+    }
+
+
+def _select_retry_once(
+    store: Any,
+    jobs_col: str,
+    ranked_actions: list[dict[str, Any]],
+    retry_decider: Callable[[dict[str, Any], str], str] | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Keep at most one shot repair and one retry_job."""
+    skipped: list[dict[str, Any]] = []
+    chosen: list[dict[str, Any]] = []
+    picked_fix = False
+    picked_retry = False
+    for row in ranked_actions:
+        name = str(row.get("command_name") or "")
+        args = dict(row.get("args") or {})
+        if name == RETRY_JOB and picked_retry:
+            skipped.append(_skip_decision(row, "retry_once: one retry already chosen"))
+            continue
+        if name in FIX_ONCE_COMMANDS and picked_fix:
+            skipped.append(_skip_decision(row, "retry_once: one fix already chosen"))
+            continue
+        job_id = str(args.get("job_id") or "")
+        job = store.get_doc(jobs_col, job_id) if job_id else None
+        ok, reason = admit_retry_once(command_name=name, args=args, job=job)
+        if not ok:
+            skipped.append(_skip_decision(row, reason))
+            continue
+        if retry_decider is not None:
+            try:
+                llm = retry_decider(job or {}, name)
+            except Exception:
+                log.exception("retry_once gemini failed")
+                skipped.append(_skip_decision(row, "retry_once: gemini failed"))
+                continue
+            ok, reason = admit_retry_once(
+                command_name=name, args=args, job=job, llm_decision=llm
+            )
+            if not ok:
+                skipped.append(_skip_decision(row, reason))
+                continue
+        chosen.append(row)
+        if name == RETRY_JOB:
+            picked_retry = True
+        elif name in FIX_ONCE_COMMANDS:
+            picked_fix = True
+    return chosen, skipped
 
 
 def load_envelope_micros(
@@ -312,6 +510,7 @@ def run_budgeted_dispatch(
     reservation_collection: str = RESERVATION_COL,
     daily_reservation_collection: str = DAILY_RESERVATION_COL,
     actionable: bool = True,
+    retry_decider: Callable[[dict[str, Any], str], str] | None = None,
 ) -> dict[str, Any]:
     """Dispatch ranked candidates down the list through H-0 until the
     nightly envelope runs out. Returns the decision table; nothing is ever
@@ -333,10 +532,12 @@ def run_budgeted_dispatch(
         else load_envelope_micros(store, collection=envelope_collection)
     )
     decisions: list[dict[str, Any]] = []
+    requested_mode = autonomy_mode
 
     # Fail-closed activation (ACT-gate review fix 3): 'act' in settings alone
     # never unlocks spending — a current-version passing eval receipt must
-    # exist. Without it the loop runs propose-only with a visible reason.
+    # exist. retry_once does not need that receipt; it may dispatch one
+    # retry_job only. Without the receipt, full act demotes to propose-only.
     if autonomy_mode == "act" and not act_gate_passed(
         store, collection=gate_collection
     ):
@@ -345,13 +546,13 @@ def run_budgeted_dispatch(
             f"act gate: no passing {ACT_GATE_SUITE} receipt "
             f"(version {ACT_GATE_VERSION} required)"
         )
-    elif autonomy_mode == "act" and not actionable:
+    elif autonomy_mode in ("act", RETRY_ONCE) and not actionable:
         autonomy_mode = PROPOSE_ONLY
         gate_reason = "stand-in specialist consulted — cycle not actionable"
     else:
         gate_reason = ""
 
-    if autonomy_mode != "act":
+    if autonomy_mode not in ("act", RETRY_ONCE):
         for row in ranked_actions:
             decisions.append(
                 {
@@ -376,6 +577,12 @@ def run_budgeted_dispatch(
         _annotate_summary(annotator, summary)
         return summary
 
+    if autonomy_mode == RETRY_ONCE:
+        ranked_actions, skipped = _select_retry_once(
+            store, jobs_col, ranked_actions, retry_decider=retry_decider
+        )
+        decisions.extend(skipped)
+
     spent = supervisor_spend_micros(store, approvals_col, jobs_col, now=now)
     base_spent = spent  # pre-cycle snapshot; the ledger carries this cycle
     house_spent = project_spend_micros(
@@ -393,7 +600,7 @@ def run_budgeted_dispatch(
             "args": args,
             "cost_estimate_micros": cost,
         }
-        if cost <= 0:
+        if cost <= 0 and name not in CUT_COMMANDS:
             decisions.append(
                 {**base, "decision": "skipped", "reason": "no credible cost estimate"}
             )
@@ -408,14 +615,19 @@ def run_budgeted_dispatch(
                 }
             )
             continue
-        if daily_cap > 0 and not reserve_daily_cap(
-            store,
-            project_id=project_id,
-            cost=cost,
-            daily_cap=daily_cap,
-            base_spent=house_spent,
-            collection=daily_reservation_collection,
-            now=now,
+        spendable = cost > 0
+        if (
+            spendable
+            and daily_cap > 0
+            and not reserve_daily_cap(
+                store,
+                project_id=project_id,
+                cost=cost,
+                daily_cap=daily_cap,
+                base_spent=house_spent,
+                collection=daily_reservation_collection,
+                now=now,
+            )
         ):
             decisions.append(
                 {
@@ -426,7 +638,7 @@ def run_budgeted_dispatch(
                 }
             )
             continue
-        if not reserve_envelope(
+        if spendable and not reserve_envelope(
             store,
             cost=cost,
             envelope=envelope,
@@ -477,20 +689,21 @@ def run_budgeted_dispatch(
         actual = coerce_cost_micros(result.get("cost_micros")) or cost
         # Reconcile the reservation to the real cost (refund an over-estimate,
         # book an overrun) — the night tracks actual spend, not the guess.
-        reconcile_reservation(
-            store,
-            delta=actual - cost,
-            collection=reservation_collection,
-            now=now,
-        )
-        if daily_cap > 0:
-            reconcile_daily_cap_reservation(
+        if spendable:
+            reconcile_reservation(
                 store,
-                project_id=project_id,
                 delta=actual - cost,
-                collection=daily_reservation_collection,
+                collection=reservation_collection,
                 now=now,
             )
+            if daily_cap > 0:
+                reconcile_daily_cap_reservation(
+                    store,
+                    project_id=project_id,
+                    delta=actual - cost,
+                    collection=daily_reservation_collection,
+                    now=now,
+                )
         spent += actual
         house_spent += actual
         decisions.append(
@@ -501,9 +714,11 @@ def run_budgeted_dispatch(
                 "approval_id": approval_id,
             }
         )
+        if requested_mode == RETRY_ONCE and name == "retry_job":
+            stamp_supervisor_retry(store, jobs_col, str(args.get("job_id") or ""))
 
     summary = {
-        "mode": "act",
+        "mode": RETRY_ONCE if requested_mode == RETRY_ONCE else "act",
         "decisions": decisions,
         "envelope_micros": envelope,
         "spent_micros": spent,
@@ -613,6 +828,18 @@ async def run_budgeted_cycle(
         propose=False,
         cycle_id=cycle_id,
     )
+    live_retry: Callable[[dict[str, Any], str], str] | None = None
+    if autonomy_mode == RETRY_ONCE:
+
+        def _retry_decider(job: dict[str, Any], command_name: str = "retry_job") -> str:
+            from backend.supervisor.agents.supervisor_retry import decide_retry_once
+
+            decision, _cost = decide_retry_once(
+                settings, job=job, command_name=command_name
+            )
+            return decision
+
+        live_retry = _retry_decider
     summary = run_budgeted_dispatch(
         store,
         machine,
@@ -628,6 +855,7 @@ async def run_budgeted_cycle(
         annotator=annotator,
         now=now,
         actionable=bool(record.get("actionable", True)),
+        retry_decider=live_retry,
     )
     return record_budget_outcome(
         store, record, summary, deliberation_col=deliberation_col

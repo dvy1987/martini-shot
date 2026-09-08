@@ -181,7 +181,7 @@ class ApprovalStateMachine:
         locked = self._locked_target_result(doc, cmd)
         if locked is not None:
             # Locked-target guard (AL-1): central, dispatch-time, for every
-            # caller. Only lock/unlock themselves are exempt.
+            # caller. Lock/unlock and add/remove-from-cut are exempt.
             self._transition(
                 approval_id,
                 "approved",
@@ -260,11 +260,12 @@ class ApprovalStateMachine:
         self, doc: dict[str, Any], cmd: Any
     ) -> dict[str, Any] | None:
         """Locked-target guard (AL-1): a command whose args carry a shot_id
-        that resolves to a LOCKED shot is refused. Lock/unlock commands are
-        exempt (unlock is the whole point)."""
+        that resolves to a LOCKED shot is refused. Lock/unlock and
+        add/remove-from-cut are exempt (unlock is the whole point; pointer
+        moves are how the cut changes)."""
         args = (doc.get("command") or {}).get("args") or {}
         shot_id = str(args.get("shot_id") or "")
-        if not shot_id or cmd.name in shots.LOCK_COMMANDS:
+        if not shot_id or cmd.name in shots.LOCK_COMMANDS | shots.CUT_COMMANDS:
             return None
         if shots.is_locked(self._store, shot_id):
             return {"ok": False, "locked": True, "shot_id": shot_id}

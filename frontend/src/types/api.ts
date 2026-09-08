@@ -111,7 +111,7 @@ export interface MorningReport {
 }
 
 /** H-0b autonomy toggle: one flip, no redeploy (pc-control/settings). */
-export type Autonomy = "propose_only" | "act";
+export type Autonomy = "propose_only" | "retry_once" | "act";
 
 export interface Settings {
   autonomy: Autonomy;

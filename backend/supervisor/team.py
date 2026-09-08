@@ -3,14 +3,16 @@
 Two pieces close the "no production caller / silent stand-ins" review gap:
 
 - `production_specialists(store, settings)` builds the REAL persona map for
-  the full routed vocabulary (reliability / delivery_qc / spend_guardian).
+  the full routed vocabulary (reliability / delivery_qc / spend_guardian /
+  localization / continuity).
   `run_budgeted_cycle` refuses to run when any routed name is missing, so
   production can never silently fall back to stand-in specialists.
 - `maybe_deliberate(job, ...)` is the app-level signal-fired trigger wired
   into the worker's `on_terminal` hook in `app.py`: a terminal failure state
   fires ONE deliberation cycle per job, deterministically idempotent
-  (`cycle_id = cyc-job-<job_id>`, C-6.3), propose-only unless the ACT gate
-  receipt is present. It NEVER raises into the worker path — a deliberation
+  (`cycle_id = cyc-job-<job_id>`, C-6.3). Default autonomy is act:
+  rank, then spend the night envelope. propose_only is the kill switch.
+  It NEVER raises into the worker path — a deliberation
   failure is logged and the worker carries on.
 """
 
@@ -59,6 +61,9 @@ def production_specialists(
 ) -> dict[str, Any]:
     """REAL personas for every routed name — the map production callers pass
     to `run_budgeted_cycle` (which refuses incomplete maps). No stand-ins."""
+    from backend.supervisor.agents.continuity_investigator import (
+        investigate as continuity_investigate,
+    )
     from backend.supervisor.agents.delivery_qc import investigate as qc_investigate
     from backend.supervisor.agents.localization_investigator import (
         investigate as localization_investigate,
@@ -97,6 +102,7 @@ def production_specialists(
         )
 
     from backend.supervisor.case import (
+        CONTINUITY,
         DELIVERY_QC,
         LOCALIZATION,
         RELIABILITY,
@@ -108,6 +114,9 @@ def production_specialists(
         DELIVERY_QC: delivery_qc_specialist,
         SPEND_GUARDIAN: spend_guardian_specialist,
         LOCALIZATION: lambda name, case: localization_investigate(case, settings),
+        CONTINUITY: lambda name, case: continuity_investigate(
+            case, settings, store=store, jobs_collection=jobs_collection
+        ),
     }
 
 
@@ -138,9 +147,9 @@ def maybe_deliberate(
     machine: Any = None,
     annotator: Any = None,
 ) -> asyncio.Task[dict[str, Any]] | None:
-    """Signal-fired deliberation (worker `on_terminal` seam). Propose-only
-    unless the ACT gate receipt is present. Best-effort: never raises into
-    the worker path; returns the scheduled task (or None)."""
+    """Signal-fired deliberation (worker `on_terminal` seam). Default
+    autonomy is act: rank, then spend the night envelope. Best-effort:
+    never raises into the worker path; returns the scheduled task (or None)."""
     trigger_kind = _DELIBERATION_TRIGGERS.get(job.status)
     if trigger_kind is None:
         return None  # healthy terminal state — nothing to investigate

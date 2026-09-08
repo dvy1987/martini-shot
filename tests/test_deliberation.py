@@ -117,7 +117,12 @@ def test_routing_table_covers_every_trigger_category() -> None:
         assert specialists, f"{category} must route to at least one specialist"
         assert len(set(specialists)) == len(specialists), f"{category} has duplicates"
 
-    assert route_specialists({"kind": "quarantine"}) == ["reliability_investigator"]
+    assert route_specialists({"kind": "quarantine"}) == [
+        "reliability_investigator",
+        "continuity",
+    ]
+    assert "delivery_qc" in route_specialists({"kind": "pickups_needs_human"})
+    assert "continuity" in route_specialists({"kind": "pickups_needs_human"})
     assert route_specialists({"kind": "spend_breach"}) == [
         "spend_guardian",
         "reliability_investigator",

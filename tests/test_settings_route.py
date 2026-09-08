@@ -57,7 +57,9 @@ def test_get_settings_returns_the_default_toggle_and_envelope(client):
 
     assert response.status_code == 200
     body = response.json()
-    assert body["autonomy"] == "propose_only", "propose-only is the safe default"
+    assert body["autonomy"] == "act", (
+        "ranked spend inside the night envelope is the default"
+    )
     assert body["post_command_budget_micros"] == 20_000_000  # owner default
 
 
@@ -112,7 +114,7 @@ def test_patch_rejects_invalid_autonomy_and_nonpositive_budget(client):
 
     # Nothing was written.
     assert test_client.get("/api/v1/settings", headers=headers).json() == {
-        "autonomy": "propose_only",
+        "autonomy": "act",
         "post_command_budget_micros": 20_000_000,
     }
 
@@ -153,7 +155,7 @@ def test_patch_settings_without_google_sign_in_fails_closed(gated_app):
 
     # The flip did NOT happen.
     assert test_client.get("/api/v1/settings", headers=headers).json()["autonomy"] == (
-        "propose_only"
+        "act"
     )
 
 
@@ -184,7 +186,7 @@ def test_patch_settings_with_signed_in_non_owner_is_forbidden(gated_app):
     )
     assert response.status_code == 403
     assert test_client.get("/api/v1/settings", headers=headers).json()["autonomy"] == (
-        "propose_only"
+        "act"
     )
 
 
@@ -230,13 +232,13 @@ def test_verify_owner_id_token_rejects_malformed_token():
         verify_owner_id_token("not-a-jwt", configured)
 
 
-def test_load_autonomy_mode_defaults_to_propose_only(monkeypatch, run_id):
+def test_load_autonomy_mode_defaults_to_act(monkeypatch, run_id):
     monkeypatch.setattr(budget_loop, "CONTROL", f"it-control-{run_id}")
     store = get_firestore_store()
-    assert budget_loop.load_autonomy_mode(store) == "propose_only"
+    assert budget_loop.load_autonomy_mode(store) == "act"
     store.set_doc(
         budget_loop.CONTROL,
         budget_loop.SETTINGS_DOC,
-        {"autonomy": "act"},
+        {"autonomy": "propose_only"},
     )
-    assert budget_loop.load_autonomy_mode(store) == "act"
+    assert budget_loop.load_autonomy_mode(store) == "propose_only"

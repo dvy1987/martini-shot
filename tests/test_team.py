@@ -6,7 +6,7 @@
   failure state fires ONE propose-only (unless ACT receipt) deliberation per
   job, deterministically idempotent per job (C-6.3).
 - `team.production_specialists` covers the full routed vocabulary with REAL
-  personas (reliability / delivery_qc / spend_guardian).
+  personas (reliability / delivery_qc / spend_guardian / continuity).
 """
 
 from __future__ import annotations
@@ -82,9 +82,7 @@ def _job(**overrides) -> Job:
     return Job(**defaults)
 
 
-def test_maybe_deliberate_fires_one_propose_only_cycle_per_job(
-    env, monkeypatch
-) -> None:
+def test_maybe_deliberate_fires_one_act_cycle_per_job(env, monkeypatch) -> None:
     fired: list[dict[str, Any]] = []
 
     async def fake_cycle(trigger, settings, store, machine, **kwargs):
@@ -109,7 +107,7 @@ def test_maybe_deliberate_fires_one_propose_only_cycle_per_job(
 
     assert len(fired) == 1, "one signal, one deliberation cycle (idempotent per job)"
     assert fired[0]["trigger"]["kind"] == "job_failed"
-    assert fired[0]["autonomy_mode"] == "propose_only"
+    assert fired[0]["autonomy_mode"] == "act"
     assert fired[0]["cycle_id"] == f"cyc-job-{fired[0]['trigger']['job_id']}"
     assert callable(fired[0]["verifier"]), (
         "production cycles must use the real Verification Agent rather than "

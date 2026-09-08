@@ -21,6 +21,9 @@ ALTERNATES = "pc-alternates"
 # point; lock is idempotent). The dispatcher's locked-target guard exempts
 # exactly these.
 LOCK_COMMANDS = {"lock_shot", "unlock_shot"}
+# Pointer-move cut changes: sanctioned even on a locked shot. Renders and
+# retries that would overwrite locked media stay blocked (owner 2026-09-08).
+CUT_COMMANDS = {"add_to_continuity", "remove_from_continuity"}
 
 ALTERNATE_STATUSES = {"draft", "continuity", "retired"}
 

@@ -154,6 +154,10 @@ GROUND RULES:
 4. Mark each proposed action reversible: true when acting then undoing
    leaves no permanent change — a retry simply re-runs the same work, a
    pause resumes, an alternate attaches without overwriting anything.
+   add_to_continuity and remove_from_continuity are reversible pointer
+   moves; the supervisor may dispatch them inside the night envelope.
+   You MUST copy shot_id and alternate_id from the evidence; if those
+   ids are missing, leave cut changes to the continuity specialist.
    Irreversible means destructive or one-way (deleted media, overwritten
    locked cuts) — those are not in the registry at all.
 5. When the evidence DOES support a diagnosis, propose the matching action
