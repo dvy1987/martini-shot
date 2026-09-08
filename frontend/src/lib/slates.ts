@@ -33,41 +33,41 @@ export interface SlateFrame {
 export const SLATE_FRAMES: Record<SlateId, SlateFrame[]> = {
   welcome: [
     {
-      caption: "Stations are lanes. Jobs are clips. Faults are markers.",
+      caption: "Each clip moves through a set of checks. The timeline shows what is happening and what needs attention.",
       term: "Season Timeline",
     },
     {
-      caption: "Your supervisor never sleeps — tungsten marks the exceptions.",
+      caption: "Martini Shot watches the run and highlights problems that need your attention.",
       term: "Markers & approvals",
     },
     {
-      caption: "Every claim is clickable evidence, not a chat transcript.",
+      caption: "Open the evidence behind a result instead of relying on a summary alone.",
       term: "Evidence philosophy",
     },
   ],
   investigation: [
-    { caption: "What fired, in plain language and a timestamp.", term: "Alert" },
-    { caption: "The agent's real queries, folded until you ask.", term: "Evidence chain" },
-    { caption: "One sentence: severity and cause.", term: "Verdict" },
-    { caption: "A proposed action with a cost, waiting on you.", term: "Proposed action" },
+    { caption: "See what happened and when it happened.", term: "Alert" },
+    { caption: "Open the logs, metrics, and traces used to investigate the problem.", term: "Evidence chain" },
+    { caption: "See the problem, its likely cause, and how serious it is.", term: "Verdict" },
+    { caption: "Review suggested work, its cost, and whether you need to approve it.", term: "Proposed action" },
   ],
   accounting: [
     {
-      caption: "Spend Control can pause a station. That is a production decision.",
+      caption: "If the budget is not enough, Martini Shot pauses lower-priority work instead of overspending.",
       term: "Why is my station paused?",
     },
     {
-      caption: "Throttle, stop, or approve — the inbox names the human.",
+      caption: "Review work that needs a decision, then approve or reject it.",
       term: "Throttle / stop / approve",
     },
     {
-      caption: "The slate on a spend card is governance, not decoration.",
+      caption: "Each proposed task shows why it was suggested and what it will cost.",
       term: "PRODUCTION ACCOUNTING",
     },
   ],
   dailies: [
-    { caption: "Overnight wrap: one row per station.", term: "Morning report" },
-    { caption: "Each verdict cites evidence you can open.", term: "Citations" },
-    { caption: "Cost accounting stays in mono, in micro-dollars.", term: "The day accounted for" },
+    { caption: "Review the latest results from each part of the workflow.", term: "Morning report" },
+    { caption: "Open the evidence behind each result.", term: "Citations" },
+    { caption: "See how much work ran and how much it cost.", term: "Cost and results" },
   ],
 };

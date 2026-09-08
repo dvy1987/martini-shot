@@ -43,7 +43,7 @@ function ApprovalCard({ item }: { item: Approval }) {
         <div>
           <h2 className="text-lg text-ink">{item.title}</h2>
           <p className="mt-1 font-mono text-xs uppercase tracking-widest text-ink-muted">
-            {item.kind}
+            {item.kind.replaceAll("_", " ")}
           </p>
           {slate ? (
             <p className="mt-2 font-mono text-xs uppercase tracking-widest text-danger">{slate}</p>
@@ -58,7 +58,7 @@ function ApprovalCard({ item }: { item: Approval }) {
         <div className="mt-3 rounded-sm border border-danger/40 px-3 py-2">
           {dissent.map((line, index) => (
             <p key={index} className="text-xs leading-relaxed text-danger">
-              Agents disagree: {line}
+              The agents disagree: {line}
             </p>
           ))}
         </div>
@@ -88,7 +88,7 @@ function ApprovalCard({ item }: { item: Approval }) {
         </div>
       ) : (
         <p className="mt-4 font-mono text-xs uppercase tracking-widest text-ink-muted">
-          {item.status}
+          {item.status.replaceAll("_", " ")}
         </p>
       )}
     </motion.article>
@@ -105,7 +105,7 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
   if (backend === "checking") {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Checking the Screening Room…
+        Checking for items that need your approval…
       </p>
     );
   }
@@ -115,8 +115,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       <section className="mx-auto max-w-3xl px-6 py-10">
         <EmptyState
           glyph="◎"
-          title="Screening Room is dark"
-          body="The backend is unreachable, so there is nothing honest to approve. No cards are invented."
+          title="Approvals are unavailable"
+          body="The service is unavailable, so approval items cannot be loaded."
         />
       </section>
     );
@@ -133,7 +133,7 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
   if (query.isPending) {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Loading queue…
+        Loading approval requests…
       </p>
     );
   }
@@ -147,8 +147,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       <section className="mx-auto max-w-3xl px-6 py-10">
         <EmptyState
           glyph="◎"
-          title="No cards in the Screening Room"
-          body="When a station proposes a change, it lands here with a real cost slate. Until then the queue stays empty."
+          title="No approval requests"
+          body="When Martini Shot needs you to approve a change, it will appear here with the reason and estimated cost."
         />
       </section>
     );
@@ -162,9 +162,9 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       className="mx-auto max-w-3xl space-y-4 px-6 py-8"
     >
       <header>
-          <p className={`font-mono text-xs uppercase tracking-widest ${actionable.length > 0 ? "text-tungsten" : "text-ink-muted"}`}>{actionable.length > 0 ? "Needs you" : "Screening room"}</p>
-          <h1 className="mt-1 text-2xl text-ink">Screening Room</h1>
-          <p className="mt-2 max-w-xl text-sm text-ink-muted">{actionable.length > 0 ? "Review the evidence, then approve or reject only the work that cannot move without you." : "Nothing is waiting for a decision. Past cards remain available below for reference."}</p>
+          <p className={`font-mono text-xs uppercase tracking-widest ${actionable.length > 0 ? "text-tungsten" : "text-ink-muted"}`}>{actionable.length > 0 ? "Needs your decision" : "Approval history"}</p>
+          <h1 className="mt-1 text-2xl text-ink">Approvals</h1>
+          <p className="mt-2 max-w-xl text-sm text-ink-muted">{actionable.length > 0 ? "Review the reason and evidence, then approve or reject the work waiting for your decision." : "Nothing needs your decision right now. Previous decisions remain available below."}</p>
       </header>
       {actionable.map((item) => (
         <ApprovalCard key={item.approval_id} item={item} />
@@ -172,7 +172,7 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       {history.length > 0 ? (
         <details className="border border-line bg-surface-1 p-4">
           <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">
-            Past decisions · {history.length}
+            Previous decisions · {history.length}
           </summary>
           <div className="mt-4 space-y-4">
             {history.map((item) => (

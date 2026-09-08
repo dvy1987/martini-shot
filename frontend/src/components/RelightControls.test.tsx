@@ -24,9 +24,9 @@ const openShot: ShotRow = {
 const lockedShot: ShotRow = { ...openShot, shot_id: "shot-locked", locked: true };
 
 describe("RelightControls", () => {
-  it("blocks relight on a locked cut", () => {
+  it("blocks relighting a locked clip", () => {
     render(<RelightControls shot={lockedShot} />);
-    expect(screen.getByText(/locked cut/i)).toBeInTheDocument();
+    expect(screen.getByText(/This clip is locked\. Unlock it before creating a relit version/i)).toBeInTheDocument();
     expect(screen.queryByRole("form", { name: /relight/i })).not.toBeInTheDocument();
   });
 

@@ -31,30 +31,30 @@ export function deriveJourney(jobs: readonly Job[], worklist: Worklist | null): 
   const terminal = (rows: readonly Job[]) => rows.length > 0 && rows.every((job) => ["pass", "fail", "quarantined", "needs_human", "throttled"].includes(job.status));
   const done = (rows: readonly Job[]) => rows.filter((job) => job.status === "pass").length;
 
-  if (worklist?.status === "waiting_for_budget" || attention > 0) return { phase: "attention", label: "Needs your attention", detail: "A station stopped with a decision, budget hold, or failure that needs review.", completed: 0, total: worklist?.items.length ?? jobs.length, attention: Math.max(1, attention) };
-  if (jobs.length === 0 && !worklist) return { phase: "prepare", label: "Prepare the turnover", detail: "Place clips in story order, then set the envelope.", completed: 0, total: 0, attention: 0 };
-  if (worklist?.status === "waiting_for_ingest") return { phase: "ingesting", label: "Checking the clips", detail: "The lab is waiting for every ordered original to pass file validation.", completed: done(ingest), total: ingest.length, attention: 0 };
+  if (worklist?.status === "waiting_for_budget" || attention > 0) return { phase: "attention", label: "Needs your attention", detail: "A file or finishing job needs your attention before the run can continue.", completed: 0, total: worklist?.items.length ?? jobs.length, attention: Math.max(1, attention) };
+  if (jobs.length === 0 && !worklist) return { phase: "prepare", label: "Get started", detail: "Choose your clips in order and set a budget to start.", completed: 0, total: 0, attention: 0 };
+  if (worklist?.status === "waiting_for_ingest") return { phase: "ingesting", label: "Checking the clips", detail: "Martini Shot is checking each file before it starts any finishing work.", completed: done(ingest), total: ingest.length, attention: 0 };
   if (worklist?.phase === "consulting") {
     const completedLooks = worklist.attendance.filter((note) => note.status !== "empty").length;
-    return { phase: "consulting", label: "Stations are looking", detail: "The remaining stations are inspecting the updated clips and writing notes.", completed: completedLooks, total: worklist.attendance.length, attention: 0 };
+    return { phase: "consulting", label: "Reviewing your clips", detail: "The finishing agents are checking the updated clips and suggesting useful improvements.", completed: completedLooks, total: worklist.attendance.length, attention: 0 };
   }
-  if (worklist?.phase === "planning") return { phase: "planning", label: "Choosing what fits", detail: "The orchestrator is pricing and ranking real station proposals against your budget.", completed: 0, total: worklist.attendance.length, attention: 0 };
+  if (worklist?.phase === "planning") return { phase: "planning", label: "Choosing improvements", detail: "Martini Shot is comparing suggested improvements with your budget and choosing what to run.", completed: 0, total: worklist.attendance.length, attention: 0 };
   if (worklist?.phase === "cleanup") {
     const cleanup = worklist.items.filter((item) => ["loudness", "pickups"].includes(item.station));
     const loudnessItems = cleanup.filter((item) => item.station === "loudness");
     const pickupsItems = cleanup.filter((item) => item.station === "pickups");
-    if (loudnessItems.some((item) => item.status !== "passed")) return { phase: "mixing", label: "Mixing every clip", detail: "Loudness is measured and mixed before picture repairs can begin.", completed: loudnessItems.filter((item) => item.status === "passed").length, total: loudnessItems.length, attention: 0 };
-    return { phase: "repairing", label: "Repairing picture", detail: "Pickups are running on the mixed clips. Originals remain untouched.", completed: pickupsItems.filter((item) => item.status === "passed").length, total: pickupsItems.length, attention: 0 };
+    if (loudnessItems.some((item) => item.status !== "passed")) return { phase: "mixing", label: "Fixing audio", detail: "Martini Shot is checking and balancing the audio in every clip.", completed: loudnessItems.filter((item) => item.status === "passed").length, total: loudnessItems.length, attention: 0 };
+    return { phase: "repairing", label: "Checking picture", detail: "Martini Shot is checking every clip for visible picture problems. Your original files stay unchanged.", completed: pickupsItems.filter((item) => item.status === "passed").length, total: pickupsItems.length, attention: 0 };
   }
-  if (!terminal(ingest)) return { phase: "ingesting", label: "Checking the clips", detail: "The lab is verifying the ordered originals before any finishing work begins.", completed: done(ingest), total: ingest.length, attention: 0 };
-  if (!terminal(loudness)) return { phase: "mixing", label: "Mixing every clip", detail: "Loudness is measured and mixed before picture repairs can begin.", completed: done(loudness), total: loudness.length, attention: 0 };
-  if (!terminal(pickups)) return { phase: "repairing", label: "Repairing picture", detail: "Pickups are running on the mixed clips. Originals remain untouched.", completed: done(pickups), total: pickups.length, attention: 0 };
-  if (worklist?.status === "inspecting") return { phase: "consulting", label: "Stations are looking", detail: "The remaining stations are inspecting the updated clips and writing notes.", completed: worklist.attendance.length, total: worklist.attendance.length, attention: 0 };
-  if (worklist?.status === "ranking" || worklist?.status === "planning") return { phase: "planning", label: "Choosing what fits", detail: "The orchestrator is pricing and ranking real station proposals against your budget.", completed: 0, total: worklist.attendance.length, attention: 0 };
+  if (!terminal(ingest)) return { phase: "ingesting", label: "Checking the clips", detail: "Martini Shot is checking the files in the order you selected.", completed: done(ingest), total: ingest.length, attention: 0 };
+  if (!terminal(loudness)) return { phase: "mixing", label: "Fixing audio", detail: "Martini Shot is checking and balancing the audio in every clip.", completed: done(loudness), total: loudness.length, attention: 0 };
+  if (!terminal(pickups)) return { phase: "repairing", label: "Checking picture", detail: "Martini Shot is checking every clip for visible picture problems. Your original files stay unchanged.", completed: done(pickups), total: pickups.length, attention: 0 };
+  if (worklist?.status === "inspecting") return { phase: "consulting", label: "Reviewing your clips", detail: "The finishing agents are checking the updated clips and suggesting useful improvements.", completed: worklist.attendance.length, total: worklist.attendance.length, attention: 0 };
+  if (worklist?.status === "ranking" || worklist?.status === "planning") return { phase: "planning", label: "Choosing improvements", detail: "Martini Shot is comparing suggested improvements with your budget and choosing what to run.", completed: 0, total: worklist.attendance.length, attention: 0 };
   if (worklist?.items.some((item) => ["waiting", "queued", "running"].includes(item.status))) {
     const passed = worklist.items.filter((item) => item.status === "passed").length;
-    return { phase: "executing", label: "Finishing the handoff", detail: "Approved work is running in the order chosen by the orchestrator.", completed: passed, total: worklist.items.length, attention: 0 };
+    return { phase: "executing", label: "Finishing the handoff", detail: "The selected improvements are running in priority order.", completed: passed, total: worklist.items.length, attention: 0 };
   }
-  if (worklist && worklist.items.length > 0) return { phase: "complete", label: "Ready for handoff", detail: "The run has a recorded result. Inspect the worklist and morning report for the evidence.", completed: worklist.items.filter((item) => item.status === "passed").length, total: worklist.items.length, attention: 0 };
-  return { phase: "prepare", label: "Ready when you are", detail: "Order clips and start a finishing run to give the lab its brief.", completed: 0, total: 0, attention: 0 };
+  if (worklist && worklist.items.length > 0) return { phase: "complete", label: "Run complete", detail: "The run is complete. Review the results below and open any finished clips or reports.", completed: worklist.items.filter((item) => item.status === "passed").length, total: worklist.items.length, attention: 0 };
+  return { phase: "prepare", label: "Ready to start", detail: "Choose clips in order, set a budget, and start the finishing run.", completed: 0, total: 0, attention: 0 };
 }

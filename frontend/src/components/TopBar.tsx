@@ -17,7 +17,7 @@ interface TopBarProps {
   paletteTriggerRef: RefObject<HTMLButtonElement>;
 }
 
-/** Charter top bar: brand, mono UTC clock, primary nav, ⌘K, slate replay, connection pill. */
+/** Main navigation with the product tour and backend connection status. */
 export default function TopBar({
   connected,
   checking,
@@ -65,7 +65,7 @@ export default function TopBar({
       <div className="ml-auto flex items-center gap-3">
         <button
           type="button"
-          aria-label="Replay this slate"
+          aria-label="Replay the product tour"
           onClick={onReplaySlate}
           className="rounded-sm px-2 py-1 font-mono text-xs text-ink-muted transition-colors ease-chrome hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
         >

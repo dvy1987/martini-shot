@@ -21,6 +21,51 @@ import type { Job, JobStatus } from "@/types/api";
 
 const EMPTY_JOBS: Job[] = [];
 
+function stationName(station: string): string {
+  const labels: Record<string, string> = {
+    ingest: "File check",
+    loudness: "Audio check",
+    pickups: "Picture repair",
+    extend: "Extend a shot",
+    corrections: "Fix an image",
+    relight: "Improve lighting",
+    coverage: "Add coverage",
+    camera_language: "Camera movement",
+    dub: "Create a dubbed version",
+    delivery: "Delivery check",
+    spend: "Budget check",
+  };
+  return labels[station] ?? station.replaceAll("_", " ");
+}
+
+function phaseName(phase: string): string {
+  const labels: Record<string, string> = {
+    prepare: "Ready to start",
+    ingesting: "Checking files",
+    mixing: "Fixing audio",
+    repairing: "Checking picture",
+    consulting: "Reviewing clips",
+    planning: "Choosing improvements",
+    executing: "Running selected work",
+    complete: "Complete",
+    attention: "Action needed",
+  };
+  return labels[phase] ?? phase.replaceAll("_", " ");
+}
+
+function taskStatus(status: string): string {
+  const labels: Record<string, string> = {
+    waiting: "Waiting for budget",
+    queued: "Queued",
+    running: "Running",
+    passed: "Complete",
+    failed: "Failed",
+    needs_human: "Needs review",
+    paused: "Paused",
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
 interface TimelineRouteProps {
   selectedProjectId: string | null;
   onSelectedProjectIdChange: (projectId: string | null) => void;
@@ -243,8 +288,8 @@ export default function TimelineRoute({
       <section className="mx-auto max-w-3xl px-6 py-14">
         <EmptyState
           glyph="▤"
-          title="The board is dark"
-          body="Stations report here once the backend streams job events. An empty board means no jobs yet — nothing on this screen is simulated."
+          title="No activity yet"
+          body="Upload clips and start a finishing run to see real work appear here. Nothing is shown until the service reports activity."
         />
         <StatusLegend />
       </section>
@@ -301,21 +346,21 @@ export default function TimelineRoute({
           <header className="border-b border-line px-5 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">03 / plan on record</p>
-                <h2 id="plan-heading" className="mt-1 text-lg text-ink">What the stations proposed</h2>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Plan for this run</p>
+                <h2 id="plan-heading" className="mt-1 text-lg text-ink">What Martini Shot found</h2>
               </div>
-              <p className="font-mono text-xs tabular-nums text-ink-muted">{cost(worklistQuery.data.spent_micros)} spent / {cost(worklistQuery.data.budget_micros)} envelope</p>
+              <p className="font-mono text-xs tabular-nums text-ink-muted">{cost(worklistQuery.data.spent_micros)} spent / {cost(worklistQuery.data.budget_micros)} budget</p>
             </div>
             {worklistQuery.data.rank_reason ? <p className="mt-3 max-w-3xl border-l-2 border-agent px-3 text-sm text-ink">{worklistQuery.data.rank_reason}</p> : null}
           </header>
           <div className="grid gap-0 lg:grid-cols-2">
             <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
-              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Attendance</h3>
-              {worklistQuery.data.attendance.length === 0 ? <p className="mt-3 text-sm text-ink-muted">No station notes recorded yet.</p> : <ul className="mt-3 space-y-3">{worklistQuery.data.attendance.slice(0, 5).map((row, index) => <li key={`${row.station}-${row.shot_id ?? "project"}-${index}`}><div className="flex items-baseline justify-between gap-3"><span className="font-mono text-xs uppercase text-ink">{row.station.replaceAll("_", " ")}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{row.status}</span></div>{row.status !== "empty" ? <p className="mt-1 text-sm text-ink-muted">{row.summary}{row.impact !== "none" ? ` · ${row.impact} impact` : ""}</p> : null}</li>)}</ul>}
+              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Agent reviews</h3>
+              {worklistQuery.data.attendance.length === 0 ? <p className="mt-3 text-sm text-ink-muted">No agent reviews yet.</p> : <ul className="mt-3 space-y-3">{worklistQuery.data.attendance.slice(0, 5).map((row, index) => <li key={`${row.station}-${row.shot_id ?? "project"}-${index}`}><div className="flex items-baseline justify-between gap-3"><span className="font-mono text-xs uppercase text-ink">{stationName(row.station)}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{taskStatus(row.status)}</span></div>{row.status !== "empty" ? <p className="mt-1 text-sm text-ink-muted">{row.summary}{row.impact !== "none" ? ` · ${row.impact} impact` : ""}</p> : null}</li>)}</ul>}
             </div>
             <div className="p-5">
-              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Orchestrator order</h3>
-              {worklistQuery.data.items.length === 0 ? <p className="mt-3 text-sm text-ink-muted">The plan is not ranked yet.</p> : <ol className="mt-3 space-y-2">{worklistQuery.data.items.slice(0, 6).map((item, index) => <li key={item.id} className="border-b border-line pb-2 last:border-0"><div className="flex gap-3"><span className="font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><span className="font-mono text-xs uppercase text-ink">{item.station.replaceAll("_", " ")}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{item.status}</span></div>{item.summary ? <p className="mt-1 text-sm text-ink-muted">{item.summary}</p> : null}{item.blocked_by?.length ? <p className="mt-1 font-mono text-[10px] uppercase text-tungsten">waits on {item.blocked_by.map((id) => id.split("::")[0]).join(", ")}</p> : null}</div></div></li>)}</ol>}
+              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Selected work</h3>
+              {worklistQuery.data.items.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Martini Shot is still deciding what to run.</p> : <ol className="mt-3 space-y-2">{worklistQuery.data.items.slice(0, 6).map((item, index) => <li key={item.id} className="border-b border-line pb-2 last:border-0"><div className="flex gap-3"><span className="font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><span className="font-mono text-xs uppercase text-ink">{stationName(item.station)}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{taskStatus(item.status)}</span></div>{item.summary ? <p className="mt-1 text-sm text-ink-muted">{item.summary}</p> : null}{item.blocked_by?.length ? <p className="mt-1 font-mono text-[10px] uppercase text-tungsten">Waiting for: {item.blocked_by.map((id) => stationName(id.split("::")[0])).join(", ")}</p> : null}</div></div></li>)}</ol>}
             </div>
           </div>
         </section>
@@ -325,23 +370,23 @@ export default function TimelineRoute({
         <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-live="polite">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">02 / live station log</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Current progress</p>
               <h2 className="mt-1 text-xl text-ink">{journey.label}</h2>
               <p className="mt-1 max-w-2xl text-sm text-ink-muted">{journey.detail}</p>
             </div>
             <div className="text-right font-mono text-xs text-ink-muted">
-              <p className="uppercase tracking-wider">{journey.phase}</p>
-              {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} recorded</p> : null}
+              <p className="uppercase tracking-wider">{phaseName(journey.phase)}</p>
+              {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} complete</p> : null}
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {([
-              ["ingesting", "Clip check"],
-              ["mixing", "Mix"],
-              ["repairing", "Pickups"],
-              ["consulting", "Station looks"],
-              ["planning", "Orchestrator"],
-              ["executing", "House run"],
+              ["ingesting", "Check files"],
+              ["mixing", "Fix audio"],
+              ["repairing", "Check picture"],
+              ["consulting", "Review clips"],
+              ["planning", "Choose work"],
+              ["executing", "Run selected work"],
             ] as const).map(([phase, label]) => {
               const phaseOrder = ["ingesting", "mixing", "repairing", "consulting", "planning", "executing"];
               const currentIndex = journey.phase === "complete" ? phaseOrder.length : phaseOrder.indexOf(journey.phase);
@@ -357,13 +402,13 @@ export default function TimelineRoute({
           </div>
           {worklistQuery.isError ? (
             <div className="mt-4 border-l-2 border-danger pl-3 text-sm text-danger">
-              The station plan could not be loaded.
+              The current work plan could not be loaded.
               <button type="button" onClick={() => void worklistQuery.refetch()} className="ml-2 font-mono text-[10px] uppercase underline underline-offset-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">Retry</button>
             </div>
           ) : null}
           {worklistMutationError ? <p className="mt-3 border-l-2 border-danger pl-3 text-sm text-danger">{worklistMutationError}</p> : null}
           <button type="button" onClick={() => setExpertOpen((open) => !open)} className="mt-4 border-b border-line pb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">
-            {expertOpen ? "Hide station detail" : "Inspect station detail"}
+            {expertOpen ? "Hide technical details" : "Show technical details"}
           </button>
         </section>
       ) : null}
@@ -374,7 +419,7 @@ export default function TimelineRoute({
           isLoading={pulseQuery.isPending}
           errorMessage={
             pulseQuery.isError
-              ? "Run pulse could not be loaded from Grafana."
+              ? "Run status could not be loaded. Check the connection and try again."
               : null
           }
           onJumpToJob={(jobId) => {
@@ -395,7 +440,7 @@ export default function TimelineRoute({
                 : new ApiError("network_error", "The selected project could not be reached.", 0);
             return (
               <div className="rounded-md border border-line bg-surface-1 px-6 py-10 text-center">
-                <p className="text-xl text-ink">This turnover could not be loaded.</p>
+                <p className="text-xl text-ink">This project could not be loaded.</p>
                 <p className="mt-2 text-sm text-ink-muted">{error.message}</p>
                 <p className="mt-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
                   {error.code}
@@ -405,7 +450,7 @@ export default function TimelineRoute({
                   onClick={() => void projectQuery.refetch()}
                   className="mt-5 rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink transition-colors ease-chrome hover:border-ink-muted active:bg-surface-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
                 >
-                  Retry project
+                  Try again
                 </button>
               </div>
             );
@@ -415,8 +460,8 @@ export default function TimelineRoute({
       {projectQuery.isSuccess && jobs.length === 0 ? (
         <EmptyState
           glyph="▤"
-          title="Awaiting first turnover"
-          body="This project has no observed jobs yet. The timeline will populate when the API reports real station activity."
+          title="No activity yet"
+          body="No work has started for this project yet. Upload clips and start a finishing run to see activity here."
         />
       ) : null}
 
@@ -433,7 +478,7 @@ export default function TimelineRoute({
 
       {selectedJobId ? (
         <p className="mt-3 font-mono text-xs text-ink-muted">
-          Selected clip <span className="text-ink">{selectedJobId}</span>
+          Selected file <span className="text-ink">{selectedJobId}</span>
         </p>
       ) : null}
 
@@ -454,7 +499,7 @@ export default function TimelineRoute({
               })
               .catch((error: unknown) => {
                 setWorklistMutationError(
-                  error instanceof Error ? error.message : "The worklist order could not be saved.",
+                  error instanceof Error ? error.message : "The work order could not be saved.",
                 );
               });
           }}

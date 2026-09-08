@@ -66,7 +66,7 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   if (backend === "checking") {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Checking dailies…
+        Checking the latest results…
       </p>
     );
   }
@@ -74,11 +74,11 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   if (backend === "down") {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="sr-only">Morning reports</h1>
+        <h1 className="sr-only">Run reports</h1>
         <EmptyState
           glyph="☾"
-          title="Dailies are unreachable"
-          body="The backend is offline, so there is no morning report to show. Nothing on this page is simulated."
+          title="Reports are unavailable"
+          body="The service is unavailable, so the latest report cannot be loaded."
         />
       </section>
     );
@@ -87,11 +87,11 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   if (!selectedProjectId) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="sr-only">Morning reports</h1>
+        <h1 className="sr-only">Run reports</h1>
         <EmptyState
           glyph="☾"
           title="No project selected"
-          body="Pick a season on the timeline first. Dailies are per project, and this screen will not invent one."
+          body="Select a project on the timeline first. Reports are shown for one project at a time."
         />
       </section>
     );
@@ -108,7 +108,7 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   if (query.isPending) {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Loading morning report…
+        Loading report…
       </p>
     );
   }
@@ -127,11 +127,11 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   if (!report || verdicts.length === 0) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="sr-only">Morning reports</h1>
+        <h1 className="sr-only">Run reports</h1>
         <EmptyState
           glyph="☾"
-          title="No morning report yet"
-          body="After the overnight batch, the daily wrap-up lands here: per-station verdicts, cost accounting, and what the agent fixed while you slept."
+          title="No report yet"
+          body="A report will appear here after Martini Shot has completed work. It will show results, attention items, and cost."
         />
       </section>
     );
@@ -140,10 +140,10 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
   return (
     <section className="mx-auto max-w-3xl space-y-4 px-6 py-8">
       <header>
-        <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">Dailies</p>
-        <h1 className="mt-1 text-2xl text-ink">Morning report · {report.date}</h1>
+        <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">Run report</p>
+        <h1 className="mt-1 text-2xl text-ink">Report for {report.date}</h1>
         <p className="mt-2 font-mono text-xs text-ink-muted">
-          Generated {relativeTime(report.generated_at)}
+          Updated {relativeTime(report.generated_at)}
         </p>
       </header>
       <section className="grid grid-cols-2 border border-line bg-surface-1 sm:grid-cols-4" aria-label="Morning report totals">
@@ -155,12 +155,12 @@ export default function ReportsRoute({ backend, selectedProjectId }: ReportsRout
         ].map(([label, value, tone]) => <div key={String(label)} className="border-b border-line px-4 py-3 last:border-0 sm:border-b-0 sm:border-r"><p className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">{label}</p><p className={`mt-1 font-mono text-lg tabular-nums ${tone}`}>{value}</p></div>)}
       </section>
       <section className="border border-line bg-surface-1 p-4">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-ink">What happened</h2>
-        {happened.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No completed station verdicts were recorded.</p> : <div className="mt-3 space-y-3">{happened.map((verdict, index) => <VerdictRow key={`done-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
+        <h2 className="font-mono text-xs uppercase tracking-widest text-ink">Completed work</h2>
+        {happened.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No completed work was recorded.</p> : <div className="mt-3 space-y-3">{happened.map((verdict, index) => <VerdictRow key={`done-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
       </section>
       <section className="border border-line bg-surface-1 p-4">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-tungsten">Needs attention</h2>
-        {needsAttention.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No attention items were recorded in this report.</p> : <div className="mt-3 space-y-3">{needsAttention.map((verdict, index) => <VerdictRow key={`attention-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
+        <h2 className="font-mono text-xs uppercase tracking-widest text-tungsten">Needs your attention</h2>
+        {needsAttention.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No items need your attention.</p> : <div className="mt-3 space-y-3">{needsAttention.map((verdict, index) => <VerdictRow key={`attention-${verdict.station}-${index}`} verdict={verdict} />)}</div>}
       </section>
     </section>
   );

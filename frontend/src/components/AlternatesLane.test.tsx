@@ -57,8 +57,8 @@ describe("AlternatesLane", () => {
 
     expect(screen.getByText(/Scene 12 — chaser/)).toBeInTheDocument();
     expect(screen.getByText(/Scene 13 — reveal/)).toBeInTheDocument();
-    expect(screen.getByText("◼ Locked")).toBeInTheDocument();
-    expect(screen.getByText("◇ Open")).toBeInTheDocument();
+    expect(screen.getByText("◼ Current version")).toBeInTheDocument();
+    expect(screen.getByText("◇ Editable")).toBeInTheDocument();
     expect(screen.getByText("DRAFT")).toBeInTheDocument();
     expect(screen.getByText("In continuity")).toBeInTheDocument();
     expect(screen.getByText("Retired")).toBeInTheDocument();
@@ -93,23 +93,23 @@ describe("AlternatesLane", () => {
   it("renders its designed empty state when no shots exist yet", () => {
     render(<AlternatesLane shots={[]} />);
 
-    expect(screen.getByText(/no generated clips yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no new versions yet/i)).toBeInTheDocument();
   });
 
-  it("exposes Extend and Corrections on an open shot and blocks them on a locked cut", () => {
+  it("exposes editing controls on an editable shot and blocks them on a current version", () => {
     render(<AlternatesLane shots={shots} />);
 
     expect(screen.getByRole("form", { name: /extend/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /propose extend/i })).toBeInTheDocument();
-    expect(screen.getByRole("form", { name: /corrections/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /suggest an extension/i })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: /fix something in this clip/i })).toBeInTheDocument();
     expect(screen.getByRole("form", { name: /relight/i })).toBeInTheDocument();
     expect(screen.getByRole("form", { name: /coverage/i })).toBeInTheDocument();
     expect(screen.getByRole("form", { name: /camera language/i })).toBeInTheDocument();
     expect(
-      screen.getByText(/locked cut — extend is blocked/i),
+      screen.getByText(/This clip is locked\. Unlock it before creating an extended version/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/locked cut — corrections are blocked/i),
+      screen.getByText(/This clip is locked\. Unlock it before creating a corrected version/i),
     ).toBeInTheDocument();
   });
 });

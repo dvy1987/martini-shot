@@ -21,20 +21,20 @@ export const STATUS_BOARD_ORDER: JobStatus[] = [
 ];
 
 export const STATUS_META: Record<JobStatus, StatusMeta> = {
-  queued: { term: "In bin", hint: "queued", glyph: "●", textClass: "text-ink-muted" },
-  running: { term: "In the lab", hint: "running", glyph: "▶", textClass: "text-agent" },
-  pass: { term: "Locked", hint: "passed", glyph: "◼", textClass: "text-signal" },
-  fail: { term: "Failed QC", hint: "failed", glyph: "⚑", textClass: "text-danger" },
-  quarantined: { term: "Vaulted", hint: "quarantined", glyph: "◇", textClass: "text-tungsten" },
+  queued: { term: "Waiting to start", hint: "This task is queued", glyph: "●", textClass: "text-ink-muted" },
+  running: { term: "In progress", hint: "This task is running", glyph: "▶", textClass: "text-agent" },
+  pass: { term: "Complete", hint: "This task passed", glyph: "◼", textClass: "text-signal" },
+  fail: { term: "Failed", hint: "This task failed", glyph: "⚑", textClass: "text-danger" },
+  quarantined: { term: "Set aside", hint: "This file was isolated", glyph: "◇", textClass: "text-tungsten" },
   needs_human: {
-    term: "Flagged",
-    hint: "needs human review",
+    term: "Needs review",
+    hint: "A person needs to review this",
     glyph: "⚑",
     textClass: "text-tungsten",
   },
   throttled: {
-    term: "Held by accounting",
-    hint: "throttled by Spend Control",
+    term: "Paused for budget",
+    hint: "This task did not fit the available budget",
     glyph: "⏸",
     textClass: "text-tungsten",
   },
@@ -50,8 +50,8 @@ export function statusMetaFor(value: string): StatusMeta | null {
 }
 
 const UNKNOWN_META: StatusMeta = {
-  term: "Unrecognized",
-  hint: "status outside the board vocabulary",
+  term: "Unknown status",
+  hint: "The system returned an unfamiliar status",
   glyph: "?",
   textClass: "text-ink-muted",
 };

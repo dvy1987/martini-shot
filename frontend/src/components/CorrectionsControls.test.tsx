@@ -24,10 +24,10 @@ const openShot: ShotRow = {
 const lockedShot: ShotRow = { ...openShot, shot_id: "shot-locked", locked: true };
 
 describe("CorrectionsControls", () => {
-  it("blocks corrections on a locked cut", () => {
+  it("blocks corrections on a locked clip", () => {
     render(<CorrectionsControls shot={lockedShot} />);
-    expect(screen.getByText(/locked cut/i)).toBeInTheDocument();
-    expect(screen.queryByRole("form", { name: /corrections/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/This clip is locked\. Unlock it before creating a corrected version/i)).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: /fix something in this clip/i })).not.toBeInTheDocument();
   });
 
   it("proposes a correction through the real H-0 endpoint", async () => {
@@ -38,10 +38,10 @@ describe("CorrectionsControls", () => {
     });
     render(<CorrectionsControls shot={openShot} propose={propose} />);
 
-    fireEvent.change(screen.getByLabelText(/brief/i), {
+    fireEvent.change(screen.getByLabelText(/what should change/i), {
       target: { value: "Replace the café sign text with OPEN" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /propose correction/i }));
+    fireEvent.click(screen.getByRole("button", { name: /suggest a correction/i }));
 
     await waitFor(() =>
       expect(propose).toHaveBeenCalledWith("shot-open", {

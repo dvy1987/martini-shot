@@ -43,6 +43,39 @@ function itemTone(status: string): string {
   return "text-ink-muted";
 }
 
+function stationLabel(station: string): string {
+  const labels: Record<string, string> = {
+    ingest: "File check",
+    loudness: "Audio check",
+    pickups: "Picture repair",
+    extend: "Extend a shot",
+    corrections: "Fix an image",
+    relight: "Improve lighting",
+    coverage: "Add coverage",
+    camera_language: "Camera movement",
+    dub: "Create a dubbed version",
+    delivery: "Delivery check",
+    spend: "Budget check",
+  };
+  return labels[station] ?? station.replaceAll("_", " ");
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    inspecting: "Reviewing clips",
+    planning: "Choosing improvements",
+    executing: "Running selected work",
+    running: "Running",
+    queued: "Queued",
+    waiting: "Waiting for budget",
+    paused: "Paused",
+    passed: "Complete",
+    failed: "Failed",
+    needs_human: "Needs review",
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
 function itemGlyph(status: string): string {
   if (status === "passed") return "◼";
   if (status === "failed" || status === "needs_human") return "⚑";
@@ -63,10 +96,10 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
     <section className="mt-6 rounded-md border border-line bg-surface-1">
       <header className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-4 py-3">
         <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-          Finishing worklist
+          Work Martini Shot is running
         </h2>
         <p className="font-mono text-xs text-ink-muted">
-          {worklist.status} · budget {cost(worklist.budget_micros)} · spent{" "}
+          {statusLabel(worklist.status)} · budget {cost(worklist.budget_micros)} · spent {" "}
           {cost(worklist.spent_micros)}
         </p>
         {worklist.rank_reason ? (
@@ -77,12 +110,12 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
         <table className="w-full border-collapse text-left">
           <thead className="bg-surface-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
             <tr>
-              <th className="border-b border-line px-4 py-2 font-normal">Rank</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Station</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Why</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Impact</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Priority</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Task</th>
+              <th className="border-b border-line px-4 py-2 font-normal">What Martini Shot found</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Importance</th>
               <th className="border-b border-line px-4 py-2 font-normal">Status</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Order</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Move</th>
             </tr>
           </thead>
           <tbody>
@@ -97,13 +130,13 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
                     {index + 1}
                   </td>
                   <td className="border-b border-line px-4 py-2 font-mono text-xs text-ink">
-                    {item.station.replaceAll("_", " ")}
+                    {stationLabel(item.station)}
                   </td>
                   <td className="border-b border-line px-4 py-2 text-sm text-ink">
                     {item.summary ?? ""}
                     {item.blocked_by && item.blocked_by.length > 0 ? (
                       <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-                        waits on {item.blocked_by.map((id) => id.split("::")[0]).join(", ")}
+                        Waiting for: {item.blocked_by.map((id) => stationLabel(id.split("::")[0])).join(", ")}
                       </span>
                     ) : null}
                   </td>
@@ -117,7 +150,7 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
                     <span aria-hidden className="mr-2">
                       {itemGlyph(item.status)}
                     </span>
-                    {item.status === "passed" ? "locked" : item.status.replaceAll("_", " ")}
+                    {statusLabel(item.status)}
                   </td>
                   <td className="border-b border-line px-4 py-2">
                     {item.status === "waiting" && onReorder ? (
@@ -155,24 +188,24 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
       ) : (
         <p className="px-4 py-3 font-mono text-xs text-ink-muted">
           {worklist.status === "inspecting"
-            ? "Stations are looking at the clips."
-            : "No ranked work yet."}
+            ? "The finishing agents are reviewing your clips."
+            : "No optional improvements have been selected yet."}
         </p>
       )}
       {worklist.attendance.length > 0 ? (
         <table className="w-full border-collapse border-t border-line text-left">
           <thead className="bg-surface-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
             <tr>
-              <th className="border-b border-line px-4 py-2 font-normal">Station look</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Note</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Impact</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Area checked</th>
+              <th className="border-b border-line px-4 py-2 font-normal">What it found</th>
+              <th className="border-b border-line px-4 py-2 font-normal">Importance</th>
             </tr>
           </thead>
           <tbody>
             {worklist.attendance.map((row, index) => (
               <tr key={`${row.station}-${row.shot_id ?? ""}-${index}`}>
                 <td className="border-b border-line px-4 py-2 font-mono text-xs text-ink-muted">
-                  {row.station.replaceAll("_", " ")}
+                  {stationLabel(row.station)}
                 </td>
                 <td className="border-b border-line px-4 py-2 text-sm text-ink">
                   {row.status === "empty" ? "" : row.summary}

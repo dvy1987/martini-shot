@@ -55,7 +55,7 @@ export default function RunPulseStrip({
     return (
       <section className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3">
         <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-          Run pulse
+          Run status
         </h2>
         <p className="mt-2 text-sm text-ink-muted">{errorMessage}</p>
       </section>
@@ -79,16 +79,16 @@ export default function RunPulseStrip({
           id="run-pulse-heading"
           className="font-mono text-xs uppercase tracking-widest text-ink-muted"
         >
-          Run pulse
+          Run status
         </h2>
         <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
-          Grafana {pulse.grafana}
+          Monitoring: Grafana {pulse.grafana}
         </p>
       </header>
       <dl className="grid gap-0 sm:grid-cols-2">
         <div className="border-b border-line px-4 py-3 sm:border-r">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Factory or footage
+            System and media health
           </dt>
           <dd className={`mt-1 text-sm ${verdictClass(pulse.factory.verdict)}`}>
             {pulse.factory.headline}
@@ -97,7 +97,7 @@ export default function RunPulseStrip({
         </div>
         <div className="border-b border-line px-4 py-3">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Burn you can change
+            Cost to run
           </dt>
           <dd className="mt-1 text-sm text-ink">{pulse.burn.headline}</dd>
           {pulse.burn.top[0] ? (
@@ -124,19 +124,19 @@ export default function RunPulseStrip({
         </div>
         <div className="px-4 py-3 sm:border-r sm:border-b-0 border-b border-line">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            When wrap
+            Expected finish
           </dt>
           <dd className="mt-1 text-sm text-ink">{pulse.eta.headline}</dd>
           <EvidenceLink href={pulse.eta.evidence_url} />
         </div>
         <div className="px-4 py-3">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Grabbed the wheel
+            Automatic actions
           </dt>
           <dd className="mt-1">
             {wheelPreview.length === 0 ? (
               <p className="text-sm text-ink-muted">
-                No agent interventions recorded for this dump.
+                No automatic actions recorded for this run.
               </p>
             ) : (
               <ul className="space-y-1">

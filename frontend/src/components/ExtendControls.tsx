@@ -44,7 +44,7 @@ export default function ExtendControls({
   proposeExtend = proposeExtendApi,
   proposeMaster = proposeMasterApi,
 }: ExtendControlsProps) {
-  const [reason, setReason] = useState("Keep the shot rolling");
+  const [reason, setReason] = useState("Continue the action naturally");
   const [sourceUri, setSourceUri] = useState(defaultSourceUri(shot));
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<"extend" | "master" | null>(null);
@@ -53,7 +53,7 @@ export default function ExtendControls({
   if (shot.locked) {
     return (
       <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-signal">
-        Locked cut — extend is blocked until unlock.
+        This clip is locked. Unlock it before creating an extended version.
       </p>
     );
   }
@@ -103,19 +103,19 @@ export default function ExtendControls({
       }}
     >
       <p className="font-mono text-[11px] uppercase tracking-widest text-ink-muted">
-        Extend
+        Continue this clip
       </p>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Why
+        What should continue?
         <input
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          placeholder="Keep the shot rolling"
+          placeholder="Continue the action naturally"
           className="rounded-sm border border-line bg-surface-2 px-2 py-1 font-sans text-sm text-ink"
         />
       </label>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Source URI
+        Video file
         <input
           value={sourceUri}
           onChange={(event) => setSourceUri(event.target.value)}
@@ -129,7 +129,7 @@ export default function ExtendControls({
           disabled={canSubmit}
           className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
         >
-          {pending === "extend" ? "Proposing…" : "Propose extend"}
+          {pending === "extend" ? "Preparing suggestion…" : "Suggest an extension"}
         </button>
         {hasPassingExtendDraft(shot) ? (
           <button
@@ -138,13 +138,13 @@ export default function ExtendControls({
             onClick={() => void submitMaster()}
             className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
           >
-            {pending === "master" ? "Proposing…" : "Propose master"}
+            {pending === "master" ? "Preparing final version…" : "Create final version"}
           </button>
         ) : null}
       </div>
       {proposedId ? (
         <p className="font-mono text-[11px] text-tungsten">
-          H-0 {proposedId} · proposed
+          Suggestion created: {proposedId}
         </p>
       ) : null}
       {error ? (

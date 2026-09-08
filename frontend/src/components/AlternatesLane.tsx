@@ -152,7 +152,7 @@ function ShotCard({
             shot.locked ? "text-signal" : "text-ink-muted"
           }`}
         >
-          {shot.locked ? "◼ Locked" : "◇ Open"}
+          {shot.locked ? "◼ Current version" : "◇ Editable"}
         </span>
         <span className="ml-auto font-mono text-[11px] uppercase tracking-wider text-ink-muted">
           {count > 0
@@ -163,8 +163,7 @@ function ShotCard({
       {count > 0 ? (
         <div className="mt-3 space-y-2">
           <p className="text-sm text-ink-muted">
-            Generated clips live here as alternates; the locked cut is never
-            silently replaced. Promotions run through Approvals.
+            New versions appear here for review. Martini Shot never replaces the current version automatically. Approve a version before making it current.
           </p>
           {shot.alternates.map((alternate) => (
             <AlternateCard
@@ -207,13 +206,12 @@ export default function AlternatesLane({
           Alternates lane
         </h2>
         <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted">
-          {shots.length} shot{shots.length === 1 ? "" : "s"} · drafts say so
+          {shots.length} shot{shots.length === 1 ? "" : "s"}
         </span>
       </div>
       {shots.length === 0 ? (
         <p className="mt-4 text-sm text-ink-muted">
-          No generated clips yet. Agent renders appear here as alternates the
-          moment the API reports them — nothing on this screen is simulated.
+No new versions yet. They will appear here after Martini Shot creates them. Nothing on this screen is simulated.
         </p>
       ) : (
         <ul className="mt-3 space-y-3">

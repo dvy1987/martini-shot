@@ -39,7 +39,7 @@ describe("InvestigationDrawer", () => {
     fireEvent.keyDown(document, { key: "Tab" });
     expect(screen.getByRole("button", { name: /close investigation drawer/i })).toHaveFocus();
 
-    expect(screen.getByText("Failed QC")).toBeInTheDocument();
+    expect(screen.getByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("$0.0042")).toBeInTheDocument();
     expect(screen.queryByText("s3://rushes/scene-01.mov")).not.toBeInTheDocument();
     expect(screen.queryByText(/"job_id"/)).not.toBeInTheDocument();
@@ -147,7 +147,7 @@ describe("InvestigationDrawer", () => {
       />,
     );
 
-    expect(screen.getByText("Unrecognized")).toBeInTheDocument();
+    expect(screen.getByText("Unknown status")).toBeInTheDocument();
     expect(screen.getByText(/cancelled/)).toBeInTheDocument();
   });
 

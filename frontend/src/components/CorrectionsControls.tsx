@@ -35,7 +35,7 @@ export default function CorrectionsControls({
   if (shot.locked) {
     return (
       <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-signal">
-        Locked cut — corrections are blocked until unlock.
+        This clip is locked. Unlock it before creating a corrected version.
       </p>
     );
   }
@@ -68,17 +68,17 @@ export default function CorrectionsControls({
   return (
     <form
       className="mt-3 space-y-2 rounded-md border border-dashed border-line p-3"
-      aria-label="Corrections"
+      aria-label="Fix something in this clip"
       onSubmit={(event) => {
         event.preventDefault();
         void submit();
       }}
     >
       <p className="font-mono text-[11px] uppercase tracking-widest text-ink-muted">
-        Corrections
+        Fix something in this clip
       </p>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Brief
+        What should change?
         <input
           value={intent}
           onChange={(event) => setIntent(event.target.value)}
@@ -88,7 +88,7 @@ export default function CorrectionsControls({
         />
       </label>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Protected subjects
+        What must stay the same?
         <input
           value={protectedSubjects}
           onChange={(event) => setProtectedSubjects(event.target.value)}
@@ -96,7 +96,7 @@ export default function CorrectionsControls({
         />
       </label>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Continuity constraints
+        Other instructions
         <input
           value={constraints}
           onChange={(event) => setConstraints(event.target.value)}
@@ -104,7 +104,7 @@ export default function CorrectionsControls({
         />
       </label>
       <label className="grid gap-1 text-xs text-ink-muted">
-        Source URI
+        Video file
         <input
           value={sourceUri}
           onChange={(event) => setSourceUri(event.target.value)}
@@ -117,11 +117,11 @@ export default function CorrectionsControls({
         disabled={pending || !intent.trim() || !sourceUri.startsWith("gs://")}
         className="rounded-sm border border-line px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink hover:border-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:text-ink-muted"
       >
-        {pending ? "Proposing…" : "Propose correction"}
+        {pending ? "Preparing suggestion…" : "Suggest a correction"}
       </button>
       {proposedId ? (
         <p className="font-mono text-[11px] text-tungsten">
-          H-0 {proposedId} · proposed
+          Suggestion created: {proposedId}
         </p>
       ) : null}
       {rationale ? <p className="text-sm text-ink-muted">{rationale}</p> : null}

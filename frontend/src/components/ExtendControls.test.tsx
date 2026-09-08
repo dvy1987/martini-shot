@@ -47,9 +47,9 @@ const shotWithPassingExtend: ShotRow = {
 const lockedShot: ShotRow = { ...openShot, shot_id: "shot-locked", locked: true };
 
 describe("ExtendControls", () => {
-  it("blocks extend on a locked cut", () => {
+  it("blocks extending a locked clip", () => {
     render(<ExtendControls shot={lockedShot} />);
-    expect(screen.getByText(/locked cut/i)).toBeInTheDocument();
+    expect(screen.getByText(/This clip is locked\. Unlock it before creating an extended version/i)).toBeInTheDocument();
     expect(screen.queryByRole("form", { name: /extend/i })).not.toBeInTheDocument();
   });
 
@@ -60,15 +60,15 @@ describe("ExtendControls", () => {
     });
     render(<ExtendControls shot={openShot} proposeExtend={proposeExtend} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /propose extend/i }));
+    fireEvent.click(screen.getByRole("button", { name: /suggest an extension/i }));
 
     await waitFor(() =>
       expect(proposeExtend).toHaveBeenCalledWith("shot-open", {
         source_uri: "gs://bucket/source.mp4",
-        reason: "Keep the shot rolling",
+        reason: "Continue the action naturally",
       }),
     );
-    expect(await screen.findByText(/H-0 appr-ext/)).toBeInTheDocument();
+    expect(await screen.findByText(/Suggestion created: appr-ext/)).toBeInTheDocument();
   });
 
   it("offers master only after a QC-passing extend draft", async () => {

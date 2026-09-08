@@ -146,7 +146,7 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
       if (stopped) {
         setFailed(stopped.file.name);
         setError(
-          `${stopped.file.name} did not pass file validation. Reset the turnover to choose a new sequence.`,
+          `${stopped.file.name} did not pass file validation. Start over to choose a new sequence.`,
         );
         return;
       }
@@ -171,7 +171,7 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
       const micros = Math.round(dollars * 1_000_000);
       await startFinish(projectId, micros, uploaded.map((item) => item.job.job_id));
       setStarted(true);
-      setNote("Finishing started");
+      setNote("Finishing has started");
       onFinished?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Finish failed");
@@ -184,20 +184,20 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
     <section className="mb-6 overflow-hidden rounded-md border border-line bg-surface-1">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-5 py-4">
         <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-tungsten">01 / turnover brief</p>
-        <h2 className="mt-1 text-xl text-ink">{compact && !showPrep ? "Turnover is in the lab" : "Set the order. Set the envelope."}</h2>
-        {compact && !showPrep ? <p className="mt-1 text-sm text-ink-muted">{active ? "The active run owns the screen. A new turnover can begin after this one stops." : "The last run is on record. Start another turnover when you are ready."}</p> : <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">The lab will work through your clips in this order. It checks originals first, then mixes and repairs every clip before it considers optional finishing work.</p>}
+        <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-tungsten">Step 1: Choose your clips</p>
+        <h2 className="mt-1 text-xl text-ink">{compact && !showPrep ? "Finishing is in progress" : "Upload clips and set a budget"}</h2>
+        {compact && !showPrep ? <p className="mt-1 text-sm text-ink-muted">{active ? "A finishing run is already in progress. Start a new run after it finishes." : "The last run is complete. Start a new run when you are ready."}</p> : <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">Add your clips in the order you want them used. Martini Shot checks each file, fixes basic audio and picture problems, then suggests optional improvements.</p>}
         </div>
-        {compact && !active ? <button type="button" onClick={() => setShowPrep((open) => !open)} className="border border-line px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">{showPrep ? "Hide turnover setup" : "Start another turnover"}</button> : null}
+        {compact && !active ? <button type="button" onClick={() => setShowPrep((open) => !open)} className="border border-line px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">{showPrep ? "Hide setup" : "Start a new finishing run"}</button> : null}
       </header>
       {showPrep ? <div className="grid gap-6 px-5 py-5 lg:grid-cols-[1fr_18rem]">
         <div>
           <label className="grid gap-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
-            <span>Upload clips <span className="sr-only">(staged in order)</span></span>
+            <span>Choose clips <span className="sr-only">(added in order)</span></span>
             <input type="file" accept="video/*,audio/*" multiple disabled={pending} onChange={(event) => onFiles(event.target.files)} className="w-full text-sm normal-case tracking-normal text-ink file:mr-3 file:rounded-sm file:border file:border-line file:bg-surface-2 file:px-3 file:py-2 file:font-mono file:text-[10px] file:uppercase file:tracking-wider file:text-ink" />
           </label>
           <ol className="mt-4 space-y-2" aria-label="Ordered clips">
-            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips staged yet. The order you choose becomes the upload order.</li> : staged.map((file, index) => (
+            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips added yet. Add your files in the order you want them used.</li> : staged.map((file, index) => (
               <li key={`${file.name}-${index}`} className="flex items-center gap-3 border border-line bg-surface-2 px-3 py-2">
                 <span className="w-5 font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span>
                 <span className="min-w-0 flex-1 truncate text-sm text-ink">{file.name}</span>
@@ -209,18 +209,18 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
               </li>
             ))}
           </ol>
-          {uploaded.length > 0 ? <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-ink-muted">Sequence locked after the first accepted upload.</p> : null}
-          {failed ? <p className="mt-3 border-l-2 border-danger px-3 py-2 text-sm text-danger">Upload stopped at “{failed}”. Later clips were not sent and no downstream work is implied.</p> : null}
-          {uploaded.length > 0 && !pending ? <button type="button" onClick={resetTurnover} className="mt-3 border-b border-line pb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">Reset turnover</button> : null}
+          {uploaded.length > 0 ? <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-ink-muted">The order is locked after the first clip is uploaded.</p> : null}
+          {failed ? <p className="mt-3 border-l-2 border-danger px-3 py-2 text-sm text-danger">Upload stopped at “{failed}”. The remaining clips were not uploaded and the finishing run was not started.</p> : null}
+          {uploaded.length > 0 && !pending ? <button type="button" onClick={resetTurnover} className="mt-3 border-b border-line pb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">Start over</button> : null}
         </div>
         <div className="border-l border-line pl-5">
-          <label className="grid gap-2 font-mono text-xs uppercase tracking-wider text-ink-muted">Finishing envelope
+          <label className="grid gap-2 font-mono text-xs uppercase tracking-wider text-ink-muted">Budget
             <div className="flex items-center gap-2"><span className="text-ink">$</span><input type="number" min={1} value={budget} onChange={(event) => setBudget(event.target.value)} className="w-full rounded-sm border border-line bg-surface-2 px-3 py-2 font-mono text-sm text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten" /></div>
           </label>
-          <p className="mt-3 text-xs leading-relaxed text-ink-muted">The orchestrator may leave proposed work out when the real estimates exceed this limit.</p>
-          <button type="button" disabled={pending || started || active || !sequenceValidated} onClick={() => void onFinish()} className="mt-5 w-full rounded-sm border border-tungsten bg-tungsten px-4 py-3 font-mono text-xs uppercase tracking-wider text-bg transition-opacity hover:opacity-90 disabled:opacity-40">{pending ? "Working…" : started ? "Finishing started" : "Finish / start the lab"}</button>
-          {staged.length > 0 && remaining.length > 0 ? <button type="button" disabled={pending} onClick={() => void onStart()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Uploading in order…" : `Upload ${remaining.length} clip${remaining.length === 1 ? "" : "s"} in order`}</button> : null}
-          {validationPending ? <button type="button" disabled={pending} onClick={() => void onCheckValidation()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Checking files…" : "Check file validation"}</button> : null}
+          <p className="mt-3 text-xs leading-relaxed text-ink-muted">Martini Shot will choose the highest-priority improvements that fit this budget. Basic audio and picture checks run first.</p>
+          <button type="button" disabled={pending || started || active || !sequenceValidated} onClick={() => void onFinish()} className="mt-5 w-full rounded-sm border border-tungsten bg-tungsten px-4 py-3 font-mono text-xs uppercase tracking-wider text-bg transition-opacity hover:opacity-90 disabled:opacity-40">{pending ? "Working…" : started ? "Finishing has started" : "Start finishing"}</button>
+          {staged.length > 0 && remaining.length > 0 ? <button type="button" disabled={pending} onClick={() => void onStart()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Uploading in order…" : `Add ${remaining.length} clip${remaining.length === 1 ? "" : "s"} in order`}</button> : null}
+          {validationPending ? <button type="button" disabled={pending} onClick={() => void onCheckValidation()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Checking files…" : "Check file status"}</button> : null}
         </div>
       </div> : null}
       <div className="border-t border-line px-5 py-3">
