@@ -60,6 +60,8 @@ class Settings:
     mcp_grafana_bin: str = ""
     grafana_sa_token: str = ""
     api_key: str = ""
+    # Exact browser origins only; the published frontend is configured here
+    # through CORS_ALLOWED_ORIGINS rather than a broad hosting-domain pattern.
     cors_allowed_origins: list[str] = field(default_factory=list)
     service_name: str = "martini-shot-backend"
     log_level: str = "INFO"

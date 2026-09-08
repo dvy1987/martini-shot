@@ -62,7 +62,25 @@ Because Vite variables are compiled into the browser bundle, changing either val
 
 ## Backend alignment
 
-The backend must include the frontend origin in `CORS_ALLOWED_ORIGINS` or match the configured Replit origin pattern. The backend also needs its own runtime configuration, Firestore, Cloud Storage, Grafana MCP credentials, and an enabled worker. A frontend that loads while the backend is unavailable is not a working demo. The correct UI state is an explicit unreachable or offline state.
+The backend must include the exact published frontend origin in
+`CORS_ALLOWED_ORIGINS`. Keep the local development origins when developing
+locally, then add the published URL as a comma-separated entry before deploying
+the backend:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,https://<published-app>.replit.app
+```
+
+Use the browser origin only: include the `https://` scheme and no trailing
+slash or path. Do not use `*` or a broad `*.replit.*` pattern. The backend
+uses this exact list so an unrelated Replit app cannot make browser API
+requests. `REPLIT_DOMAINS` is the development domain and is not a substitute
+for the published URL. Because the value is backend runtime configuration,
+redeploy the backend after changing it. The backend also needs its own runtime
+configuration, Firestore, Cloud Storage, Grafana MCP credentials, and an
+enabled worker. A frontend that loads while the backend is unavailable is not
+a working demo. The correct UI state is an explicit unreachable or offline
+state.
 
 ## Judge verification
 

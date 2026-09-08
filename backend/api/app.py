@@ -113,7 +113,6 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.cors_allowed_origins,
-        allow_origin_regex=r"https://.*\.replit\.(dev|app|co)",
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["X-API-Key", "Authorization", "Content-Type"],
     )

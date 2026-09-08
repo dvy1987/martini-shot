@@ -72,15 +72,16 @@ def test_non_sse_path_ignores_api_key_query_parameter() -> None:
 
 
 def test_cors_allows_listed_origin_only() -> None:
-    c = client()
+    published_origin = "https://martini-shot.replit.app"
+    c = client(cors_allowed_origins=[published_origin, "http://localhost:5173"])
     ok = c.options(
         "/api/v1/health",
         headers={
-            "Origin": "http://localhost:5173",
+            "Origin": published_origin,
             "Access-Control-Request-Method": "GET",
         },
     )
-    assert ok.headers.get("access-control-allow-origin") == "http://localhost:5173"
+    assert ok.headers.get("access-control-allow-origin") == published_origin
     bad = c.options(
         "/api/v1/health",
         headers={
@@ -89,3 +90,15 @@ def test_cors_allows_listed_origin_only() -> None:
         },
     )
     assert bad.headers.get("access-control-allow-origin") is None
+
+
+def test_cors_does_not_allow_unconfigured_replit_origin() -> None:
+    c = client(cors_allowed_origins=["https://martini-shot.replit.app"])
+    response = c.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "https://another-project.replit.app",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert response.headers.get("access-control-allow-origin") is None
