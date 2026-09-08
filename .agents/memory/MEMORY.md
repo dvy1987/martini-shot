@@ -1,0 +1,1 @@
+- [Replit config validation](replit-config-validation.md) — validate temporary TOML before replacing `.replit`
