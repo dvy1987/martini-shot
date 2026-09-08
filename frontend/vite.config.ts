@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     host: "127.0.0.1",
     port: 3000,
+    allowedHosts: [".replit.dev", ".replit.app"],
     proxy: apiTarget
       ? { "/api": { target: apiTarget, changeOrigin: true } }
       : undefined,
