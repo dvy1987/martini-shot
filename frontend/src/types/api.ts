@@ -236,4 +236,5 @@ export interface RunPulse {
     evidence_url?: string;
   };
   wheel: { items: RunPulseWheelItem[] };
+  dashboards?: { title: string; url: string }[];
 }

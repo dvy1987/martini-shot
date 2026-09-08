@@ -55,7 +55,7 @@ export default function RunPulseStrip({
     return (
       <section className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3">
         <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-          Run status
+          Grafana watch
         </h2>
         <p className="mt-2 text-sm text-ink-muted">{errorMessage}</p>
       </section>
@@ -66,6 +66,7 @@ export default function RunPulseStrip({
     return null;
   }
 
+  const dashboards = pulse.dashboards ?? [];
   const wheelPreview = pulse.wheel.items.slice(0, 4);
   const extra = pulse.wheel.items.length - wheelPreview.length;
 
@@ -75,16 +76,36 @@ export default function RunPulseStrip({
       className="mb-5 rounded-md border border-line bg-surface-1"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-4 py-3">
-        <h2
-          id="run-pulse-heading"
-          className="font-mono text-xs uppercase tracking-widest text-ink-muted"
-        >
-          Run status
-        </h2>
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">
+            Grafana
+          </p>
+          <h2
+            id="run-pulse-heading"
+            className="mt-1 font-mono text-xs uppercase tracking-widest text-ink"
+          >
+            Grafana watch
+          </h2>
+        </div>
         <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
-          Monitoring: Grafana {pulse.grafana}
+          {pulse.grafana === "ok" ? "Live from Grafana Cloud" : "Grafana unreachable"}
         </p>
       </header>
+      {dashboards.length > 0 ? (
+        <p className="flex flex-wrap gap-x-4 gap-y-1 border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-wider">
+          {dashboards.map((dashboard) => (
+            <a
+              key={dashboard.url}
+              href={dashboard.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-agent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+            >
+              {dashboard.title}
+            </a>
+          ))}
+        </p>
+      ) : null}
       <dl className="grid gap-0 sm:grid-cols-2">
         <div className="border-b border-line px-4 py-3 sm:border-r">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">

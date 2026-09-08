@@ -38,6 +38,7 @@ describe("command palette matching", () => {
     const ids = allCommands(jobs).map(({ id }) => id);
     expect(ids).toContain("job:job-real");
     expect(ids).toContain("route:timeline");
+    expect(ids).toContain("route:analytics");
     expect(ids).toContain("lens");
     expect(ids.some((id) => id.startsWith("job:") && id !== "job:job-real")).toBe(false);
   });
@@ -45,6 +46,7 @@ describe("command palette matching", () => {
   it("maps route commands onto real app paths", () => {
     expect(pathForRouteCommand("route:timeline")).toBe("/");
     expect(pathForRouteCommand("route:approvals")).toBe("/approvals");
+    expect(pathForRouteCommand("route:analytics")).toBe("/analytics");
     expect(pathForRouteCommand("route:missing")).toBe("/");
   });
 });

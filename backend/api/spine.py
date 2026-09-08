@@ -25,6 +25,7 @@ from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
 from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
+from backend.projects.open import open_show
 from backend.shots import lifecycle as shots
 from backend.stations.ingest.run import STATION
 from backend.supervisor import budget_loop
@@ -38,6 +39,10 @@ REPORTS = "pc-morning-reports"
 class DecisionIn(BaseModel):
     decision: str
     reason: str | None = Field(default=None)
+
+
+class ProjectCreateIn(BaseModel):
+    title: str | None = Field(default=None, max_length=80)
 
 
 class ShotActionIn(BaseModel):
@@ -168,8 +173,13 @@ def install_spine_routes(
                     jobs=jobs,
                 )
             )
-        out.sort(key=lambda row: str(row.get("created_at") or ""))
+        out.sort(key=lambda row: str(row.get("created_at") or ""), reverse=True)
         return out
+
+    @app.post("/api/v1/projects")
+    def create_project(body: ProjectCreateIn | None = None) -> dict[str, Any]:
+        title = body.title if body is not None else None
+        return open_show(store, title=title)
 
     @app.get("/api/v1/projects/{project_id}")
     def get_project(project_id: str) -> dict[str, Any]:

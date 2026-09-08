@@ -1,8 +1,8 @@
 /** Upload clips, set a $50 finishing budget, walk away. */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { getJob, ingestClip, startFinish } from "@/api/endpoints";
-import { reorder } from "@/lib/clipOrdering";
+import { moveItem, reorder } from "@/lib/clipOrdering";
 import type { Job } from "@/types/api";
 
 interface FinishBarProps {
@@ -36,6 +36,8 @@ function ingestLabel(status: Job["status"]): string {
 }
 
 export default function FinishBar({ projectId, onFinished, compact = false, active = false }: FinishBarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragFrom = useRef<number | null>(null);
   const [budget, setBudget] = useState("50");
   const [staged, setStaged] = useState<File[]>([]);
   const [uploaded, setUploaded] = useState<UploadedClip[]>([]);
@@ -50,28 +52,46 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
     () => staged.filter((file) => !uploaded.some((item) => item.file === file)),
     [staged, uploaded],
   );
+  const orderedJobs = useMemo(
+    () =>
+      staged
+        .map((file) => uploaded.find((item) => item.file === file)?.job)
+        .filter((job): job is Job => job != null),
+    [staged, uploaded],
+  );
   const sequenceValidated =
     staged.length > 0 &&
     remaining.length === 0 &&
-    uploaded.length === staged.length &&
-    uploaded.every((item) => item.job.status === "pass");
+    orderedJobs.length === staged.length &&
+    orderedJobs.every((job) => job.status === "pass");
   const validationPending =
     remaining.length === 0 &&
     uploaded.some((item) => !INGEST_TERMINAL.has(item.job.status));
 
   function onFiles(files: FileList | null) {
     if (!files?.length) return;
-    setStaged((current) => [...current, ...Array.from(files)]);
+    const incoming = Array.from(files);
+    setStaged((current) => [...current, ...incoming]);
     setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    void acceptFiles(incoming);
   }
 
   function move(index: number, delta: -1 | 1) {
     setStaged((current) => reorder(current, index, delta));
   }
 
+  function dropOn(index: number) {
+    const from = dragFrom.current;
+    dragFrom.current = null;
+    if (from == null || started || pending) return;
+    setStaged((current) => moveItem(current, from, index));
+  }
+
   function remove(file: File) {
-    if (uploaded.some((item) => item.file === file)) return;
+    if (started) return;
     setStaged((current) => current.filter((item) => item !== file));
+    setUploaded((current) => current.filter((item) => item.file !== file));
   }
 
   function resetTurnover() {
@@ -103,16 +123,16 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
     throw new Error("File validation is still running. Check again before starting the lab.");
   }
 
-  async function onStart() {
+  async function acceptFiles(incoming: File[]) {
     setError(null);
     setFailed(null);
     setPending(true);
     try {
       const accepted = [...uploaded];
-      for (const file of remaining) {
+      for (const file of incoming) {
         try {
-          const job = await ingestClip(projectId, file);
-          accepted.push({ file, job });
+          const nextJob = await ingestClip(projectId, file);
+          accepted.push({ file, job: nextJob });
           setUploaded([...accepted]);
         } catch (err) {
           setFailed(file.name);
@@ -123,12 +143,10 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
       const stopped = checked.find((item) => item.job.status !== "pass");
       if (stopped) {
         setFailed(stopped.file.name);
-        setError(
-          `${stopped.file.name} did not pass file validation. The finishing run was not started.`,
-        );
+        setError(`${stopped.file.name} did not pass file validation.`);
         return;
       }
-      setNote(`${staged.length} clip${staged.length === 1 ? "" : "s"} checked in order`);
+      setNote(`${checked.length} clip${checked.length === 1 ? "" : "s"} accepted`);
       onFinished?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -151,7 +169,7 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
         return;
       }
       setFailed(null);
-      setNote(`${checked.length} clip${checked.length === 1 ? "" : "s"} checked in order`);
+      setNote(`${checked.length} clip${checked.length === 1 ? "" : "s"} accepted`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "File validation could not be checked.");
     } finally {
@@ -169,7 +187,11 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
         return;
       }
       const micros = Math.round(dollars * 1_000_000);
-      await startFinish(projectId, micros, uploaded.map((item) => item.job.job_id));
+      await startFinish(
+        projectId,
+        micros,
+        orderedJobs.map((item) => item.job_id),
+      );
       setStarted(true);
       setNote("Finishing has started");
       onFinished?.();
@@ -186,30 +208,72 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
         <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-tungsten">Step 1: Choose your clips</p>
         <h2 className="mt-1 text-xl text-ink">{compact && !showPrep ? "Finishing is in progress" : "Upload clips and set a budget"}</h2>
-        {compact && !showPrep ? <p className="mt-1 text-sm text-ink-muted">{active ? "A finishing run is already in progress. Start a new run after it finishes." : "The last run is complete. Start a new run when you are ready."}</p> : <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">Add your clips in the order you want them used. Martini Shot checks each file, fixes basic audio and picture problems, then suggests optional improvements.</p>}
+        {compact && !showPrep ? <p className="mt-1 text-sm text-ink-muted">{active ? "A finishing run is already in progress. Start a new run after it finishes." : "The last run is complete. Start a new run when you are ready."}</p> : <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">Clips are accepted in the order you choose them. After they are in, drag a row to change the order.</p>}
         </div>
         {compact && !active ? <button type="button" onClick={() => setShowPrep((open) => !open)} className="border border-line px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">{showPrep ? "Hide setup" : "Start a new finishing run"}</button> : null}
       </header>
       {showPrep ? <div className="grid gap-6 px-5 py-5 lg:grid-cols-[1fr_18rem]">
         <div>
-          <label className="grid gap-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
-            <span>Choose clips <span className="sr-only">(added in order)</span></span>
-            <input type="file" accept="video/*,audio/*" multiple disabled={pending} onChange={(event) => onFiles(event.target.files)} className="w-full text-sm normal-case tracking-normal text-ink file:mr-3 file:rounded-sm file:border file:border-line file:bg-surface-2 file:px-3 file:py-2 file:font-mono file:text-[10px] file:uppercase file:tracking-wider file:text-ink" />
-          </label>
+          <div className="grid gap-2">
+            <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">Choose files</p>
+            <input
+              id="turnover-clips"
+              ref={fileInputRef}
+              type="file"
+              accept=".mp4,.mov,.m4v,.webm,.wav,.mp3,.m4a,video/mp4,video/quicktime,video/*,audio/*"
+              multiple
+              disabled={pending || started}
+              aria-label="Choose files"
+              onChange={(event) => onFiles(event.target.files)}
+              className="sr-only"
+            />
+            <button
+              type="button"
+              disabled={pending || started}
+              onClick={() => fileInputRef.current?.click()}
+              className="w-fit rounded-sm border border-line bg-surface-2 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-ink transition-colors ease-chrome hover:border-ink-muted disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+            >
+              Choose files
+            </button>
+            <p className="text-xs leading-relaxed text-ink-muted">
+              Choose one or more clips. They are accepted immediately, in that order. Drag a clip up or down if you need a different sequence.
+            </p>
+          </div>
           <ol className="mt-4 space-y-2" aria-label="Ordered clips">
-            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips added yet. Add your files in the order you want them used.</li> : staged.map((file, index) => (
-              <li key={`${file.name}-${index}`} className="flex items-center gap-3 border border-line bg-surface-2 px-3 py-2">
+            {staged.length === 0 ? <li className="border border-dashed border-line px-4 py-5 font-mono text-xs text-ink-muted">No clips added yet. Choose files to accept them in order.</li> : staged.map((file, index) => (
+              <li
+                key={`${file.name}-${index}`}
+                draggable={!pending && !started}
+                aria-label={`Clip ${index + 1}: ${file.name}`}
+                onDragStart={() => {
+                  dragFrom.current = index;
+                }}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  dropOn(index);
+                }}
+                className={`flex items-center gap-3 border border-line bg-surface-2 px-3 py-2 ${pending || started ? "" : "cursor-grab"}`}
+              >
                 <span className="w-5 font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span>
                 <span className="min-w-0 flex-1 truncate text-sm text-ink">{file.name}</span>
                 {uploaded.find((item) => item.file === file) ? (
                   <span className={`font-mono text-[10px] uppercase ${uploaded.find((item) => item.file === file)?.job.status === "pass" ? "text-signal" : "text-tungsten"}`}>
                     {ingestLabel(uploaded.find((item) => item.file === file)?.job.status ?? "queued")}
                   </span>
-                ) : <span className="flex gap-1"><button type="button" aria-label={`Move ${file.name} up`} disabled={pending || uploaded.length > 0 || index === 0} onClick={() => move(index, -1)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-ink-muted disabled:opacity-30">Up</button><button type="button" aria-label={`Move ${file.name} down`} disabled={pending || uploaded.length > 0 || index === staged.length - 1} onClick={() => move(index, 1)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-ink-muted disabled:opacity-30">Down</button><button type="button" aria-label={`Remove ${file.name}`} disabled={pending || uploaded.length > 0} onClick={() => remove(file)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-danger disabled:opacity-30">Remove</button></span>}
+                ) : (
+                  <span className="font-mono text-[10px] uppercase text-tungsten">accepting</span>
+                )}
+                <span className="flex gap-1">
+                  <button type="button" aria-label={`Move ${file.name} up`} disabled={pending || started || index === 0} onClick={() => move(index, -1)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-ink-muted disabled:opacity-30">Up</button>
+                  <button type="button" aria-label={`Move ${file.name} down`} disabled={pending || started || index === staged.length - 1} onClick={() => move(index, 1)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-ink-muted disabled:opacity-30">Down</button>
+                  <button type="button" aria-label={`Remove ${file.name}`} disabled={pending || started} onClick={() => remove(file)} className="border border-line px-2 py-1 font-mono text-[10px] uppercase text-danger disabled:opacity-30">Remove</button>
+                </span>
               </li>
             ))}
           </ol>
-          {uploaded.length > 0 ? <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-ink-muted">The order is locked after the first clip is uploaded.</p> : null}
           {failed ? <p className="mt-3 border-l-2 border-danger px-3 py-2 text-sm text-danger">Upload stopped at “{failed}”. The remaining clips were not uploaded and the finishing run was not started.</p> : null}
           {uploaded.length > 0 && !pending ? <button type="button" onClick={resetTurnover} className="mt-3 border-b border-line pb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten">Start over</button> : null}
         </div>
@@ -219,7 +283,6 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
           </label>
           <p className="mt-3 text-xs leading-relaxed text-ink-muted">Martini Shot will choose the highest-priority improvements that fit this budget. Basic audio and picture checks run first.</p>
           <button type="button" disabled={pending || started || active || !sequenceValidated} onClick={() => void onFinish()} className="mt-5 w-full rounded-sm border border-tungsten bg-tungsten px-4 py-3 font-mono text-xs uppercase tracking-wider text-bg transition-opacity hover:opacity-90 disabled:opacity-40">{pending ? "Working…" : started ? "Finishing has started" : "Start finishing"}</button>
-          {staged.length > 0 && remaining.length > 0 ? <button type="button" disabled={pending} onClick={() => void onStart()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Uploading in order…" : `Add ${remaining.length} clip${remaining.length === 1 ? "" : "s"} in order`}</button> : null}
           {validationPending ? <button type="button" disabled={pending} onClick={() => void onCheckValidation()} className="mt-2 w-full rounded-sm border border-line bg-surface-2 px-4 py-2 font-mono text-xs uppercase tracking-wider text-ink hover:border-ink-muted disabled:opacity-40">{pending ? "Checking files…" : "Check file status"}</button> : null}
         </div>
       </div> : null}

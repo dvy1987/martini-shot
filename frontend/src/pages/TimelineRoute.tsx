@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { getJob, getProject, getRunPulse, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
 import AlternatesLane from "@/components/AlternatesLane";
 import EmptyState from "@/components/EmptyState";
 import FinishBar from "@/components/FinishBar";
@@ -10,7 +10,6 @@ import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
 import RevisionRoom from "@/components/RevisionRoom";
-import RunPulseStrip from "@/components/RunPulse";
 import TimelineBoard from "@/components/TimelineBoard";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
@@ -143,6 +142,13 @@ export default function TimelineRoute({
   const [worklistMutationError, setWorklistMutationError] = useState<string | null>(null);
   const jobTriggerRef = useRef<HTMLElement | null>(null);
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: listProjects });
+  const createShow = useMutation({
+    mutationFn: () => createProject(),
+    onSuccess: async (project) => {
+      await projectsQuery.refetch();
+      onSelectedProjectIdChange(project.project_id);
+    },
+  });
   const projectQuery = useQuery({
     queryKey: ["project", selectedProjectId],
     queryFn: () => getProject(selectedProjectId ?? ""),
@@ -180,13 +186,6 @@ export default function TimelineRoute({
     worklistStatus === "running" ||
     worklistStatus === "waiting_for_ingest" ||
     worklistStatus === "inspecting";
-  const pulseQuery = useQuery({
-    queryKey: ["run-pulse", selectedProjectId],
-    queryFn: () => getRunPulse(selectedProjectId ?? ""),
-    enabled: selectedProjectId !== null,
-    retry: false,
-    refetchInterval: turnoverActive ? 15_000 : false,
-  });
 
   const handleJobSelection = useCallback(
     (jobId: string, trigger: HTMLElement) => {
@@ -288,9 +287,24 @@ export default function TimelineRoute({
       <section className="mx-auto max-w-3xl px-6 py-14">
         <EmptyState
           glyph="▤"
-          title="No activity yet"
-          body="Upload clips and start a finishing run to see real work appear here. Nothing is shown until the service reports activity."
+          title="No shows yet"
+          body="Start a new show, then drop your clips in order. You can open any existing show from the list once you have one."
         />
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            disabled={createShow.isPending}
+            onClick={() => createShow.mutate()}
+            className="rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            {createShow.isPending ? "Opening show…" : "Start a new show"}
+          </button>
+          {createShow.isError ? (
+            <p className="mt-3 text-sm text-danger">
+              A new show could not be opened. Check the connection and try again.
+            </p>
+          ) : null}
+        </div>
         <StatusLegend />
       </section>
     );
@@ -311,20 +325,33 @@ export default function TimelineRoute({
             {projectQuery.data?.title ?? selectedProject?.title ?? "Loading project"}
           </h1>
         </div>
-        <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
-          Project
-          <select
-            value={selectedProjectId ?? ""}
-            onChange={(event) => onSelectedProjectIdChange(event.target.value || null)}
-            className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+            Show
+            <select
+              value={selectedProjectId ?? ""}
+              onChange={(event) => onSelectedProjectIdChange(event.target.value || null)}
+              className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+            >
+              {projectsQuery.data.map((project) => (
+                <option key={project.project_id} value={project.project_id}>
+                  {project.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            disabled={createShow.isPending}
+            onClick={() => createShow.mutate()}
+            className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
           >
-            {projectsQuery.data.map((project) => (
-              <option key={project.project_id} value={project.project_id}>
-                {project.title}
-              </option>
-            ))}
-          </select>
-        </label>
+            {createShow.isPending ? "Opening…" : "New show"}
+          </button>
+          {createShow.isError ? (
+            <p className="max-w-48 text-sm text-danger">A new show could not be opened.</p>
+          ) : null}
+        </div>
       </div>
 
       {selectedProjectId ? (
@@ -334,7 +361,6 @@ export default function TimelineRoute({
           onFinished={() => {
             void projectQuery.refetch();
             void worklistQuery.refetch();
-            void pulseQuery.refetch();
           }}
           compact={Boolean(worklistQuery.data)}
           active={turnoverActive}
@@ -411,23 +437,6 @@ export default function TimelineRoute({
             {expertOpen ? "Hide technical details" : "Show technical details"}
           </button>
         </section>
-      ) : null}
-
-      {selectedProjectId && expertOpen ? (
-        <RunPulseStrip
-          pulse={pulseQuery.data ?? null}
-          isLoading={pulseQuery.isPending}
-          errorMessage={
-            pulseQuery.isError
-              ? "Run status could not be loaded. Check the connection and try again."
-              : null
-          }
-          onJumpToJob={(jobId) => {
-            const match = jobs.find((job) => job.job_id === jobId);
-            if (!match) return;
-            setSelectedJobId(jobId);
-          }}
-        />
       ) : null}
 
       {projectQuery.isPending || !selectedProjectId ? <TimelineSkeleton /> : null}

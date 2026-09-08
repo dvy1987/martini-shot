@@ -1,5 +1,39 @@
 # Agent Handoffs
 
+## 2026-09-09 05:10 - New show + accept-on-choose + drag reorder
+
+### Done
+- Live leftover lab data wiped: `pc-approvals` (155), then `pc-projects` (18) + jobs/shots/alternates/reports. `pc-control` kept.
+- `POST /api/v1/projects` opens an empty **Untitled show**. Timeline: existing Show picker + **New show** / empty-state **Start a new show**.
+- FinishBar: choosing files **accepts immediately** in selection order. After they are in, **drag** (or Up/Down) reorders; `startFinish` uses that order. `.mp4` accepted even with a blank MIME type.
+- Also in this tree: Analytics route + Grafana dashboard links on Run Pulse.
+
+### Debated
+- Replit zip vs this repo: identical product source (CRLF only). The UX line “Set the order…” is in `62c26b7`, inside the 8-commit CORS push.
+- 51 Approvals / green Check files were leftover Firestore, not a new run.
+
+### Decisions
+- Operator opens to existing show **or** starts a new one.
+- Clips are accepted on choose; reorder is drag-after-upload, not a pre-upload staging step.
+
+### Deferred
+- **Cloud Run + Replit frontend not published** with these routes. Live `POST /api/v1/projects` is still 405. Button/upload UX will not appear on the published app until deploy.
+- `make check` coverage still below 90%. Rank `fr-05` still fails 3/3.
+
+### Next Agent Should Know
+- Ask owner before Cloud Run deploy. After deploy, republish Replit frontend.
+- Do not re-wipe `pc-control`. Live project list was emptied 2026-09-08 night.
+
+### Revisit Triggers
+- Owner cannot create a show or accept clips on the published app.
+- J-5 cannot film §7 from the running product.
+
+### Working Tree
+- Commit requested this session (new show + FinishBar + analytics/run-pulse).
+
+### Graph
+- Incremental graph build skipped (known hang).
+
 ## 2026-09-08 09:45 - Ranked night spend, cut pointer moves, demo A6, live exams
 
 ### Done

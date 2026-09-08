@@ -90,5 +90,9 @@
 | 2026-09-08 09:30 | test-driven-development | tests/test_continuity_agent.py tests/test_continuity_investigator.py tests/test_budget_loop.py tests/test_shot_locking.py | TDD: supervisor add/remove from the cut inside the night envelope |
 | 2026-09-08 09:30 | memory-decision | docs/memory/decision-log.md | Owner: supervisor may add/remove from the cut; retry_once-as-default superseded |
 | 2026-09-08 09:45 | memory-handoff | agent-handoffs.md#2026-09-08-09:45 | Ranked night spend + cut + demo A6 + live exams; owner asked batch commit |
+| 2026-09-08 22:15 | test-driven-development | tests/test_projects.py frontend/src/pages/TimelineRoute.test.tsx | TDD: open an empty show (existing picker + Start a new show) |
+| 2026-09-09 04:55 | debug-and-fix | frontend/src/components/FinishBar.test.tsx | Prove-it: choose-files stages mp4s with blank mime; visible list + Add clips |
+| 2026-09-09 05:05 | test-driven-development | frontend/src/lib/clipOrdering.test.ts frontend/src/components/FinishBar.test.tsx | TDD: accept clips on choose; drag reorder after upload |
+| 2026-09-09 05:10 | memory-handoff | agent-handoffs.md#2026-09-09-05:10 | New show + accept-on-choose; live lab wipe; deploy still needed |
 
 

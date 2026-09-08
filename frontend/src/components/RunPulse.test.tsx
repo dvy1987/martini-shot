@@ -40,6 +40,9 @@ const pulse: RunPulse = {
       },
     ],
   },
+  dashboards: [
+    { title: "Station Health", url: "https://chipperm.grafana.net/d/pc-station-health" },
+  ],
 };
 
 describe("RunPulseStrip", () => {
@@ -49,6 +52,8 @@ describe("RunPulseStrip", () => {
     expect(screen.getByText(/omni refused/i)).toBeInTheDocument();
     expect(screen.getByText(/about 1 min left/i)).toBeInTheDocument();
     expect(screen.getByText(/spend throttle/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /station health/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /grafana watch/i })).toBeInTheDocument();
   });
 
   it("jumps to the expensive job when asked", () => {

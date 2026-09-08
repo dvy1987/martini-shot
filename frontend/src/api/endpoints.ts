@@ -22,6 +22,13 @@ export function listProjects(): Promise<Project[]> {
   return apiFetch<Project[]>("/api/v1/projects");
 }
 
+export function createProject(title?: string): Promise<Project> {
+  return apiFetch<Project>("/api/v1/projects", {
+    method: "POST",
+    body: JSON.stringify(title ? { title } : {}),
+  });
+}
+
 export function getProject(projectId: string): Promise<Project> {
   return apiFetch<Project>(`/api/v1/projects/${encodeURIComponent(projectId)}`);
 }

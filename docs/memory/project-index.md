@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 05:10 | handoff | agent-handoffs.md#2026-09-09-05:10 | current | shows, finishbar, ingest, deploy | New show API/UI; accept-on-choose + drag reorder; live lab data wiped; Cloud Run not published yet |
+| 2026-09-09 | state | current-state.md | current | shows, finishbar, deploy | Empty-show start; clip accept order + drag; leftover Firestore cleared |
 | 2026-09-08 09:45 | handoff | agent-handoffs.md#2026-09-08-09:45 | current | autonomy, continuity, demo, edd | Ranked night spend; cut add/remove; demo A6; live rank/spend/retry exams |
 | 2026-09-08 | state | current-state.md | current | autonomy, demo, edd | act default; cut pointer moves; walk-away §7; live exams green |
 | 2026-09-08 | decision | decision-log.md (cut add/remove) | current | autonomy, continuity, cut | Supervisor may add/remove from the cut inside the night envelope |

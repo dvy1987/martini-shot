@@ -248,8 +248,15 @@ def test_deeplink_lands_on_factory_evidence() -> None:
         "proj-pulse",
         grafana=grafana,
         worklist={"status": "running", "items": []},
+        stack_url="https://chipperm.grafana.net",
     )
     assert pulse["factory"].get("evidence_url", "").startswith("https://")
+    titles = {row["title"] for row in pulse["dashboards"]}
+    assert titles == {"Station Health", "Finishing Cost", "Interventions"}
+    assert all(
+        row["url"].startswith("https://chipperm.grafana.net/d/")
+        for row in pulse["dashboards"]
+    )
 
 
 def test_pulse_cache_skips_second_grafana_read() -> None:

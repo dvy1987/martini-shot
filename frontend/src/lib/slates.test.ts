@@ -41,5 +41,6 @@ describe("slate memory", () => {
     expect(slateForRoute("/")).toBe("welcome");
     expect(slateForRoute("/approvals")).toBe("accounting");
     expect(slateForRoute("/reports")).toBe("dailies");
+    expect(slateForRoute("/analytics")).toBe("investigation");
   });
 });

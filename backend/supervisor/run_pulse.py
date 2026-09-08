@@ -23,6 +23,11 @@ CACHE_TTL_S = 15.0
 REMAINING_STATUSES = frozenset({"waiting", "queued", "running"})
 _JOB_ID_RE = re.compile(r"job_id=([^\s]+)")
 _cache: dict[str, tuple[float, dict[str, Any]]] = {}
+GRAFANA_DASHBOARDS: tuple[tuple[str, str], ...] = (
+    ("pc-station-health", "Station Health"),
+    ("pc-finishing-cost", "Finishing Cost"),
+    ("pc-interventions", "Interventions"),
+)
 
 FAIL_RATE_EXPR = (
     "sum(rate(pc_job_outcome_total"
@@ -53,6 +58,7 @@ def assemble_run_pulse(
     worklist: dict[str, Any] | None = None,
     jobs: list[Any] | None = None,
     now: float | None = None,
+    stack_url: str | None = None,
 ) -> dict[str, Any]:
     """One snapshot for GET /api/v1/projects/{id}/run-pulse."""
     clock = time.monotonic() if now is None else now
@@ -121,6 +127,17 @@ def assemble_run_pulse(
         factory = {**factory, "evidence_url": evidence_url}
         burn = {**burn, "evidence_url": evidence_url}
         eta = {**eta, "evidence_url": evidence_url}
+    dashboards = grafana_dashboard_links(
+        stack_url
+        or (str(getattr(settings, "grafana_stack_url", "") or "") if settings else "")
+    )
+    by_uid_title = {row["title"]: row["url"] for row in dashboards}
+    if by_uid_title.get("Station Health") and not factory.get("evidence_url"):
+        factory = {**factory, "evidence_url": by_uid_title["Station Health"]}
+    if by_uid_title.get("Finishing Cost") and not burn.get("evidence_url"):
+        burn = {**burn, "evidence_url": by_uid_title["Finishing Cost"]}
+    if by_uid_title.get("Station Health") and not eta.get("evidence_url"):
+        eta = {**eta, "evidence_url": by_uid_title["Station Health"]}
 
     snapshot = {
         "project_id": project_id,
@@ -129,9 +146,20 @@ def assemble_run_pulse(
         "burn": burn,
         "eta": eta,
         "wheel": wheel,
+        "dashboards": dashboards,
     }
     _cache[project_id] = (clock, snapshot)
     return snapshot
+
+
+def grafana_dashboard_links(stack_url: str) -> list[dict[str, str]]:
+    """Stable Grafana Cloud URLs for the Run Pulse dashboards (C-4.5)."""
+    base = stack_url.rstrip("/")
+    if not base:
+        return []
+    return [
+        {"title": title, "url": f"{base}/d/{uid}"} for uid, title in GRAFANA_DASHBOARDS
+    ]
 
 
 def _open_grafana(settings: Any) -> tuple[Any | None, Any | None]:

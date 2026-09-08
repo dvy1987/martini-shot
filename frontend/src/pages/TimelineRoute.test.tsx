@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getJob, getProject, getRunPulse, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
 
@@ -13,9 +13,9 @@ vi.mock("@/api/endpoints", async (importOriginal) => {
     getJob: vi.fn(),
     getProject: vi.fn(),
     getWorklist: vi.fn(),
-    getRunPulse: vi.fn(),
     listProjectShots: vi.fn(),
     listProjects: vi.fn(),
+    createProject: vi.fn(),
     listScripts: vi.fn(),
     ingestClip: vi.fn(),
     startFinish: vi.fn(),
@@ -68,7 +68,6 @@ function mockBoard() {
   vi.mocked(listProjectShots).mockResolvedValue([]);
   vi.mocked(listScripts).mockResolvedValue([]);
   vi.mocked(getWorklist).mockRejectedValue(new Error("no worklist"));
-  vi.mocked(getRunPulse).mockRejectedValue(new Error("no pulse"));
   vi.mocked(listDeliberations).mockResolvedValue([]);
 }
 
@@ -77,10 +76,11 @@ describe("TimelineRoute investigation flow", () => {
     mockBoard();
     renderRoute();
 
-    const clip = await screen.findByRole("button", { name: /in the lab: job-1/i });
+    const clip = await screen.findByRole("button", { name: /in progress: job-1/i });
     fireEvent.click(clip);
     expect(getJob).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /grafana watch/i })).not.toBeInTheDocument();
 
     fireEvent.click(clip);
     await waitFor(() => expect(getJob).toHaveBeenCalledWith("job-1"));
@@ -113,22 +113,42 @@ describe("TimelineRoute investigation flow", () => {
     renderRoute();
 
     expect(await screen.findByText(/Scene 12 — chaser/)).toBeInTheDocument();
-    expect(await screen.findByText("DRAFT")).toBeInTheDocument();
+    expect(await screen.findByText(/draft/i)).toBeInTheDocument();
     expect(listProjectShots).toHaveBeenCalledWith("project-1");
   });
 
-  it("renders run pulse headlines from the Grafana-backed endpoint", async () => {
-    mockBoard();
-    vi.mocked(getRunPulse).mockResolvedValue({
-      project_id: "project-1",
-      grafana: "ok",
-      factory: { verdict: "healthy", headline: "Factory looks healthy." },
-      burn: { headline: "No metered work on this dump yet.", top: [] },
-      eta: { headline: "Nothing left in the worklist.", eta_seconds: 0, remaining_items: 0 },
-      wheel: { items: [] },
-    });
+  it("lets the operator start a new show when none exist", async () => {
+    vi.mocked(listProjects).mockResolvedValue([]);
     renderRoute();
-    expect(await screen.findByText(/factory looks healthy/i)).toBeInTheDocument();
-    expect(getRunPulse).toHaveBeenCalledWith("project-1");
+    expect(await screen.findByRole("button", { name: /start a new show/i })).toBeInTheDocument();
+    expect(screen.getByText(/no shows yet/i)).toBeInTheDocument();
+  });
+
+  it("opens a new show from the project picker and selects it", async () => {
+    const created: Project = {
+      project_id: "show-new",
+      title: "Untitled show",
+      created_at: "2026-09-08T00:00:00Z",
+      station_counts: {},
+      health: "healthy",
+      jobs: [],
+    };
+    mockBoard();
+    vi.mocked(createProject).mockResolvedValue(created);
+    const onSelectedProjectIdChange = vi.fn();
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TimelineRoute
+          selectedProjectId="project-1"
+          onSelectedProjectIdChange={onSelectedProjectIdChange}
+        />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /new show/i }));
+    await waitFor(() => expect(createProject).toHaveBeenCalled());
+    await waitFor(() => expect(onSelectedProjectIdChange).toHaveBeenCalledWith("show-new"));
   });
 });

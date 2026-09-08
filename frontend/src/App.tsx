@@ -12,6 +12,7 @@ import { allCommands, pathForRouteCommand, type PaletteCommand } from "@/lib/pal
 import { slateForRoute } from "@/lib/slates";
 import { deliberationFromSseEvent, upsertDeliberation } from "@/lib/deliberations";
 import { jobFromSseEvent, upsertJob } from "@/lib/timeline";
+import AnalyticsRoute from "@/pages/AnalyticsRoute";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
@@ -182,6 +183,19 @@ export default function App() {
         <Routes>
           <Route path="/" element={timeline} />
           <Route path="/approvals" element={<ApprovalsRoute backend={backend} />} />
+          <Route
+            path="/analytics"
+            element={
+              <AnalyticsRoute
+                backend={backend}
+                selectedProjectId={selectedProjectId}
+                onJumpToJob={(jobId) => {
+                  navigate("/");
+                  setPendingJobId(jobId);
+                }}
+              />
+            }
+          />
           <Route
             path="/reports"
             element={
