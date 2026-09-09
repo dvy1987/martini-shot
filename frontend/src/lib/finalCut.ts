@@ -38,15 +38,24 @@ const BUSY_STATUS = new Set([
 function originOf(job: Pick<Job, "input_refs">): string {
   return job.input_refs[0] ?? "";
 }
-function shotIdOf(job: Pick<Job, "result">): string {
-  return typeof job.result?.shot_id === "string" ? job.result.shot_id : "";
+function shotIdOf(job: Pick<Job, "job_id" | "result">, worklist?: Worklist | null): string {
+  if (typeof job.result?.shot_id === "string" && job.result.shot_id) {
+    return job.result.shot_id;
+  }
+  return worklist?.items.find((item) => item.job_id === job.job_id)?.shot_id ?? "";
 }
 
-function originByShot(jobs: readonly Job[]): Map<string, string> {
+function originByShot(
+  jobs: readonly Job[],
+  worklist?: Worklist | null,
+): Map<string, string> {
   const origins = new Map<string, string>();
+  for (const [shotId, origin] of Object.entries(worklist?.source_by_shot ?? {})) {
+    if (shotId && origin) origins.set(shotId, origin);
+  }
   for (const job of jobs) {
     if (job.station !== "ingest") continue;
-    const shotId = shotIdOf(job);
+    const shotId = shotIdOf(job, worklist);
     const origin = originOf(job);
     if (shotId && origin) origins.set(shotId, origin);
   }
@@ -92,9 +101,10 @@ function ingestFolder(ref: string): string {
 export function originKey(
   job: Pick<Job, "job_id" | "station" | "input_refs" | "result">,
   jobs: readonly Job[],
+  worklist?: Worklist | null,
 ): string {
   const ref = originOf(job);
-  const shotOrigin = originByShot(jobs).get(shotIdOf(job));
+  const shotOrigin = originByShot(jobs, worklist).get(shotIdOf(job, worklist));
   if (shotOrigin) return shotOrigin;
   const origins = sequenceOrigins(jobs);
   if (ref && origins.includes(ref)) return ref;
@@ -106,7 +116,7 @@ export function originKey(
   if (job.station === "ingest") return ref || `job:${job.job_id}`;
   const ingest = jobs.filter((row) => row.station === "ingest");
   const onlyIngest = ingest[0];
-  if (ingest.length === 1 && onlyIngest) return originKey(onlyIngest, jobs);
+  if (ingest.length === 1 && onlyIngest) return originKey(onlyIngest, jobs, worklist);
   return ref || `job:${job.job_id}`;
 }
 
@@ -116,12 +126,15 @@ export interface ClipJourney {
   rows: BoardRow[];
 }
 
-export function groupBoardByClip(jobs: readonly Job[]): ClipJourney[] {
+export function groupBoardByClip(
+  jobs: readonly Job[],
+  worklist?: Worklist | null,
+): ClipJourney[] {
   const origins = sequenceOrigins(jobs);
   const buckets = new Map<string, BoardRow[]>();
   const order: string[] = [...origins];
   for (const row of boardRows(jobs)) {
-    const key = originKey(row.job, jobs);
+    const key = originKey(row.job, jobs, worklist);
     const existing = buckets.get(key);
     if (existing) existing.push(row);
     else {
@@ -142,15 +155,20 @@ export function groupBoardByClip(jobs: readonly Job[]): ClipJourney[] {
     }));
 }
 
-function jobsForOrigin(jobs: readonly Job[], origin: string): Job[] {
-  return jobs.filter((job) => originKey(job, jobs) === origin);
+function jobsForOrigin(
+  jobs: readonly Job[],
+  origin: string,
+  worklist?: Worklist | null,
+): Job[] {
+  return jobs.filter((job) => originKey(job, jobs, worklist) === origin);
 }
 
 export function defaultFinalCutPick(
   jobs: readonly Job[],
   origin: string,
+  worklist?: Worklist | null,
 ): FinalCutPick | null {
-  const rows = boardRows(jobsForOrigin(jobs, origin)).filter(
+  const rows = boardRows(jobsForOrigin(jobs, origin, worklist)).filter(
     (row) => row.after === "clip" && row.job.status === "pass",
   );
   if (rows.length === 0) return null;
@@ -174,13 +192,16 @@ export function resolveFinalCutPick(
   origin: string,
   override: FinalCutPick | undefined,
   ready: boolean,
+  worklist?: Worklist | null,
 ): FinalCutPick | null {
   if (!ready) return null;
   if (override) {
-    const job = jobsForOrigin(jobs, origin).find((row) => row.job_id === override.jobId);
+    const job = jobsForOrigin(jobs, origin, worklist).find(
+      (row) => row.job_id === override.jobId,
+    );
     if (job) return override;
   }
-  return defaultFinalCutPick(jobs, origin);
+  return defaultFinalCutPick(jobs, origin, worklist);
 }
 
 export function finalCutSlots(
@@ -190,11 +211,13 @@ export function finalCutSlots(
 ): FinalCutSlot[] {
   const ready = orchestratorHasStopped(worklist);
   return sequenceOrigins(jobs).map((origin) => {
-    const ingest = jobsForOrigin(jobs, origin).find((job) => job.station === "ingest");
+    const ingest = jobsForOrigin(jobs, origin, worklist).find(
+      (job) => job.station === "ingest",
+    );
     return {
       origin,
       name: ingest ? clipName(ingest) : origin,
-      pick: resolveFinalCutPick(jobs, origin, overrides[origin], ready),
+      pick: resolveFinalCutPick(jobs, origin, overrides[origin], ready, worklist),
     };
   });
 }

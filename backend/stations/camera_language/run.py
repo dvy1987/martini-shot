@@ -48,6 +48,11 @@ _DESCRIPTIONS: dict[str, str] = {
     "locked_off": "a completely static, locked-off frame with no camera movement",
 }
 
+# Public alias: the Studio directed-edit agent (backend/supervisor/station_agents/
+# directed_edit.py) quotes the same official vocabulary/descriptions rather than
+# inventing its own, so the two surfaces can never drift apart.
+MOVEMENT_DESCRIPTIONS: dict[str, str] = _DESCRIPTIONS
+
 
 def build_camera_language_prompt(
     *, movement: str, reference_style: str | None = None

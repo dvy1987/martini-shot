@@ -211,6 +211,8 @@ export interface Worklist {
   spent_micros: number;
   status: string;
   phase?: string;
+  shot_order?: Record<string, number>;
+  source_by_shot?: Record<string, string>;
   attendance: InspectNote[];
   items: WorklistItem[];
   final_refs: string[];

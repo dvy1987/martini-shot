@@ -74,6 +74,7 @@ function TimelineTable({
   onOpenNotes,
   slots,
   onAddToFinalCut,
+  worklist,
 }: TimelineBoardProps & {
   onOpenClip: (clip: JobClip) => void;
   onOpenNotes: (title: string, notes: AgentNotes) => void;
@@ -97,7 +98,7 @@ function TimelineTable({
           </tr>
         </thead>
         <tbody>
-          {groupBoardByClip(jobs).map((group) => (
+          {groupBoardByClip(jobs, worklist).map((group) => (
             <Fragment key={group.origin}>
               <tr>
                 <th
@@ -115,7 +116,7 @@ function TimelineTable({
               const name = group.label;
               const stage = stationLabel(row.displayStation);
               const notes = readAgentNotes(job, row.displayStation);
-              const origin = originKey(job, jobs);
+              const origin = originKey(job, jobs, worklist);
               const action = finalCutAction(
                 row,
                 slots.find((slot) => slot.origin === origin)?.pick ?? null,
@@ -459,7 +460,7 @@ export default function TimelineBoard({
   }
 
   function handleAddToFinalCut(row: BoardRow) {
-    const origin = row.job.input_refs[0] ?? "";
+    const origin = originKey(row.job, projectJobs, worklist);
     if (!origin || row.after !== "clip") return;
     setOverrides((current) => {
       const next = applyFinalCutPick(current, origin, {

@@ -344,4 +344,43 @@ describe("groupBoardByClip", () => {
       "relight",
     ]);
   });
+
+  it("uses the worklist shot map when the ingest job has no shot_id", () => {
+    const origin = "projects/p1/ingest/in-1/cafe.mp4";
+    const ingest = job({
+      job_id: "in-1",
+      station: "ingest",
+      input_refs: [origin],
+      result: { upload_index: 0, probe: { duration_s: 4 } },
+    });
+    const mix = job({
+      job_id: "loud-1",
+      station: "loudness",
+      input_refs: [origin],
+      result: { artifact_ref: "projects/p1/loudness/loud-1.mp4" },
+    });
+    const relight = job({
+      job_id: "relight-1",
+      station: "relight",
+      input_refs: ["projects/p1/loudness/loud-1.mp4"],
+      result: { artifact_ref: "projects/p1/relight/relight-1.mp4" },
+    });
+    const lineage = worklist({
+      source_by_shot: { "shot-1": origin },
+      items: [
+        { id: "loudness::shot-1", station: "loudness", status: "passed", job_id: "loud-1", shot_id: "shot-1" },
+        { id: "relight::shot-1", station: "relight", status: "passed", job_id: "relight-1", shot_id: "shot-1" },
+      ],
+    });
+
+    const grouped = groupBoardByClip([ingest, mix, relight], lineage);
+
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]?.rows.map((row) => row.displayStation)).toEqual([
+      "upload",
+      "ingest",
+      "loudness",
+      "relight",
+    ]);
+  });
 });

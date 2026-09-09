@@ -95,6 +95,31 @@ class CameraLanguageIn(BaseModel):
     reason: str | None = Field(default=None)
 
 
+class DirectedEditTurnIn(BaseModel):
+    """One clarifying Q&A round already exchanged with the operator."""
+
+    question: str
+    answer: str
+
+
+class DirectedEditClarifyIn(BaseModel):
+    """Studio redesign (2026-09-09): the operator's station/camera-movement
+    picks plus free-text chat for ONE clip, merged into a single bounded
+    edit intent by the directed_edit agent — at most 5 clarifying rounds."""
+
+    stations: list[str] = Field(default_factory=list)
+    camera_movement: str | None = Field(default=None)
+    chat_text: str = Field(default="")
+    turns: list[DirectedEditTurnIn] = Field(default_factory=list)
+
+
+class PromoteAlternateIn(BaseModel):
+    """Add-to-final-cut (A5): approval-tracked, never a silent overwrite."""
+
+    alternate_id: str
+    reason: str | None = Field(default=None)
+
+
 class RenderMasterIn(BaseModel):
     op: str
     source_uri: str | None = Field(default=None)
@@ -652,6 +677,88 @@ def install_spine_routes(
             title=f"Camera language for shot {shot_id}",
             detail=body.reason or body.movement,
             args=args,
+        )
+
+    DIRECTED_EDIT_STATIONS = {"relight", "coverage", "camera_language", "corrections"}
+
+    @app.post("/api/v1/shots/{shot_id}/directed-edit/clarify")
+    def directed_edit_clarify(
+        shot_id: str, body: DirectedEditClarifyIn
+    ) -> dict[str, Any]:
+        """Studio redesign (2026-09-09): one stateless clarification round.
+        The caller resubmits the full transcript each time (turns keeps
+        growing) — no server-side conversation state, same single-shot
+        pattern as every other station-agent call (H-1a)."""
+        if shots.get_shot(store, shot_id) is None:
+            raise HTTPException(status_code=404, detail="no such shot")
+        unknown = sorted(set(body.stations) - DIRECTED_EDIT_STATIONS)
+        if unknown:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"unknown station(s) {unknown} "
+                    f"(allowed: {sorted(DIRECTED_EDIT_STATIONS)})"
+                ),
+            )
+        if body.camera_movement is not None:
+            from backend.stations.camera_language.run import MOVEMENTS
+
+            if body.camera_movement not in MOVEMENTS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"unknown camera_movement (allowed: {sorted(MOVEMENTS)})",
+                )
+        if (
+            not body.stations
+            and not body.chat_text.strip()
+            and not body.camera_movement
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="select at least one station or type an instruction",
+            )
+        if settings is None:
+            raise HTTPException(status_code=503, detail="agent unavailable")
+        from backend.supervisor.station_agents.directed_edit import (
+            MAX_QUESTIONS,
+            decide_directed_edit,
+        )
+
+        brief = {
+            "stations": body.stations,
+            "camera_movement": body.camera_movement,
+            "chat_text": body.chat_text,
+            "turns": [
+                {"question": turn.question, "answer": turn.answer}
+                for turn in body.turns
+            ],
+        }
+        decision, agent_cost_micros = decide_directed_edit(settings, brief=brief)
+        return {
+            "decision": decision.decision,
+            "question": decision.raw.get("question"),
+            "final_intent": decision.raw.get("final_intent"),
+            "questions_asked": len(body.turns),
+            "max_questions": MAX_QUESTIONS,
+            "agent": decision.to_doc(),
+            "cost_micros": agent_cost_micros,
+        }
+
+    @app.post("/api/v1/shots/{shot_id}/promote")
+    def propose_promote_alternate(
+        shot_id: str, body: PromoteAlternateIn
+    ) -> dict[str, Any]:
+        """Add-to-final-cut: propose add_to_continuity (approval-tracked,
+        A5 generative-depth rule — never a silent overwrite of the current
+        version)."""
+        if not body.alternate_id.strip():
+            raise HTTPException(status_code=400, detail="alternate_id required")
+        return _propose_shot_command(
+            shot_id,
+            name="add_to_continuity",
+            title=f"Make {body.alternate_id} the current version of {shot_id}",
+            detail=body.reason or "",
+            args={"alternate_id": body.alternate_id},
         )
 
     @app.post("/api/v1/shots/{shot_id}/master")
