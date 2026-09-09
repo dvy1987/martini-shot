@@ -83,6 +83,7 @@ def run_agent_call(
     response_schema: dict[str, Any] | None = None,
     audio: tuple[bytes, str] | None = None,
     images: list[tuple[bytes, str]] | None = None,
+    video: tuple[bytes, str] | None = None,
     instrument: bool = True,
 ) -> dict[str, Any]:
     """H-1a: THE one instrumented Gemini call site (generalizes B-3's
@@ -93,7 +94,9 @@ def run_agent_call(
     tools = plain Python callables (google-genai automatic function calling);
     response_schema enables typed JSON output (responseMimeType application/json).
     audio = (bytes, mime_type) attaches inline media (e.g. a dub WAV the
-    agent must listen to) — same metered call, multimodal contents."""
+    agent must listen to) — same metered call, multimodal contents.
+    video = (bytes, mime_type) attaches an inline VIDEO part so temporal
+    judges watch the real clip, not stills (ADR-0005)."""
     if span_name.startswith("station."):
         from backend.supervisor.station_agents.base import with_operator_notes
 
@@ -134,6 +137,9 @@ def run_agent_call(
                 media_parts.append(types.Part.from_bytes(data=data, mime_type=mime))
         if audio is not None:
             data, mime = audio
+            media_parts.append(types.Part.from_bytes(data=data, mime_type=mime))
+        if video is not None:
+            data, mime = video
             media_parts.append(types.Part.from_bytes(data=data, mime_type=mime))
         if media_parts:
             media_parts.append(prompt)

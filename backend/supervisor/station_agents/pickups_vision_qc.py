@@ -1,6 +1,7 @@
 """Pickups Vision QC station agent (A10-4 retrofit of D-6): the agent
-SEES real frame extracts (inline image parts) next to the deterministic
-flicker measurement and decides accept / retry_with_stronger_anchors /
+SEES the real clip — an inline VIDEO part in the product path (ADR-0005),
+frame extracts as the eval-dataset input — next to the deterministic
+flicker measurement, and decides accept / retry_with_stronger_anchors /
 needs_human.
 
 This is the one measurement-station agent that MAY OVERRIDE the numeric
@@ -20,6 +21,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from backend.stations.pickups.retry import MAX_RETRIES, STABILIZE_RETRIES
 from backend.supervisor.station_agents.base import (
     StationDecision,
     validate_station_decision,
@@ -59,18 +61,31 @@ def suggestion_for_report(report: dict[str, Any]) -> str:
         return "needs_human"
     if flicker < threshold:
         return "accept"
-    if retries_used < 2:
+    if retries_used < MAX_RETRIES:
         return "retry_with_stronger_anchors"
     return "needs_human"
 
 
-def build_prompt(report: dict[str, Any], *, num_images: int) -> str:
+def build_prompt(report: dict[str, Any], *, has_video: bool) -> str:
     """The prompt carries the flicker METRIC DOC (definition + gate), the
     measurement, the retry history, and the explicit override clause."""
+    media_clause = (
+        "Attached to this message: the rendered pickup as a VIDEO — "
+        "WATCH it end to end. Motion defects (shake, jitter, unstable "
+        "handheld drift) are visible only in motion; judge the clip as "
+        "a moving image."
+        if has_video
+        else f"Attached to this message: {report.get('num_images', 0)} real "
+        "frame extract(s) from the rendered pickup. Judge them by LOOKING."
+    )
+    ladder_clause = (
+        f"retries used: {report.get('retries_used')} of {MAX_RETRIES} "
+        f"(attempts 1-{STABILIZE_RETRIES} stabilize with stronger anchors, "
+        f"{STABILIZE_RETRIES + 1}-{MAX_RETRIES} regenerate the whole clip)"
+    )
     return (
-        "You are the Pickups Vision QC agent for Martini Shot. Attached "
-        f"to this message: {num_images} real frame extract(s) from the "
-        "rendered pickup. Judge them by LOOKING.\n\n"
+        "You are the Pickups Vision QC agent for Martini Shot. "
+        f"{media_clause}\n\n"
         "Flicker metric doc (deterministic meter, advisory):\n"
         "- definition: mean |I_t - median(I_t-1, I_t, I_t+1)| on "
         "grayscale frames, lower is better\n"
@@ -78,10 +93,12 @@ def build_prompt(report: dict[str, Any], *, num_images: int) -> str:
         f"- gate (threshold): {report.get('threshold')}\n"
         f"- frames analyzed: {report.get('frames_analyzed')} "
         "(0 = the meter saw nothing and the number is meaningless)\n"
-        f"- retries used: {report.get('retries_used')} of 2\n\n"
-        "Judge the attached frames for: corruption, heavy noise, "
-        "blockiness/banding, ghosting, smeared motion, color smearing — "
-        "the visible TEXTURE quality of what a viewer would see. Smooth "
+        f"- {ladder_clause}\n\n"
+        "Judge what you see for: corruption, heavy noise, "
+        "blockiness/banding, ghosting, smeared motion, color smearing, "
+        "and camera instability the shot does not motivate — "
+        "the visible TEXTURE and STABILITY quality of what a viewer "
+        "would see. Smooth "
         "gradients and soft lighting are CLEAN even when dark or "
         "low-contrast; hard edges from in-shot content are CONTENT, not "
         "defects.\n\n"
@@ -130,21 +147,25 @@ def decide_pickups_vision_qc(
     settings: Any,
     *,
     report: dict[str, Any],
-    images: list[tuple[bytes, str]],
+    video: tuple[bytes, str] | None = None,
+    images: list[tuple[bytes, str]] | None = None,
 ) -> tuple[StationDecision, int]:
-    """THE real vision QC judgment: one metered Gemini call SEEING the
-    frame extracts, validated against the StationDecision contract.
-    Returns (decision, cost_micros) — the caller folds the cost into the
-    job (C-6.4). Raises on any API/validation error (C-1.1)."""
+    """THE real vision QC judgment: one metered Gemini call SEEING the clip
+    (inline video part per ADR-0005; stills remain the eval-dataset input
+    until that dataset ships real clips), validated against the
+    StationDecision contract. Returns (decision, cost_micros) — the caller
+    folds the cost into the job (C-6.4). Raises on any API/validation
+    error (C-1.1)."""
     from backend.supervisor.otel_ai import run_agent_call
 
     response = run_agent_call(
         settings,
-        build_prompt(report, num_images=len(images)),
+        build_prompt(report, has_video=video is not None),
         span_name="station.pickups_vision_qc.agent",
         persona=AGENT,
         response_schema=SCHEMA,
         images=images,
+        video=video,
     )
     decision = parse_vision_decision(response["text"], report)
     return decision, int(response["cost_micros"])

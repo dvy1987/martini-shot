@@ -186,6 +186,38 @@ class FFmpeg:
         if result.returncode != 0:
             raise RuntimeError(f"reassembly failed: {result.stderr[:400]!r}")
 
+    def transcode_360p(self, src: Path | str, dst: Path | str) -> None:
+        """Real re-encode to 360p H.264 (audio dropped): keeps an inline
+        video look small enough for a single metered request (ADR-0005)."""
+        src_path = Path(src)
+        dst_path = Path(dst)
+        dst_path.parent.mkdir(parents=True, exist_ok=True)
+        result = self._run(
+            [
+                self.ffmpeg_bin,
+                "-v",
+                "error",
+                "-y",
+                "-i",
+                str(src_path),
+                "-vf",
+                "scale=-2:360",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "28",
+                "-an",
+                str(dst_path),
+            ],
+            timeout=300,
+        )
+        if result.returncode != 0 or not dst_path.exists():
+            raise RuntimeError(
+                f"360p transcode failed: {result.stderr.decode('utf-8', 'replace')[:400]!r}"
+            )
+
     def split_segments(
         self, path: Path | str, out_dir: Path | str, max_seconds: float
     ) -> list[Path]:

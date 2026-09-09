@@ -911,3 +911,32 @@ evidence at >= 0.8 (most at 1.0).
 - Spend Steward: deterministic triggers remain the only START authority; the
   agent picks among allowed responses; enforcement path unchanged (C-4.3).
 - Next: E-3 batch manifest + owner-approved billable run (C-7.2), G3 gate.
+
+## 2026-09-09 - Temporal video perception + stabilize-then-regenerate ladder
+Status: active
+Scope: project
+Confidence: high
+Tags: perception, qc, retry-ladder, camera-language, edd
+
+### Decision
+Temporal judges (camera_language, pickups_vision_qc, extend) receive the clip's real mp4 bytes instead of 3 stills; repair ladder = stabilize (2 attempts) then whole-clip regeneration, up to 5 total attempts before needs_human; camera agent gains a defect bucket for unstable/unmotivated camera work proposing stabilization. Full detail: docs/adr/0005-temporal-video-perception-and-regeneration-ladder.md.
+
+### Context
+Owner planted a shaky-cam clip (shot-a715b15e1559, show-0370ff6800d6) on 2026-09-09; the 3-still inspect pipeline could not see motion (camera_language called it "locked-off… stable"), and the flicker meter caught it unnamed. `run_agent_call` already supports inline media parts; video is a mime-type away on gemini-3.7-flash.
+
+### Rationale
+Motion is invisible in stills; the pinned model understands video natively; full-video for all 8 visual agents was rejected on token cost; immediate regeneration was rejected on spend discipline (draft-first, C-6.4).
+
+### Alternatives Considered
+- All visual agents get video: rejected (cost, no perceptual gain for frame-level judgments).
+- Numeric shake meter only, keep stills: rejected (numbers without named defects produced no repair branch — the flicker lesson).
+- Regenerate immediately, skip stabilize: rejected (owner chose stabilize-first ladder).
+
+### Revisit When
+- Inline video latency/cost breaches the station budget or the 300 s call bound.
+- A temporal judge's eval bar fails on video parts (model refuses/mp4 too large) — reconsider Files API upload.
+- Max retries 5 proves too lax in practice (runaway cost on one clip) — Spend Control data should trigger recalibration.
+
+### Consequences
+- Motion defects become visible and nameable; eval-first obligation (C-3): shaky fixture becomes the stability dataset row with a numeric bar before the agent change is trusted.
+- Larger media parts on 3 agents' calls; metering already covers it (C-4.4).

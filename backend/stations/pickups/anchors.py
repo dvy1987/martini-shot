@@ -10,6 +10,18 @@ def build_anchor_prompt(op: str, hint: str, *, strengthen: bool = False) -> str:
     return prompt
 
 
+def build_regenerate_prompt(hint: str) -> str:
+    """Whole-clip regeneration rung (ADR-0005): after the stabilize attempts
+    fail, rebuild the shot from the accepted references instead of patching
+    frames again. Identity comes from the references, not a keyframe lock."""
+    return (
+        f"{hint.strip()} Regenerate the whole clip from the reference "
+        "stills as one continuous shot. Preserve subject identity, "
+        "framing, and continuity with neighboring shots. "
+        "Keep everything else the same."
+    )
+
+
 def prev_frame_note(index: int) -> str:
     if index <= 0:
         return "first frame; no previous-frame condition"

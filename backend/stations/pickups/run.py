@@ -19,11 +19,14 @@ from backend.jobs.telemetry import (
     record_job,
     timed,
 )
-from backend.stations.pickups.anchors import build_anchor_prompt
+from backend.stations.pickups.anchors import (
+    build_anchor_prompt,
+    build_regenerate_prompt,
+)
 from backend.stations.pickups.cost import estimate_micros
 from backend.stations.pickups.flicker import flicker_score
 from backend.stations.pickups.repair import render_pickup_repair
-from backend.stations.pickups.retry import MAX_RETRIES
+from backend.stations.pickups.retry import MAX_RETRIES, STABILIZE_RETRIES
 from backend.supervisor.station_agents.pickups_vision_qc import decide_pickups_vision_qc
 
 STATION = "pickups"
@@ -45,18 +48,6 @@ def as_gs_uri(ref: str, bucket: str) -> str:
     if text.startswith("gs://"):
         return text
     return f"gs://{bucket}/{text.lstrip('/')}"
-
-
-def sample_frame_images(
-    frames: list[Path], *, limit: int = 3
-) -> list[tuple[bytes, str]]:
-    if not frames:
-        return []
-    if len(frames) <= limit:
-        chosen = frames
-    else:
-        chosen = [frames[0], frames[len(frames) // 2], frames[-1]]
-    return [(path.read_bytes(), "image/png") for path in chosen]
 
 
 def _measure(
@@ -111,7 +102,8 @@ def run_pickups(
                     spike = float(score.get("spike_score") or 0.0)
                     spike_breach = spike >= FLICKER_SPIKE_THRESHOLD
                     record_flicker(STATION, flicker)
-                    images = sample_frame_images(frames)
+                    # ADR-0005: vision QC is a temporal judge — it watches
+                    # the real rendered clip (video part), not stills.
                     report = {
                         "flicker": flicker,
                         "threshold": FLICKER_THRESHOLD,
@@ -123,7 +115,9 @@ def run_pickups(
                         "retries_used": retries_used,
                         "ok": bool(score.get("ok", True)),
                     }
-                    decision, agent_cost = judge(settings, report=report, images=images)
+                    decision, agent_cost = judge(
+                        settings, report=report, video=(payload, "video/mp4")
+                    )
                     agent_costs.append(int(agent_cost))
                     last_agent = decision.to_doc()
                     name = str(decision.decision)
@@ -155,7 +149,13 @@ def run_pickups(
                         or "Repair damaged or unstable frames. "
                         "Preserve subjects, framing, and continuity."
                     )
-                    prompt = build_anchor_prompt(op, hint, strengthen=True)
+                    # ADR-0005 ladder: attempts 1–2 stabilize with stronger
+                    # anchors; from attempt 3 regenerate the WHOLE clip from
+                    # the accepted references.
+                    if retries_used >= STABILIZE_RETRIES:
+                        prompt = build_regenerate_prompt(hint)
+                    else:
+                        prompt = build_anchor_prompt(op, hint, strengthen=True)
                     rendered = repair(settings, input_uri=source_uri, prompt=prompt)
                     payload = bytes(rendered["video_bytes"])
                     dest_key = f"projects/{job.project_id}/pickups/{job.id}.mp4"

@@ -44,6 +44,46 @@ def test_real_g0_score_against_tight_bar_retries_then_needs_human() -> None:
     ]
 
 
+def test_retry_ladder_stabilizes_twice_then_regenerates_to_five() -> None:
+    """Owner ruling 2026-09-09 (ADR-0005): attempts 1–2 stabilize, then the
+    house regenerates the WHOLE clip; needs_human only after 5 total tries."""
+    from backend.stations.pickups.retry import (
+        MAX_RETRIES,
+        STABILIZE_RETRIES,
+        apply_retries,
+        next_action,
+    )
+
+    assert MAX_RETRIES == 5
+    assert STABILIZE_RETRIES == 2
+    assert next_action(0.5, 0.18, 0) == "retry_strengthen"
+    assert next_action(0.5, 0.18, 1) == "retry_strengthen"
+    assert next_action(0.5, 0.18, 2) == "regenerate_clip"
+    assert next_action(0.5, 0.18, 4) == "regenerate_clip"
+    assert next_action(0.5, 0.18, 5) == "needs_human"
+    result = apply_retries(0.5, 0.18)
+    assert result["final"] == "needs_human"
+    assert result["retries_used"] == 5
+    assert result["steps"] == [
+        "retry_strengthen",
+        "retry_strengthen",
+        "regenerate_clip",
+        "regenerate_clip",
+        "regenerate_clip",
+        "needs_human",
+    ]
+
+
+def test_regenerate_prompt_is_whole_clip_not_anchor_lock() -> None:
+    from backend.stations.pickups.anchors import build_regenerate_prompt
+
+    prompt = build_regenerate_prompt("rainy neon street")
+    assert "Regenerate the whole clip" in prompt
+    assert "rainy neon street" in prompt
+    # Whole-clip rebuild keeps identity via references, not a keyframe lock.
+    assert "identity lock" not in prompt
+
+
 def test_anchor_prompt_strengthens() -> None:
     weak = build_anchor_prompt("background_swap", "flat sky", strengthen=False)
     strong = build_anchor_prompt("background_swap", "flat sky", strengthen=True)
@@ -163,18 +203,19 @@ def _decision(name: str) -> object:
 
 
 def test_live_pickups_asks_vision_qc_and_skips_repair_when_clean() -> None:
-    """Contract: the worker must SEE frames via Pickups Vision QC. A clean
-    clip must pass without billing a generative repair."""
+    """Contract: the worker must SEE the clip via Pickups Vision QC — as real
+    VIDEO (ADR-0005), not stills. A clean clip must pass without billing a
+    generative repair."""
     from backend.jobs.models import Job
     from backend.stations.pickups.run import run_pickups
 
     media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
     judged: list[object] = []
 
-    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
-        judged.append({"report": report, "n_images": len(images)})
-        assert images, "vision QC must receive real frame extracts"
-        assert all(blob and mime for blob, mime in images)
+    def judge(_settings: object, *, report: dict, video: tuple) -> tuple[object, int]:
+        judged.append({"report": report, "video": video})
+        assert video[1] == "video/mp4"
+        assert isinstance(video[0], bytes) and video[0]
         return _decision("accept"), 900
 
     repairs: list[object] = []
@@ -192,7 +233,7 @@ def test_live_pickups_asks_vision_qc_and_skips_repair_when_clean() -> None:
         repair=repair,
     )
     assert len(judged) == 1
-    assert judged[0]["n_images"] >= 1
+    assert judged[0]["video"][1] == "video/mp4"
     assert repairs == []
     assert done.result["agent"]["decision"] == "accept"
     assert done.result["repaired"] is False
@@ -201,7 +242,8 @@ def test_live_pickups_asks_vision_qc_and_skips_repair_when_clean() -> None:
 
 def test_live_pickups_repairs_on_retry_then_passes() -> None:
     """Contract: retry_with_stronger_anchors must call Omni/Veo repair, not
-    re-score the same identity round-trip."""
+    re-score the same identity round-trip. First two attempts are
+    anchor-strengthened stabilize repairs (ADR-0005 ladder)."""
     from backend.jobs.models import Job
     from backend.stations.pickups.run import run_pickups
 
@@ -209,8 +251,8 @@ def test_live_pickups_repairs_on_retry_then_passes() -> None:
     slate = SLATE.read_bytes()
     calls = {"judge": 0, "repair": 0}
 
-    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
-        del report, images
+    def judge(_settings: object, *, report: dict, video: tuple) -> tuple[object, int]:
+        del report, video
         calls["judge"] += 1
         if calls["judge"] == 1:
             return _decision("retry_with_stronger_anchors"), 1100
@@ -243,33 +285,76 @@ def test_live_pickups_repairs_on_retry_then_passes() -> None:
     assert done.status != "needs_human"
 
 
-def test_live_pickups_two_repairs_then_needs_human() -> None:
+def test_live_pickups_stabilizes_twice_then_regenerates_whole_clip() -> None:
+    """Owner ruling 2026-09-09 (ADR-0005): attempts 1–2 are anchor-strengthened
+    stabilize repairs; from attempt 3 the house regenerates the WHOLE clip
+    from the accepted references; needs_human only after 5 total attempts."""
     from backend.jobs.models import Job
     from backend.stations.pickups.run import run_pickups
 
     media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
     slate = SLATE.read_bytes()
 
-    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
-        del report, images
+    def judge(_settings: object, *, report: dict, video: tuple) -> tuple[object, int]:
+        del report, video
         return _decision("retry_with_stronger_anchors"), 800
 
-    repairs = {"n": 0}
+    prompts: list[str] = []
 
     def repair(_settings: object, **kwargs: object) -> dict:
-        del kwargs
-        repairs["n"] += 1
+        prompts.append(str(kwargs.get("prompt") or ""))
         return {
             "video_bytes": slate,
-            "model": "veo-3.1-fast-generate-001",
-            "omni_fallback": True,
-            "omni_error": "recitation",
+            "model": "gemini-omni-1.1-flash-preview",
+            "omni_fallback": False,
+            "omni_error": "",
         }
 
-    job = Job(station="pickups", project_id="p-nh", input_refs=["k"])
+    job = Job(station="pickups", project_id="p-ladder", input_refs=["k"])
     done = run_pickups(job, _MemoryGCS(slate), media, judge=judge, repair=repair)
-    assert repairs["n"] == 2
+    assert len(prompts) == 5
     assert done.status == "needs_human"
+    assert done.result["retries_used"] == 5
+    assert all("identity lock" in prompt for prompt in prompts[:2])
+    assert all("Regenerate the whole clip" in prompt for prompt in prompts[2:])
+
+
+def test_live_pickups_passes_after_first_regeneration() -> None:
+    """The regeneration rung can clear the defect: stabilize ×2 fail, the
+    first whole-clip regeneration (attempt 3) passes, no needs_human."""
+    from backend.jobs.models import Job
+    from backend.stations.pickups.run import run_pickups
+
+    media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
+    slate = SLATE.read_bytes()
+    looks = {"n": 0}
+
+    def judge(_settings: object, *, report: dict, video: tuple) -> tuple[object, int]:
+        del report, video
+        looks["n"] += 1
+        if looks["n"] <= 3:
+            return _decision("retry_with_stronger_anchors"), 800
+        return _decision("accept"), 800
+
+    prompts: list[str] = []
+
+    def repair(_settings: object, **kwargs: object) -> dict:
+        prompts.append(str(kwargs.get("prompt") or ""))
+        return {
+            "video_bytes": slate,
+            "model": "gemini-omni-1.1-flash-preview",
+            "omni_fallback": False,
+            "omni_error": "",
+        }
+
+    job = Job(station="pickups", project_id="p-regen", input_refs=["k"])
+    done = run_pickups(job, _MemoryGCS(slate), media, judge=judge, repair=repair)
+    assert looks["n"] == 4
+    assert len(prompts) == 3
+    assert "identity lock" in prompts[0]
+    assert "Regenerate the whole clip" in prompts[2]
+    assert done.status != "needs_human"
+    assert done.result["retries_used"] == 3
     assert done.result["repaired"] is True
 
 
@@ -290,8 +375,8 @@ def test_live_pickups_hard_gate_catches_a_spike_the_judge_accepts(
     _inject_single_frame_defect(SLATE, defective, media.ffmpeg_bin)
     payload = defective.read_bytes()
 
-    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
-        del report, images
+    def judge(_settings: object, *, report: dict, video: tuple) -> tuple[object, int]:
+        del report, video
         return _decision("accept"), 900
 
     def repair(_settings: object, **kwargs: object) -> dict:

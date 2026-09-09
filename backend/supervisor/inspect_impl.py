@@ -56,8 +56,10 @@ _SPECIALTY = {
         "ok unless the house is already over cap."
     ),
     "pickups": (
-        "Damage, flicker, AND frames that could be cleaner. A broken frame "
-        "is high. Subtle instability is medium."
+        "Watch the VIDEO: damage, flicker, instability AND frames that "
+        "could be cleaner. A broken frame is high. Subtle instability is "
+        "medium. Motion defects (shake, jitter) are visible only in "
+        "motion — judge the clip as a moving image."
     ),
     "dub": (
         "If no target language/script is on the project, status=ok with "
@@ -65,7 +67,8 @@ _SPECIALTY = {
         "truncated/missing line is high; a complete but stiff read is medium."
     ),
     "extend": (
-        "Pick exactly one bucket. MUST: the shot dies mid-thought or "
+        "Watch the VIDEO end to end — pacing is motion, not stills. Pick "
+        "exactly one bucket. MUST: the shot dies mid-thought or "
         "mid-action so the story does not land — status=needs_work, "
         "kind=defect, impact=high or medium, propose a 360p draft extend "
         "as an ALTERNATE. NICE: the beat already lands; a breath of air "
@@ -124,17 +127,24 @@ _SPECIALTY = {
         "Pick exactly one bucket. MUST: the operator typed a camera move "
         "(requested_movement in context) that the picture ignores — "
         "status=needs_work, kind=defect, impact=medium or high, name that "
-        "vocabulary move, propose a 360p draft alternate. NICE: nobody "
+        "vocabulary move, propose a 360p draft alternate. MUST (ADR-0005): "
+        "the picture shows camera INSTABILITY the shot does not motivate "
+        "(handheld shake, jitter, drift on a seated/still scene that the "
+        "house style shoots locked-off) — status=needs_work, kind=defect, "
+        "impact=medium or high, movement=locked_off, propose a 360p draft "
+        "alternate (that re-renders the shot with stable camera). Shake "
+        "is visible only in motion: you are watching the real video — "
+        "look for it. NICE: nobody "
         "typed a move AND the picture has action a camera should follow "
         "(walking, traveling with a beat) — status=needs_work, "
         "kind=improvement, impact=low, name dolly_tracking, steadicam, or "
         "similar from the vocabulary, propose that draft. LEAVE: intimate "
-        "dialogue two-shots, still lifes, and any shot that should stay "
-        "still — status=ok, impact=none, kind=none, do not propose, no "
+        "dialogue two-shots, still lifes, and any shot that is genuinely "
+        "steady — status=ok, impact=none, kind=none, do not propose, no "
         "proposal object. Do not invent a dolly on flowers or a seated "
-        "café conversation. Vocabulary: dolly_tracking, dolly_zoom, "
-        "handheld_shaky, steadicam, whip_pan, crash_zoom, snorricam, "
-        "locked_off. Never overwrite a locked cut."
+        "café conversation. Do not call a shaky shot stable. Vocabulary: "
+        "dolly_tracking, dolly_zoom, handheld_shaky, steadicam, whip_pan, "
+        "crash_zoom, snorricam, locked_off. Never overwrite a locked cut."
     ),
 }
 
@@ -292,6 +302,7 @@ def run_inspect(
         )
         context["preview"] = {
             "frames": len(images or []),
+            "media_mime": (images[0][1] if images else ""),
             "has_audio": audio is not None,
             "error": err,
         }

@@ -27,6 +27,20 @@ VISUAL_STATIONS = frozenset(
         "delivery",
     }
 )
+# ADR-0005: these judgments are inherently temporal (camera stability,
+# frame-to-frame damage, tail pacing) — motion is invisible in stills, so
+# they look at the REAL clip as an inline video part, not frame extracts.
+VIDEO_STATIONS = frozenset({"camera_language", "pickups", "extend"})
+
+
+def video_look(media: Any, payload: bytes) -> tuple[bytes, str]:
+    """360p re-encode of the real clip for an inline video part (ADR-0005)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "clip.mp4"
+        src.write_bytes(payload)
+        dst = Path(tmp) / "look.mp4"
+        media.transcode_360p(src, dst)
+        return dst.read_bytes(), "video/mp4"
 
 
 def preview_from_bytes(media: Any, payload: bytes) -> PreviewParts:
@@ -56,18 +70,20 @@ def preview_from_bytes(media: Any, payload: bytes) -> PreviewParts:
     return images, audio, err
 
 
-def load_clip_preview(settings: Any, clip_uri: str) -> PreviewParts:
+def load_clip_preview(settings: Any, clip_uri: str) -> tuple[PreviewParts, bytes]:
+    """One download + extract. Returns ((images, audio, err), raw mp4 bytes);
+    the raw bytes are empty on download failure and needed for video looks."""
     if not clip_uri:
-        return [], None, "missing clip_uri"
+        return ([], None, "missing clip_uri"), b""
     try:
         from backend.core.gcs import get_gcs
         from backend.core.media import get_media
 
         payload = get_gcs(settings).download_bytes(clip_uri)
-        return preview_from_bytes(get_media(settings), payload)
+        return preview_from_bytes(get_media(settings), payload), payload
     except Exception as exc:
         log.exception("clip download failed uri=%s", clip_uri)
-        return [], None, str(exc)
+        return ([], None, str(exc)), b""
 
 
 class ClipPreviewCache:
@@ -75,19 +91,38 @@ class ClipPreviewCache:
 
     def __init__(self, settings: Any) -> None:
         self._settings = settings
-        self._by_uri: dict[str, PreviewParts] = {}
+        self._by_uri: dict[
+            str, tuple[PreviewParts, bytes, tuple[bytes, str] | None]
+        ] = {}
 
-    def _load(self, clip_uri: str) -> PreviewParts:
+    def _load(
+        self, clip_uri: str
+    ) -> tuple[PreviewParts, bytes, tuple[bytes, str] | None]:
         if clip_uri not in self._by_uri:
-            self._by_uri[clip_uri] = load_clip_preview(self._settings, clip_uri)
+            from backend.core.media import get_media
+
+            preview, payload = load_clip_preview(self._settings, clip_uri)
+            video: tuple[bytes, str] | None = None
+            if payload:
+                try:
+                    video = video_look(get_media(self._settings), payload)
+                except Exception:
+                    log.exception("video look failed uri=%s", clip_uri)
+                    self._by_uri[clip_uri] = (preview, payload, None)
+                    return self._by_uri[clip_uri]
+            self._by_uri[clip_uri] = (preview, payload, video)
         return self._by_uri[clip_uri]
 
     def parts_for(
         self, station: str, clip_uri: str
     ) -> tuple[list[tuple[bytes, str]] | None, tuple[bytes, str] | None, str]:
-        images, audio, err = self._load(clip_uri)
+        (images, audio, err), _payload, video = self._load(clip_uri)
         if station == "spend":
             return None, None, ""
+        if station in VIDEO_STATIONS:
+            if video is None:
+                return None, None, err
+            return [video], None, err
         if station not in AUDIO_STATIONS:
             audio = None
         if station not in VISUAL_STATIONS:

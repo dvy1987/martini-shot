@@ -150,3 +150,5 @@
 | 2026-09-09 22:15 | memory-handoff | agent-handoffs.md#2026-09-09-22:15 + current-state.md + project-index.md | Per-row Retry/Accept complete and validated; uncommitted, awaiting owner review of shot4/pickups scenario |
 
 
+| 2026-09-09 | architectural-decision-log | docs/adr/0005-temporal-video-perception-and-regeneration-ladder.md | ADR: Temporal video perception for QC agents (camera/pickups-QC/extend get real mp4, not 3 stills) + stabilize-then-regenerate repair ladder (regenerate after 2nd failed stabilize, 5 total tries); owner planted shaky-cam defect that the 3-still pipeline could not see or name |
+| 2026-09-09 | memory-decision | docs/memory/decision-log.md | Decision: temporal video perception + stabilize-then-regenerate ladder (ADR-0005) |
