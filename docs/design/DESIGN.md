@@ -1,6 +1,6 @@
 # DESIGN.md — Martini Shot frontend design charter
 
-Version: 3 (2026-08-28; v2 progressive reveal + slates · v3 motion system: Framer Motion, Leonardo-grade) · Status: **DECIDED** (owner-approved; produced via first-principles
+Version: 4 (2026-08-28; v2 progressive reveal + slates · v3 motion system: Framer Motion, Leonardo-grade · v4 2026-09-09: scoped chat-log exception for Directed Edit) · Status: **DECIDED** (owner-approved; produced via first-principles
 analysis + adversarial review at owner direction) · **Binding for all frontend work.**
 
 **Brand voice:** the martini shot is the last setup of the shooting day — the one
@@ -35,6 +35,17 @@ clickable evidence and human attention is spent only on exceptions.
   every other entry. We **link** to Grafana, we don't imitate it.
 - "Agent = chat panel" → invites unscripted demos and ChatGPT comparisons. The
   investigation is a **case file**; interaction happens through **Approvals**.
+  **Scoped exception (v4, owner-approved 2026-09-09):** the Directed Edit
+  screen (below) uses a real, bounded chat log — the operator's own words plus
+  the agent's clarifying questions, rendered as a transcript. This is not the
+  banned pattern: it is capped at 5 questions (hard gate in
+  `backend/supervisor/station_agents/directed_edit.py`), never free-roaming
+  conversation, and every other agent interaction in the product (Investigation
+  Card, Screening Room, Revision Room) stays case-file / Approvals-based. The
+  exception exists because Directed Edit's whole point is combining an
+  operator's own free-text intent with station picks into one bounded edit
+  instruction — a case file has no evidence chain to render before the edit
+  exists.
 - "SaaS sidebar + list-page landing" → wastes the money moment. The landing IS the
   timeline; secondary views live behind the command bar and compact drawers.
 - "Generic dark theme + accent color" → identity comes from the DI-suite surface +
@@ -124,6 +135,48 @@ The report as a dated contact-sheet: headline verdicts per station, citations
 - **Draft-first badge**: every generated artifact carries a state chip
   (draft 360p → in QC → master 1080p); drafts render at draft quality and say so
   (paused-frame truthfulness applies).
+
+### Directed Edit Studio (v4, owner-approved 2026-09-09 — demo screen, additive to Studio)
+An editor-style flow on the Studio tab (`ChangesRoute`), separate from the
+Alternates lane / Revision Room it sits alongside:
+1. **Filmstrip** — the same final-cut clips as the timeline's Final Cut strip
+   (`finalCutSlots`), one thumbnail per original clip, left-to-right in upload
+   order. Click selects exactly one clip; nothing else on screen is live until
+   a clip is chosen.
+2. **Station toggles** — plain multi-select buttons (Fix an image / Improve
+   lighting / Add coverage), reusing the existing `STATION_COPY` names — no new
+   vocabulary. Camera movement gets its own line and expands a 5-preset row
+   (shaky handheld, Steadicam glide, dolly zoom, crash zoom, whip pan) mirroring
+   the backend's official movement vocabulary word-for-word.
+3. **Chat box + Go** — free-text intent, enabled once a clip is selected AND at
+   least one station/movement is picked or text is typed (`canGo` gate). This
+   is the one screen with a real chat log (see "Conventions discarded" above).
+4. **Clarification transcript** — the `directed_edit` agent may ask up to 5
+   short questions, one at a time, rendered as a plain Q&A transcript (not a
+   free-scrolling conversation UI); the operator answers inline. The agent
+   always converges to one combined instruction — it never stalls past 5
+   questions (hard gate).
+5. **Result** — the generated clip lands as a normal alternate on the shot
+   (never a silent overwrite); its preview plays inline. "Add to final cut"
+   writes the same `add_to_continuity` approval record every other station
+   uses (audit trail intact, C-4.3), and the operator can still revert via the
+   shot's alternate history exactly as elsewhere in the product.
+
+**Second, narrower exception (v4): both "Go" and "Add to final cut" decide
+their own approval immediately** — clicking either one both proposes AND
+approves in the same action, rather than stopping at "proposed" for a
+separate visit to the Approvals inbox (the pattern every other creative-op
+control in the product follows). This matches the operator flow the owner
+asked for (one click to generate, one click to promote — the operator has
+already watched the inline preview before promoting) and still writes a full
+approval + Grafana-annotation trail; it does trade away the second
+reviewer/pause point Approvals normally gives every other station. Scoped to
+this one screen only; any other screen adopting the same shortcut needs its
+own amendment.
+
+Everything downstream of the chat box (execution, alternates, promote) uses the
+established evidence-tracked machinery unchanged — the exceptions are narrowly
+the input surface and the one-click decide, not the audit model.
 
 ### Status vocabulary (film-native mapping, 1:1 with the job state machine)
 | State | Term | Glyph | Color |
@@ -227,9 +280,12 @@ Animation never carries information alone (live state must survive a paused fram
 ## Anti-patterns (banned even if instinct says otherwise)
 Purple→pink gradients · Tailwind default palette · Inter-only typography · glassmorphism
 · glow · cartoon-bounce overshoot (one damped spring curve is allowed, no oscillation)
-· chat-style agent panel · generic SaaS sidebar landing · lorem ipsum or placeholder
-data · emoji in UI copy · stock illustrations · two animation stacks · light mode as
-default (dark is the product; light is a later fallback, not v1 scope).
+· chat-style agent panel (single named exception: Directed Edit's 5-question-capped
+transcript, see "Conventions discarded" and "Directed Edit Studio" — no other screen
+may add a chat panel without the same amendment process) · generic SaaS sidebar
+landing · lorem ipsum or placeholder data · emoji in UI copy · stock illustrations ·
+two animation stacks · light mode as default (dark is the product; light is a later
+fallback, not v1 scope).
 
 ## Build sequencing (protects the floor)
 v1 floor = spec §7 console (tables + drill-ins, polished) — guaranteed shippable.
