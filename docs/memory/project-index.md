@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 16:52 | handoff | agent-handoffs.md#2026-09-09-16:52 | current | final-cut, play, timeline | Final cut live slots and Play button unblocked |
+| 2026-09-09 | state | current-state.md | current | final-cut, play, deploy | Live Final cut slots and unblocked Play button; unpublished Cloud Run/Replit |
 | 2026-09-09 16:35 | handoff | agent-handoffs.md#2026-09-09-16:35 | current | retry, worklist, directed-edit, studio | Retry stalled steps + DirectedEditStudio redesign integrated |
 | 2026-09-09 | state | current-state.md | current | retry, studio, directed-edit, deploy | Worklist retry and DirectedEditStudio; live site unpublished |
 | 2026-09-09 15:55 | handoff | agent-handoffs.md#2026-09-09-15:55 | current | retry, worklist, execute, delivery | Retry stalled steps: worklist/retry route + Current progress button; uncommitted |

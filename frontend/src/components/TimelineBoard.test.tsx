@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getJobClip } from "@/api/endpoints";
 import TimelineBoard from "@/components/TimelineBoard";
@@ -8,6 +8,16 @@ import type { Job, Worklist } from "@/types/api";
 vi.mock("@/api/endpoints", () => ({
   getJobClip: vi.fn(),
 }));
+
+beforeEach(() => {
+  // Final cut now fills a slot the moment a clip has a passed After, even
+  // mid-run, so ClipThumb can mount in far more tests than before. Give it
+  // a never-resolving promise by default (stays on "Opening clip…") unless
+  // a test opts into a real implementation — otherwise a leftover
+  // mockImplementation from an earlier test could leak in via clearAllMocks,
+  // which clears call history but not implementations.
+  vi.mocked(getJobClip).mockImplementation(() => new Promise(() => {}));
+});
 
 afterEach(() => {
   cleanup();
@@ -202,7 +212,11 @@ describe("TimelineBoard", () => {
     expect(screen.getByText("A quiet cafe.")).toBeInTheDocument();
   });
 
-  it("keeps Final cut empty while leftover work is still running", () => {
+  it("fills Final cut with the latest passed After and lets it play even while leftover work is still running", () => {
+    // Owner ruling: Final cut must show, and let the operator play, whatever
+    // has already passed right now — not wait for the whole run to finish,
+    // fail, or stall. Gating on the aggregate worklist status was the exact
+    // bug that hid the slots in the first place.
     const origin = "projects/project-1/ingest/job-1/cafe.mp4";
     const ingest = finishedIngest("job-1", origin, 0);
     const mixed = finishedMix("job-loud", origin);
@@ -216,9 +230,10 @@ describe("TimelineBoard", () => {
     );
 
     const strip = screen.getByRole("region", { name: "Final cut" });
-    expect(strip).toHaveTextContent(/fills when the orchestrator has stopped/i);
-    expect(screen.queryByRole("button", { name: /add to final cut/i })).not.toBeInTheDocument();
-    expect(screen.queryByText("Final Cut")).not.toBeInTheDocument();
+    expect(strip).not.toHaveTextContent(/waiting for the orchestrator to stop/i);
+    expect(within(strip).getByText(/clip 1/i)).toBeInTheDocument();
+    expect(within(strip).queryByText(/no after yet/i)).not.toBeInTheDocument();
+    expect(within(strip).getByRole("button", { name: /^play$/i })).toBeEnabled();
   });
 
   it("groups table rows by clip journey in upload order", () => {
@@ -286,7 +301,7 @@ describe("TimelineBoard", () => {
     expect(within(strip).getByRole("button", { name: /open cafe.mp4/i })).toBeInTheDocument();
   });
 
-  it("places a Play control next to the Final cut thumbs and plays downloaded clips in order", async () => {
+  it("places the Play control at the far right of the Final cut thumbs and plays downloaded clips in order", async () => {
     HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
     let created = 0;
     const createUrl = vi.fn(() => `blob:final-${created++}`);
@@ -325,7 +340,7 @@ describe("TimelineBoard", () => {
     const strip = screen.getByRole("region", { name: "Final cut" });
     const play = within(strip).getByRole("button", { name: /^play$/i });
     expect(play.compareDocumentPosition(within(strip).getByText(/clip 1/i))).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
+      Node.DOCUMENT_POSITION_PRECEDING,
     );
 
     fireEvent.click(play);

@@ -16,7 +16,6 @@ import {
   finalCutSlots,
   groupBoardByClip,
   originKey,
-  orchestratorHasStopped,
   type FinalCutPick,
 } from "@/lib/finalCut";
 import { cost } from "@/lib/formatters";
@@ -257,11 +256,9 @@ function ClipCell({
 
 function FinalCutStrip({
   slots,
-  stopped,
   onOpenClip,
 }: {
   slots: ReturnType<typeof finalCutSlots>;
-  stopped: boolean;
   onOpenClip: (clip: JobClip) => void;
 }) {
   const playlist = finalCutPlaylist(slots);
@@ -334,7 +331,13 @@ function FinalCutStrip({
     setIndex(index + 1);
   }
 
-  const canPlay = stopped && playlist.length > 0;
+  // Play only needs a playlist, not a fully stopped run: it plays whatever
+  // has actually passed right now, same as the slots themselves. Waiting
+  // for orchestratorHasStopped() here would reintroduce the exact bug the
+  // slots just got fixed for — the aggregate worklist status can say
+  // "running" indefinitely because of one unrelated stuck item, even
+  // while every clip already has a perfectly playable After.
+  const canPlay = playlist.length > 0;
   const playLabel = phase === "downloading" ? "Downloading" : phase === "playing" ? "Playing" : "Play";
 
   return (
@@ -345,29 +348,16 @@ function FinalCutStrip({
       <header className="mb-3">
         <h3 className="font-mono text-xs uppercase tracking-widest text-ink">Final cut</h3>
         <p className="mt-1 text-sm text-ink-muted">
-          {stopped
-            ? "The last successful After of each original clip, in upload order. Add a different After from the table to swap it."
-            : "Fills when the orchestrator has stopped."}
+          The last successful After of each original clip so far, in upload order. Updates live
+          as steps finish, fail, or stall. Add a different After from the table to swap it.
         </p>
       </header>
-      {!stopped ? (
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
-          Waiting for the orchestrator to stop.
-        </p>
-      ) : slots.length === 0 ? (
+      {slots.length === 0 ? (
         <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
           No original clips yet.
         </p>
       ) : (
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            disabled={!canPlay || phase === "downloading"}
-            onClick={() => void handlePlay()}
-            className="shrink-0 rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-colors ease-chrome hover:border-ink hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-          >
-            {playLabel}
-          </button>
           <ol className="flex min-w-0 flex-1 gap-3 overflow-x-auto">
             {slots.map((slot, slotIndex) => (
               <li key={slot.origin} className="min-w-28">
@@ -388,6 +378,14 @@ function FinalCutStrip({
               </li>
             ))}
           </ol>
+          <button
+            type="button"
+            disabled={!canPlay || phase === "downloading"}
+            onClick={() => void handlePlay()}
+            className="shrink-0 rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-colors ease-chrome hover:border-ink hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            {playLabel}
+          </button>
         </div>
       )}
       {error ? <p className="mt-3 border-l-2 border-danger pl-3 text-sm text-danger">{error}</p> : null}
@@ -436,8 +434,6 @@ export default function TimelineBoard({
     () => finalCutSlots(projectJobs, overrides, worklist),
     [projectJobs, overrides, worklist],
   );
-  const stopped = orchestratorHasStopped(worklist);
-
   useEffect(() => {
     setOverrides(loadOverrides(projectId ?? null));
   }, [projectId]);
@@ -654,7 +650,7 @@ export default function TimelineBoard({
         </>
       ) : null}
 
-      <FinalCutStrip slots={slots} stopped={stopped} onOpenClip={setReviewClip} />
+      <FinalCutStrip slots={slots} onOpenClip={setReviewClip} />
 
       {reviewClip ? <ClipReviewModal clip={reviewClip} onClose={() => setReviewClip(null)} /> : null}
       {agentNotes ? (

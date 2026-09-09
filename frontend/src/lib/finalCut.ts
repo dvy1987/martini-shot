@@ -191,10 +191,8 @@ export function resolveFinalCutPick(
   jobs: readonly Job[],
   origin: string,
   override: FinalCutPick | undefined,
-  ready: boolean,
   worklist?: Worklist | null,
 ): FinalCutPick | null {
-  if (!ready) return null;
   if (override) {
     const job = jobsForOrigin(jobs, origin, worklist).find(
       (row) => row.job_id === override.jobId,
@@ -204,12 +202,20 @@ export function resolveFinalCutPick(
   return defaultFinalCutPick(jobs, origin, worklist);
 }
 
+// One slot per originally uploaded clip, always filled with the latest
+// successfully agent-modified version available right now — whether the
+// orchestrator is still running, has stalled on an unrelated step, has
+// failed, or has fully completed. Never gated on the aggregate worklist
+// status: that status can say "running" while individual clips already
+// have finished, usable work sitting on them (e.g. one shot's delivery
+// is still queued while another shot's relight already failed after
+// producing nothing further usable — the first shot's Final Cut slot
+// must not be held hostage by the second).
 export function finalCutSlots(
   jobs: readonly Job[],
   overrides: Readonly<Record<string, FinalCutPick>>,
   worklist: Worklist | null | undefined = null,
 ): FinalCutSlot[] {
-  const ready = orchestratorHasStopped(worklist);
   return sequenceOrigins(jobs).map((origin) => {
     const ingest = jobsForOrigin(jobs, origin, worklist).find(
       (job) => job.station === "ingest",
@@ -217,7 +223,7 @@ export function finalCutSlots(
     return {
       origin,
       name: ingest ? clipName(ingest) : origin,
-      pick: resolveFinalCutPick(jobs, origin, overrides[origin], ready, worklist),
+      pick: resolveFinalCutPick(jobs, origin, overrides[origin], worklist),
     };
   });
 }

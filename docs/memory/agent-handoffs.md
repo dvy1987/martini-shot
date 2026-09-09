@@ -1,5 +1,36 @@
 # Agent Handoffs
 
+## 2026-09-09 16:45 - Final cut no longer waits for the whole run to stop (uncommitted)
+
+### Done
+- Owner report: Final cut stayed empty for storm-breaking (3 uploaded clips) even though most stations had already passed. Root cause was the same shape as the retry-button bug: `finalCutSlots()` gated every slot's pick on `orchestratorHasStopped(worklist)`, which is false whenever the worklist's aggregate `status` is `running` (or `inspecting`/`ranking`/`planning`/`waiting_for_ingest`) — but that aggregate status can say "running" project-wide because of one unrelated stuck item, even while a given clip's own work already finished, failed, or stalled.
+- Removed the `ready`/`orchestratorHasStopped` gate from `resolveFinalCutPick`/`finalCutSlots` in `frontend/src/lib/finalCut.ts`. Each slot now always resolves to the latest passed After for its origin clip, live, regardless of the aggregate worklist status.
+- `TimelineBoard.tsx`'s `FinalCutStrip` no longer shows "Waiting for the orchestrator to stop" ahead of slot rendering — it renders whatever's available immediately. Left `orchestratorHasStopped` in place only to gate the **Play** button (`canPlay = stopped && playlist.length > 0`) and the header copy, since playing a clip that might still change mid-run is a separate, reasonable thing to hold back.
+- Rewrote the test that had locked in the old (now wrong) behavior: `finalCut.test.ts` "stays empty while the orchestrator is still running" → "fills Final cut with whatever has already passed even while the orchestrator is still running"; added a case confirming the raw upload is still used as a fallback After when nothing has passed yet. Rewrote the matching `TimelineBoard.test.tsx` case the same way, and confirmed `canPlay` still requires `stopped`.
+- `TimelineBoard.test.tsx` also gained a `beforeEach` that gives `getJobClip` a never-resolving default promise: with the gate gone, `ClipThumb` now mounts inside Final cut in far more tests than before (any test with a passed job produces a pick), and an unmocked `getJobClip()` (`vi.fn()` returning `undefined`) would throw synchronously on `.then`. The never-resolving default keeps those tests on "Opening clip…" without crashing or asserting on clip content they don't care about.
+- Frontend: `finalCut.test.ts` (14 tests), `TimelineBoard.test.tsx` (10 tests), `TimelineRoute.test.tsx` (17 tests) all green; eslint clean on the 4 changed files. `npm run typecheck` has exactly one pre-existing error in `DirectedEditStudio.test.tsx` (confirmed via `git stash` that it's present without my changes too — unrelated Directed Edit Studio work from a different session).
+- Full `npm run test` shows 8 pre-existing failures across `AlternatesLane.test.tsx`, `ExtendControls.test.tsx`, `InvestigationDrawer.test.tsx`, `RelightControls.test.tsx`, `RevisionRoom.test.tsx`, `ReportsRoute.test.tsx` — confirmed via `git stash` these fail identically with my 4 files stashed out, so they predate and are unrelated to this fix.
+- Noted in passing: the previously-uncommitted retry feature (`f081406`) is now committed, bundled with the concurrent Directed Edit Studio work — verified via `git show f081406 --stat` that both landed intact and non-conflicting.
+
+### Decisions
+- Final cut population is never gated on the worklist's aggregate status — only on whether that specific origin clip has a passed After. The aggregate status is unreliable per-clip (same lesson as the retry-button root cause). Playback (`Play` button) is a separate, narrower concern and may still legitimately wait for `orchestratorHasStopped`.
+
+### Pending
+- Not yet committed. Update SKILL-OUTPUTS.md / current-state.md if not already reflected; await owner confirmation the storm-breaking board now shows all 3 clips before considering this closed.
+
+## 2026-09-09 16:52 - Play button unblocked and moved to far right (uncommitted)
+
+### Done
+- Owner asked why Play in Final cut was still blocked, wondering if it needed a redeploy. It wasn't a deployment issue: `canPlay` still required `orchestratorHasStopped(worklist)`, the exact same aggregate-status gate just removed from slot population. Removed it here too — `canPlay = playlist.length > 0`. Play now plays whatever's currently in Final cut, live, same as the slots.
+- Deleted the now-unused `stopped` prop/variable and `orchestratorHasStopped` import from `TimelineBoard.tsx` (function itself stays exported from `finalCut.ts`, still directly unit-tested there — just no longer consumed for gating anything in the UI).
+- Moved the Play button to the far right of the strip: swapped DOM order so the slots `<ol>` (flex-1) comes first and Play (shrink-0) comes last — the flex-1 element occupies the leftover width even when its content doesn't need it, which pushes Play to the true right edge without inventing new spacing (still the same `gap-3`/`px-4 py-3` chrome tokens).
+- Unified the header copy to one sentence (no more branching on stopped/not-stopped).
+- Updated `TimelineBoard.test.tsx`: the running-worklist test now asserts Play is **enabled**; the DOM-order assertion in the playback test flipped from `DOCUMENT_POSITION_FOLLOWING` to `PRECEDING` to match Play now being last.
+- `finalCut.test.ts` (14), `TimelineBoard.test.tsx` (10), `TimelineRoute.test.tsx` (17) green; eslint clean on both touched files; typecheck has the same one pre-existing, unrelated `DirectedEditStudio.test.tsx` error.
+
+### Decisions
+- Play is governed by the same rule as slot population now: available the moment there's anything to play, never gated on the aggregate worklist status.
+
 ## 2026-09-09 16:35 - Stalled worklist retry button and DirectedEditStudio integration
 
 ### Done

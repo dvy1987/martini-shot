@@ -39,7 +39,12 @@ function worklist(partial: Partial<Worklist> = {}): Worklist {
 }
 
 describe("finalCut", () => {
-  it("stays empty while the orchestrator is still running", () => {
+  it("fills Final cut with whatever has already passed even while the orchestrator is still running", () => {
+    // Owner ruling: Final cut must not be held hostage by the aggregate
+    // worklist status. A clip whose steps have already passed should
+    // show its latest After the moment that work lands, whether the
+    // run as a whole is running, has stalled elsewhere, has failed, or
+    // has completed.
     const ingest = job({
       job_id: "job-in-1",
       station: "ingest",
@@ -57,7 +62,25 @@ describe("finalCut", () => {
     });
     expect(orchestratorHasStopped(running)).toBe(false);
     const slots = finalCutSlots([ingest, mixed], {}, running);
-    expect(slots[0]?.pick).toBeNull();
+    expect(slots[0]?.pick).toEqual({ jobId: "job-loud-1", side: "after" });
+  });
+
+  it("still falls back to the raw upload as the After when nothing has passed yet, even mid-run", () => {
+    const ingest = job({
+      job_id: "job-in-1",
+      station: "ingest",
+      result: { upload_index: 0, probe: { duration_s: 4 } },
+    });
+    const relightFailed = job({
+      job_id: "job-relight-1",
+      station: "relight",
+      status: "fail",
+      input_refs: ingest.input_refs,
+      result: {},
+    });
+    const running = worklist({ status: "running" });
+    const slots = finalCutSlots([ingest, relightFailed], {}, running);
+    expect(slots[0]?.pick).toEqual({ jobId: "job-in-1", side: "before" });
   });
 
   it("treats waiting_for_budget with no active leftover items as stopped", () => {
