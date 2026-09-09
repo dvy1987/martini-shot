@@ -1,6 +1,6 @@
-# Martini Shot
+# Martini Shot: Your Post-production Wizard
 
-> **Upload the footage, set the budget, and walk away. Martini Shot runs a small post-production operation, watches the work, explains what needs attention, and spends only what the production envelope allows.**
+#### Upload real footage, set the budget & walk away while AI agents inspect, prioritize & finish—while Grafana keeps every decision observable and accountable.
 
 Martini Shot is an **observability-native post-production supervisor** for film and television teams. It turns a batch of uploaded clips into a governed chain of media jobs: the system checks the files, understands what is actually in the footage, fixes essential sound and picture problems, asks specialist agents what work is justified, and uses a Gemini-powered orchestrator to decide which work is worth doing within budget.[2] [3] [5]
 
@@ -102,6 +102,8 @@ The repository includes dashboards and alert rules as code in `infra/grafana/` p
 
 This is the Grafana-track differentiator: Grafana is not a logo in the README or a screenshot at the end of the demo. It is the evidence layer and intervention surface for an agentic creative operation. The supervisor uses telemetry to investigate a failed job, compare cost and duration, enforce bounded responses, and leave an auditable record of what automation changed. In `propose_only` mode, the same write path returns a structured proposal instead of mutating Grafana.[8] [9] [10]
 
+#### One crucial note to the judges: This project's access to free Grafana CLoud ends on Sep 10, 2026, which means that the live product link may not work fully since Grafana, a core component of the product spine will be no longer accessible to the live product link.
+
 ## What a judge can verify quickly
 
 | Claim | Where to verify it |
@@ -116,21 +118,7 @@ This is the Grafana-track differentiator: Grafana is not a logo in the README or
 | Run Pulse joins Grafana MCP reads with job and worklist state | [`backend/supervisor/run_pulse.py`][18] and [`frontend/src/components/RunPulse.tsx`][19] |
 | Real-model evaluations and outcomes | [`docs/evidence/`][20] and the current readiness record [`docs/pending-work.md`][21] |
 
-## The three-minute demo story
-
-The demo should be a product walkthrough, not a cinematic trailer. The official hackathon requires a public video of no more than three minutes in English or with English subtitles.[1]
-
-| Time | What the judge sees | Why it matters |
-|---:|---|---|
-| 0:00–0:20 | The Timeline screen, the Upload clips control, and a deliberately small budget | Establishes the user, the problem, and the walk-away promise. |
-| 0:20–0:45 | Two or three clips uploaded in visible order and the Finish action | Shows a real web product, not a static architecture diagram. |
-| 0:45–1:15 | Ingest understanding followed by loudness and pickups rows | Shows that essential work is sequenced and that the original clip receives context before later decisions. |
-| 1:15–1:45 | Attendance rows from the seven later-phase specialists | Shows that different agents look for different kinds of problems and can return a leave-it result instead of inventing work. |
-| 1:45–2:15 | Spend estimates, the ADK rank reason, dependencies, and the worklist | Shows the orchestrator making a global decision rather than executing every suggestion. |
-| 2:15–2:40 | One real station artifact, one waiting or paused item, and the original-plus-passed final references | Shows governed spend and the final-cut safety rule. |
-| 2:40–3:00 | Run Pulse and one Grafana trace, annotation, query, or incident | Proves that Grafana MCP is part of the runtime control loop. |
-
-Use a two-clip or three-clip rehearsal first. A small budget should fund one meaningful optional job and leave at least one other proposal waiting. The exact result is content-dependent because stations are allowed to return leave-it or empty notes. That variability is a feature of the product, not a canned script.
+#### One crucial note to the judges: This project's access to free Grafana CLoud ends on Sep 10, 2026, which means that the live product link may not work fully since Grafana, a core component of the product spine will be no longer accessible to the live product link.
 
 ## Current implementation status
 

@@ -81,3 +81,18 @@ was a cost choice, not a model limitation.
 - Eval obligation (C-3): the planted shaky clip becomes the stability
   dataset row with a numeric bar BEFORE the agent change is trusted;
   JSONL evidence under `docs/evidence/`.
+
+## Probe result (2026-09-10) — video input alone does NOT close the gap
+
+Owner-requested retest: ran the camera_language finishing look (product
+prompt + instrumented call site) with the REAL clip as an inline video part
+on both `fixtures/diner_scene/coverage_flagged/` clips. The agent called
+BOTH steady — "no unmotivated shake or jitter", status=ok, no proposal
+(~4,500 micros/call, `gemini-3.7-flash`). The deterministic flicker/spike
+meter, on the same files: source spike 0.05683, coverage render spike
+0.05216 (gate 0.02) — the instability is real, measurable, and persists
+into the render. Conclusion: the gap is the MODEL's judgment of motion
+defects, not only the stills plumbing. The fix that matches house
+patterns (pickups precedent) is a deterministic stability/jitter METRIC
+fed to the camera agent as an advisory metric doc (with the override
+clause), judged EDD-first on these fixture rows — not more prompt prose.
