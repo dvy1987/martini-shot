@@ -2,9 +2,9 @@
 
 > **Upload the footage, set the budget, and walk away. Martini Shot runs a small post-production operation, watches the work, explains what needs attention, and spends only what the production envelope allows.**
 
-Martini Shot is an **observability-native post-production supervisor** for film and television teams. It turns a batch of uploaded clips into a governed chain of media jobs: the system checks the files, understands what is actually in the footage, fixes essential sound and picture problems, asks specialist agents what work is justified, and uses a Gemini-powered orchestrator to decide which work is worth doing within budget.
+Martini Shot is an **observability-native post-production supervisor** for film and television teams. It turns a batch of uploaded clips into a governed chain of media jobs: the system checks the files, understands what is actually in the footage, fixes essential sound and picture problems, asks specialist agents what work is justified, and uses a Gemini-powered orchestrator to decide which work is worth doing within budget.[2] [3] [5]
 
-The core value proposition is simple: a supervisor can delegate a messy, expensive post-production operation without delegating accountability. Martini Shot preserves the evidence behind each decision, keeps spending inside the production envelope, prevents unsafe media replacement, and explains the run through Grafana-backed health, cost, timing, traces, logs, and interventions.
+The core value proposition is simple: a supervisor can delegate a messy, expensive post-production operation without delegating accountability. Martini Shot preserves the evidence behind each decision, keeps spending inside the production envelope, prevents unsafe media replacement, and explains the run through Grafana-backed health, cost, timing, traces, logs, and interventions.[3] [7] [8] [10]
 
 The product is built for the **Grafana Labs track** of the [Agentic Cinema hackathon][1]. The backend uses Google Cloud services, Google ADK, Gemini, Firestore, Cloud Storage, FFmpeg, OpenTelemetry, and a live Grafana MCP connection. The repository is licensed under Apache 2.0.
 
@@ -12,7 +12,7 @@ The product is built for the **Grafana Labs track** of the [Agentic Cinema hacka
 
 Post-production is a coordination problem disguised as a sequence of creative tasks. A supervisor must manage incoming media, integrity checks, sound levels, visual defects, dubs, captions, delivery requirements, optional finishing ideas, approvals, budgets, retries, and handoffs across many clips and stations.
 
-That work is usually fragmented across media tools, job queues, spreadsheets, cloud logs, dashboards, and approval records. Bad inputs can travel too far, generative suggestions can consume budget without enough impact, automation can become difficult to audit, and a new render can damage continuity or overwrite an approved version before anyone has a safe review point.
+That work is usually fragmented across media tools, job queues, spreadsheets, cloud logs, dashboards, and approval records. Bad inputs can travel too far, generative suggestions can consume budget without enough impact, automation can become difficult to audit, and a new render can damage continuity or overwrite an approved version before anyone has a safe review point.[2] [3] [16] [17]
 
 Martini Shot addresses this operational gap. It is not a chatbot that merely recommends edits and not a generic video generator. It is a governed production system that makes creative automation accountable.
 
@@ -35,13 +35,13 @@ The user chooses the clips in order and sets a budget. Martini Shot then follows
 
 This is not a chatbot that merely recommends edits. The specialist proposals become validated worklist items, the orchestrator selects and orders them, and the queue dispatches real station jobs. The important safety boundary is that generated media is attached as an alternate and never silently overwrites a locked cut.[2] [3] [4]
 
-The user-facing product includes the Timeline, Suggestions, Approvals, Analytics/Run Pulse, Reports, Decisions, Changes, and Studio surfaces. Operator notes and decision history make the reasoning legible without turning the application into an unbounded chat interface. Real uploaded production clips are the primary input; the core ingest, cleanup, dubbing, delivery, governance, and observability paths do not require generated media. Studio supports approval-tracked, bounded Omni edits for corrections and other controlled finishing operations; the production path records the actual render model and fallback status so a Veo result is never mislabeled as an Omni pass.
+The user-facing product includes the Timeline, Suggestions, Approvals, Analytics/Run Pulse, Reports, Decisions, Changes, and Studio surfaces. Operator notes and decision history make the reasoning legible without turning the application into an unbounded chat interface.[12] [19] [26] Real uploaded production clips are the primary input; the core ingest, cleanup, dubbing, delivery, governance, and observability paths do not require generated media. Studio supports approval-tracked, bounded Omni edits for corrections and other controlled finishing operations; the production path records the actual render model and fallback status so a Veo result is never mislabeled as an Omni pass.[9] [27]
 
-Generative finishing is optional rather than a prerequisite for the product to be useful. Omni’s refusal to process some public-domain or public-commons source media is a limitation of that optional edit request, not of Martini Shot’s ability to ingest, measure, clean up, dub, deliver, or supervise real clips. The original remains valid input, and the configured fallback or no-change path remains explicit in job state.
+Generative finishing is optional rather than a prerequisite for the product to be useful. Omni’s refusal to process some public-domain or public-commons source media is a limitation of that optional edit request, not of Martini Shot’s ability to ingest, measure, clean up, dub, deliver, or supervise real clips. The original remains valid input, and the configured fallback or no-change path remains explicit in job state.[9] [21] [27]
 
 ## The solution in one workflow
 
-Martini Shot follows a controlled production order:
+Martini Shot follows a controlled production order.[2] [3] [15] [16]
 
 1. **Ingest:** validate the uploaded media, inspect the container, check decodability and audio presence, and quarantine files that fail.
 2. **Understand:** use Gemini to establish what is actually spoken and what is visible in the scene. Silence is represented honestly rather than filled with invented dialogue.
@@ -52,7 +52,7 @@ Martini Shot follows a controlled production order:
 7. **Safe finishing:** treat generated media as an alternate. Apply draft-first and visual-quality gates where required, preserve the approved cut, and refresh final references only with original media and artifacts that actually passed. If no transformation passes, the original remains the playable reference.
 8. **Operational explanation:** use Run Pulse and Grafana MCP to show whether a problem is in the footage or the factory, which work is consuming budget, when the run is likely to wrap, and what automation already changed.
 
-The separate Post Supervisor path investigates failed, quarantined, and human-review jobs. It queries the evidence, verifies proposed interventions, applies bounded autonomy and budget controls, and records the resulting action through Grafana annotations or incidents when the configured mode permits writes.
+The separate Post Supervisor path investigates failed, quarantined, and human-review jobs. It queries the evidence, verifies proposed interventions, applies bounded autonomy and budget controls, and records the resulting action through Grafana annotations or incidents when the configured mode permits writes.[6] [7] [8] [9]
 
 ## What makes the system agentic
 
@@ -72,7 +72,7 @@ A separate signal-fired supervisor path investigates failed, quarantined, or hum
 
 This separation is deliberate. The finishing orchestrator governs creative and compliance work across clips. The Post Supervisor investigates operational failures and governs bounded interventions.
 
-Martini Shot is agentic because its agents participate in a real decision-and-execution loop rather than producing an isolated answer. Gemini and ADK provide perception, judgment, prioritization, and synthesis. Deterministic code remains authoritative for file integrity, measurement, schema validation, dependencies, budgets, leases, draft-first rules, approval transitions, and final-reference safety. This hybrid boundary turns model judgment into controlled production work.
+Martini Shot is agentic because its agents participate in a real decision-and-execution loop rather than producing an isolated answer. Gemini and ADK provide perception, judgment, prioritization, and synthesis. Deterministic code remains authoritative for file integrity, measurement, schema validation, dependencies, budgets, leases, draft-first rules, approval transitions, and final-reference safety. This hybrid boundary turns model judgment into controlled production work.[5] [6] [7] [16] [17]
 
 ## How Grafana is used at runtime
 
@@ -100,7 +100,7 @@ The Run Pulse surface answers:
 
 The repository includes dashboards and alert rules as code in `infra/grafana/` plus a provisioning helper in `scripts/provision_grafana.py`. The helper defaults to a dry run. Passing `--yes` performs writes through Grafana MCP.[10] [11]
 
-This is the Grafana-track differentiator: Grafana is not a logo in the README or a screenshot at the end of the demo. It is the evidence layer and intervention surface for an agentic creative operation. The supervisor uses telemetry to investigate a failed job, compare cost and duration, enforce bounded responses, and leave an auditable record of what automation changed. In `propose_only` mode, the same write path returns a structured proposal instead of mutating Grafana.
+This is the Grafana-track differentiator: Grafana is not a logo in the README or a screenshot at the end of the demo. It is the evidence layer and intervention surface for an agentic creative operation. The supervisor uses telemetry to investigate a failed job, compare cost and duration, enforce bounded responses, and leave an auditable record of what automation changed. In `propose_only` mode, the same write path returns a structured proposal instead of mutating Grafana.[8] [9] [10]
 
 ## What a judge can verify quickly
 
@@ -260,7 +260,7 @@ OpenTelemetry sends metrics, logs, and traces to Grafana. The Post Supervisor an
 
 ### Technologies used
 
-The backend uses Python, FastAPI, Uvicorn, Google Gen AI, Google Agent Development Kit, Vertex AI, Gemini, Gemini Omni, Veo, Google Cloud Text-to-Speech with Chirp 3 HD voices, Cloud Firestore, Cloud Storage, Cloud Run, Cloud IAM/IAM Credentials, FFmpeg, and FFprobe. The frontend uses React, TypeScript, Vite, React Router, Tailwind CSS, TanStack React Query, Framer Motion, and Lucide React. Testing and quality checks use Pytest, Mypy, Ruff, Vitest, Testing Library, and ESLint. The Grafana-track integration uses Grafana Cloud, Grafana MCP, Prometheus/Mimir, Loki, Tempo, OpenTelemetry, and the Grafana MCP Server. Docker packages the backend; GitHub provides source control; Replit supports the frontend workflow.
+The backend uses Python, FastAPI, Uvicorn, Google Gen AI, Google Agent Development Kit, Vertex AI, Gemini, Gemini Omni, Veo, Google Cloud Text-to-Speech with Chirp 3 HD voices, Cloud Firestore, Cloud Storage, Cloud Run, Cloud IAM/IAM Credentials, FFmpeg, and FFprobe.[27] [28] The frontend uses React, TypeScript, Vite, React Router, Tailwind CSS, TanStack React Query, Framer Motion, and Lucide React.[26] Testing and quality checks use Pytest, Mypy, Ruff, Vitest, Testing Library, and ESLint. The Grafana-track integration uses Grafana Cloud, Grafana MCP, Prometheus/Mimir, Loki, Tempo, OpenTelemetry, and the Grafana MCP Server. Docker packages the backend; GitHub provides source control; Replit supports the frontend workflow.
 
 ### What we learned
 
@@ -301,3 +301,6 @@ Martini Shot is released under the [Apache License 2.0][25].
 [23]: .replit "Current Replit development and deployment configuration"
 [24]: deploy.sh "Cloud Run deployment script"
 [25]: LICENSE "Apache License 2.0"
+[26]: frontend/src/components/TimelineBoard.tsx "Timeline, Before/After, Final cut, Agent Notes, and playable playlist UI"
+[27]: backend/core/generative.py "Omni-first bounded generation, cost accounting, and Veo fallback support"
+[28]: backend/core/media.py "FFmpeg and FFprobe media inspection, loudness, splitting, and reassembly"
