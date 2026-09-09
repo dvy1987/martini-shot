@@ -25,7 +25,7 @@ from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
 from backend.jobs.models import Job, utc_now_iso
 from backend.jobs.queue import FirestoreLeaseQueue
-from backend.projects.open import open_show
+from backend.projects.open import open_show, rename_show
 from backend.shots import lifecycle as shots
 from backend.stations.ingest.run import STATION
 from backend.supervisor import budget_loop
@@ -43,6 +43,10 @@ class DecisionIn(BaseModel):
 
 class ProjectCreateIn(BaseModel):
     title: str | None = Field(default=None, max_length=80)
+
+
+class ProjectRenameIn(BaseModel):
+    title: str = Field(..., min_length=1, max_length=80)
 
 
 class ShotActionIn(BaseModel):
@@ -171,6 +175,7 @@ def install_spine_routes(
                     title=str(doc.get("title") or project_id),
                     created_at=str(doc.get("created_at") or utc_now_iso()),
                     jobs=jobs,
+                    include_jobs=False,
                 )
             )
         out.sort(key=lambda row: str(row.get("created_at") or ""), reverse=True)
@@ -193,6 +198,20 @@ def install_spine_routes(
             created_at=str(doc.get("created_at") or utc_now_iso()),
             jobs=jobs,
         )
+
+    @app.patch("/api/v1/projects/{project_id}")
+    def patch_project(project_id: str, body: ProjectRenameIn) -> dict[str, Any]:
+        try:
+            return rename_show(
+                store,
+                project_id,
+                title=body.title,
+                jobs=queue.list_for_project(project_id),
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="no such project") from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/v1/jobs/{job_id}")
     def get_job(job_id: str) -> dict[str, Any]:

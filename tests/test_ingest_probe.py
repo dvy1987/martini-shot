@@ -75,6 +75,24 @@ def test_missing_audio_is_flagged(media: FFmpeg, tmp_path: Path) -> None:
     assert reason == REASON_MISSING_AUDIO
 
 
+DEMO_CLIP01 = Path(
+    r"C:\Users\reall\Building_Apps\Misc\martini-shot\demo-clip-bank\test-clips\test-clip01.mp4"
+)
+
+
+def test_phone_export_with_muxer_dts_warning_is_not_quarantined(media: FFmpeg) -> None:
+    """Owner demo clip01 probes and decodes; null-muxer DTS chatter is not corruption."""
+    if not DEMO_CLIP01.exists():
+        pytest.skip("owner demo clip bank not on disk")
+    payload = DEMO_CLIP01.read_bytes()
+    assert media.decode_clean(DEMO_CLIP01) is True
+    verdict, reason, probe = classify_payload(payload, media)
+    assert probe["duration_s"] > 0
+    assert probe["has_audio"] is True
+    assert verdict == "pass"
+    assert reason is None
+
+
 def test_probe_reports_audio_on_spike(media: FFmpeg) -> None:
     if not SPIKE.exists():
         pytest.skip("spike fixture not on disk")

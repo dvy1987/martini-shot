@@ -36,3 +36,36 @@ def open_show(store: FirestoreStore, *, title: str | None = None) -> dict[str, A
         created_at=created_at,
         jobs=[],
     )
+
+
+def rename_show(
+    store: FirestoreStore,
+    project_id: str,
+    *,
+    title: str,
+    jobs: list[Any] | None = None,
+) -> dict[str, Any]:
+    cleaned = (title or "").strip()
+    if not cleaned:
+        raise ValueError("title required")
+    cleaned = cleaned[:MAX_TITLE]
+    doc = store.get_doc(PROJECTS, project_id)
+    if doc is None:
+        raise KeyError(project_id)
+    created_at = str(doc.get("created_at") or utc_now_iso())
+    store.set_doc(
+        PROJECTS,
+        project_id,
+        {
+            **doc,
+            "project_id": project_id,
+            "title": cleaned,
+            "created_at": created_at,
+        },
+    )
+    return project_to_api(
+        project_id=project_id,
+        title=cleaned,
+        created_at=created_at,
+        jobs=list(jobs or []),
+    )

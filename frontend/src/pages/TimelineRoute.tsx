@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "@/api/client";
-import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist, renameProject } from "@/api/endpoints";
 import AlternatesLane from "@/components/AlternatesLane";
 import EmptyState from "@/components/EmptyState";
 import FinishBar from "@/components/FinishBar";
@@ -15,6 +15,7 @@ import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
 import { toggleStatus } from "@/lib/lens";
 import { deriveJourney } from "@/lib/journey";
+import { jobsForProject } from "@/lib/timeline";
 import { cost } from "@/lib/formatters";
 import type { Job, JobStatus } from "@/types/api";
 
@@ -140,11 +141,15 @@ export default function TimelineRoute({
   const [inspectedJobId, setInspectedJobId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<Set<JobStatus>>(() => new Set());
   const [worklistMutationError, setWorklistMutationError] = useState<string | null>(null);
+  const [naming, setNaming] = useState<null | "create" | "rename">(null);
+  const [draftName, setDraftName] = useState("");
   const jobTriggerRef = useRef<HTMLElement | null>(null);
   const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: listProjects });
   const createShow = useMutation({
-    mutationFn: () => createProject(),
+    mutationFn: (title: string) => createProject(title),
     onSuccess: async (project) => {
+      setNaming(null);
+      setDraftName("");
       await projectsQuery.refetch();
       onSelectedProjectIdChange(project.project_id);
     },
@@ -153,6 +158,15 @@ export default function TimelineRoute({
     queryKey: ["project", selectedProjectId],
     queryFn: () => getProject(selectedProjectId ?? ""),
     enabled: selectedProjectId !== null,
+  });
+  const renameShow = useMutation({
+    mutationFn: (title: string) => renameProject(selectedProjectId ?? "", title),
+    onSuccess: async () => {
+      setNaming(null);
+      setDraftName("");
+      await projectsQuery.refetch();
+      await projectQuery.refetch();
+    },
   });
   const jobQuery = useQuery({
     queryKey: ["job", inspectedJobId],
@@ -186,6 +200,27 @@ export default function TimelineRoute({
     worklistStatus === "running" ||
     worklistStatus === "waiting_for_ingest" ||
     worklistStatus === "inspecting";
+
+  function beginCreate() {
+    setNaming("create");
+    setDraftName("");
+  }
+
+  function beginRename() {
+    const currentTitle =
+      projectQuery.data?.title ??
+      projectsQuery.data?.find((project) => project.project_id === selectedProjectId)?.title ??
+      "";
+    setNaming("rename");
+    setDraftName(currentTitle);
+  }
+
+  function submitDraftName() {
+    const cleaned = draftName.trim();
+    if (!cleaned) return;
+    if (naming === "create") createShow.mutate(cleaned);
+    if (naming === "rename" && selectedProjectId) renameShow.mutate(cleaned);
+  }
 
   const handleJobSelection = useCallback(
     (jobId: string, trigger: HTMLElement) => {
@@ -228,7 +263,7 @@ export default function TimelineRoute({
     if (!lensOpen) setStatusFilter(new Set());
   }, [lensOpen]);
 
-  const jobs = projectQuery.data?.jobs ?? EMPTY_JOBS;
+  const jobs = jobsForProject(projectQuery.data?.jobs ?? EMPTY_JOBS, selectedProjectId);
   const journey = deriveJourney(jobs, worklistQuery.data ?? null);
   // The evidence surfaces remain available immediately when real activity exists;
   // the guided brief and live plan above them still own the first reading order.
@@ -291,14 +326,52 @@ export default function TimelineRoute({
           body="Start a new project, then drop your clips in order. You can open any existing project from the list once you have one."
         />
         <div className="mt-5 text-center">
-          <button
-            type="button"
-            disabled={createShow.isPending}
-            onClick={() => createShow.mutate()}
-            className="rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-          >
-            {createShow.isPending ? "Opening project…" : "Start a new project"}
-          </button>
+          {naming === "create" ? (
+            <form
+              className="mx-auto flex max-w-md flex-wrap items-end justify-center gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitDraftName();
+              }}
+            >
+              <label className="grid flex-1 gap-1 text-left font-mono text-xs uppercase tracking-wider text-ink-muted">
+                New project name
+                <input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  autoFocus
+                  maxLength={80}
+                  className="w-full rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={!draftName.trim() || createShow.isPending}
+                className="rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                {createShow.isPending ? "Opening project…" : "Create project"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNaming(null);
+                  setDraftName("");
+                }}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted hover:text-ink"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              disabled={createShow.isPending}
+              onClick={beginCreate}
+              className="rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+            >
+              Start a new project
+            </button>
+          )}
           {createShow.isError ? (
             <p className="mt-3 text-sm text-danger">
               A new project could not be opened. Check the connection and try again.
@@ -340,16 +413,103 @@ export default function TimelineRoute({
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            disabled={createShow.isPending}
-            onClick={() => createShow.mutate()}
-            className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-          >
-            {createShow.isPending ? "Opening…" : "New project"}
-          </button>
+          {naming === "create" ? (
+            <form
+              className="flex flex-wrap items-end gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitDraftName();
+              }}
+            >
+              <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+                New project name
+                <input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  autoFocus
+                  maxLength={80}
+                  className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={!draftName.trim() || createShow.isPending}
+                className="rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg disabled:opacity-50"
+              >
+                {createShow.isPending ? "Opening…" : "Create project"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNaming(null);
+                  setDraftName("");
+                }}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted hover:text-ink"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : naming === "rename" ? (
+            <form
+              className="flex flex-wrap items-end gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitDraftName();
+              }}
+            >
+              <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+                Project name
+                <input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  autoFocus
+                  maxLength={80}
+                  className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={!draftName.trim() || renameShow.isPending}
+                className="rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg disabled:opacity-50"
+              >
+                {renameShow.isPending ? "Saving…" : "Save name"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNaming(null);
+                  setDraftName("");
+                }}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted hover:text-ink"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={createShow.isPending}
+                onClick={beginCreate}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                New project
+              </button>
+              <button
+                type="button"
+                disabled={!selectedProjectId || renameShow.isPending}
+                onClick={beginRename}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                Rename project
+              </button>
+            </>
+          )}
           {createShow.isError ? (
             <p className="max-w-48 text-sm text-danger">A new project could not be opened.</p>
+          ) : null}
+          {renameShow.isError ? (
+            <p className="max-w-48 text-sm text-danger">The project could not be renamed.</p>
           ) : null}
         </div>
       </div>
@@ -470,12 +630,13 @@ export default function TimelineRoute({
         <EmptyState
           glyph="▤"
           title="No activity yet"
-          body="No work has started for this project yet. Upload clips and start a finishing run to see activity here."
+          body="No work has started for this project yet. Upload clips and call wrap to see activity here."
         />
       ) : null}
 
       {projectQuery.isSuccess && jobs.length > 0 && expertOpen ? (
         <TimelineBoard
+          projectId={selectedProjectId}
           jobs={jobs}
           selectedJobId={selectedJobId}
           onSelectJob={handleJobSelection}

@@ -27,13 +27,13 @@ describe("TimelineBoard", () => {
       />,
     );
 
-    expect(screen.queryByRole("button", { name: /in the lab: job-9/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /in progress: job-9/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /show 1 more job in ingest/i }));
-    expect(screen.getByRole("button", { name: /in the lab: job-9/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /in progress: job-9/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /collapse ingest lane/i }));
-    expect(screen.queryByRole("button", { name: /in the lab: job-9/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /in progress: job-9/i })).not.toBeInTheDocument();
   });
 
   it("Lens expands collapsed jobs and reveals the filter row", () => {
@@ -48,7 +48,7 @@ describe("TimelineBoard", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /in the lab: job-9/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /in progress: job-9/i })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /filter jobs by status/i })).toBeInTheDocument();
   });
 
@@ -72,5 +72,29 @@ describe("TimelineBoard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /select job job-2/i }));
     expect(onSelectJob).toHaveBeenCalledWith("job-2", expect.any(HTMLButtonElement));
+  });
+
+  it("hides jobs from other projects in timeline and table views", () => {
+    const foreign: Job = {
+      ...job(9),
+      job_id: "job-foreign",
+      project_id: "other-project",
+      status: "pass",
+    };
+    render(
+      <TimelineBoard
+        projectId="project-1"
+        jobs={[job(1), foreign]}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /in progress: job-1/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /complete: job-foreign/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+    expect(screen.getByRole("button", { name: /select job job-1/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /select job job-foreign/i })).not.toBeInTheDocument();
   });
 });

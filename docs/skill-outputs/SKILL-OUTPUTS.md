@@ -95,5 +95,7 @@
 | 2026-09-09 05:05 | test-driven-development | frontend/src/lib/clipOrdering.test.ts frontend/src/components/FinishBar.test.tsx | TDD: accept clips on choose; drag reorder after upload |
 | 2026-09-09 05:15 | memory-handoff | agent-handoffs.md#2026-09-09-05:15 + current-state.md | Grafana watch on Analytics tab; owner commit+push |
 | 2026-09-09 05:15 | git-workflow-and-versioning | main | feat: Analytics tab + empty show + clip reorder |
+| 2026-09-09 06:00 | test-driven-development | tests/test_projects.py tests/test_ingest_probe.py frontend/src/components/FinishBar.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: rename project, name box on New project, continue-on-fail upload, ignore muxer DTS as broken |
+| 2026-09-09 06:15 | memory-handoff | agent-handoffs.md#2026-09-09-06:15 + current-state.md | Name/rename, ingest DTS, continue-on-fail; owner commit+push |
 
 

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts, renameProject } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
 
@@ -16,6 +16,7 @@ vi.mock("@/api/endpoints", async (importOriginal) => {
     listProjectShots: vi.fn(),
     listProjects: vi.fn(),
     createProject: vi.fn(),
+    renameProject: vi.fn(),
     listScripts: vi.fn(),
     ingestClip: vi.fn(),
     startFinish: vi.fn(),
@@ -119,15 +120,30 @@ describe("TimelineRoute investigation flow", () => {
 
   it("lets the operator start a new project when none exist", async () => {
     vi.mocked(listProjects).mockResolvedValue([]);
+    vi.mocked(createProject).mockResolvedValue({
+      project_id: "project-new",
+      title: "Cafe pickup",
+      created_at: "2026-09-08T00:00:00Z",
+      station_counts: {},
+      health: "healthy",
+      jobs: [],
+    });
     renderRoute();
     expect(await screen.findByRole("button", { name: /start a new project/i })).toBeInTheDocument();
     expect(screen.getByText(/no projects yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /start a new project/i }));
+    expect(createProject).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(/new project name/i), {
+      target: { value: "Cafe pickup" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /create project/i }));
+    await waitFor(() => expect(createProject).toHaveBeenCalledWith("Cafe pickup"));
   });
 
-  it("opens a new project from the project picker and selects it", async () => {
+  it("asks for a name after New project before opening the show", async () => {
     const created: Project = {
       project_id: "project-new",
-      title: "Untitled project",
+      title: "Night exteriors",
       created_at: "2026-09-08T00:00:00Z",
       station_counts: {},
       health: "healthy",
@@ -148,7 +164,47 @@ describe("TimelineRoute investigation flow", () => {
       </QueryClientProvider>,
     );
     fireEvent.click(await screen.findByRole("button", { name: /new project/i }));
-    await waitFor(() => expect(createProject).toHaveBeenCalled());
+    expect(createProject).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(/new project name/i), {
+      target: { value: "Night exteriors" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /create project/i }));
+    await waitFor(() => expect(createProject).toHaveBeenCalledWith("Night exteriors"));
     await waitFor(() => expect(onSelectedProjectIdChange).toHaveBeenCalledWith("project-new"));
+  });
+
+  it("renames the open project", async () => {
+    const renamed: Project = {
+      ...observedProject,
+      title: "Night exteriors",
+    };
+    mockBoard();
+    vi.mocked(renameProject).mockResolvedValue(renamed);
+    renderRoute();
+    fireEvent.click(await screen.findByRole("button", { name: /rename project/i }));
+    fireEvent.change(screen.getByLabelText(/project name/i), {
+      target: { value: "Night exteriors" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save name/i }));
+    await waitFor(() => expect(renameProject).toHaveBeenCalledWith("project-1", "Night exteriors"));
+  });
+
+  it("does not put another project's jobs on the timeline", async () => {
+    mockBoard();
+    vi.mocked(getProject).mockResolvedValue({
+      ...observedProject,
+      jobs: [
+        observedJob,
+        {
+          ...observedJob,
+          job_id: "job-foreign",
+          project_id: "other-project",
+          status: "pass",
+        },
+      ],
+    });
+    renderRoute();
+    expect(await screen.findByRole("button", { name: /in progress: job-1/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /complete: job-foreign/i })).not.toBeInTheDocument();
   });
 });

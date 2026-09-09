@@ -1,5 +1,37 @@
 # Agent Handoffs
 
+## 2026-09-09 06:15 - Name/rename project, keep uploading, phone-clip ingest
+
+### Done
+- Operators name a project after **New project** (text box, then Create). **Rename project** patches the open show.
+- FinishBar says **uploading**; budget copy is **highest-impact**; one failed clip no longer aborts the rest.
+- `test-clip01.mp4` was not broken: FFmpeg rc=0 plus a null-muxer DTS warning was treated as `corrupt_decode`. Decode now trusts return code.
+- Timeline list omits embedded jobs; board/App filter to the open `project_id`. Finish button copy is **Call Wrap**.
+
+### Debated
+- Quarantine vs skip: keep true corrupt as quarantine; do not stop the batch.
+
+### Decisions
+- Healthy camera/phone exports with DTS chatter are not broken files.
+- Start finishing (Call Wrap) on the clips that passed.
+
+### Deferred
+- Cloud Run + Replit still unpublished for rename/`PATCH`, ingest decode, and this FinishBar. Ask before deploy.
+- `make check` coverage still below 90%.
+
+### Next Agent Should Know
+- Demo clips in `Misc\martini-shot\demo-clip-bank\test-clips` are valid. Clip01 used to false-fail ingest.
+- Do not redeploy unless the owner asks.
+
+### Revisit Triggers
+- Published app still calls clip01 broken or stops the batch.
+
+### Working Tree
+- Commit+push this session (name/rename, ingest, continue-on-fail, wrap copy, project-scoped jobs).
+
+### Graph
+- Incremental graph build skipped (known hang).
+
 ## 2026-09-09 05:15 - Grafana watch lives on Analytics; commit+push
 
 ### Done

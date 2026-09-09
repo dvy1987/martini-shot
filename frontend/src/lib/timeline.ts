@@ -47,6 +47,12 @@ export function upsertJob(jobs: readonly Job[], updatedJob: Job): Job[] {
   return jobs.map((job, index) => (index === existingIndex ? updatedJob : job));
 }
 
+/** Timeline and table views only render work for the open project. */
+export function jobsForProject(jobs: readonly Job[], projectId: string | null): Job[] {
+  if (!projectId) return [];
+  return jobs.filter((job) => job.project_id === projectId);
+}
+
 function isJob(value: unknown): value is Job {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<Job>;

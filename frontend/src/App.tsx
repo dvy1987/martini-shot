@@ -11,7 +11,7 @@ import { useSSE } from "@/hooks/useSSE";
 import { allCommands, pathForRouteCommand, type PaletteCommand } from "@/lib/palette";
 import { slateForRoute } from "@/lib/slates";
 import { deliberationFromSseEvent, upsertDeliberation } from "@/lib/deliberations";
-import { jobFromSseEvent, upsertJob } from "@/lib/timeline";
+import { jobFromSseEvent, jobsForProject, upsertJob } from "@/lib/timeline";
 import AnalyticsRoute from "@/pages/AnalyticsRoute";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
@@ -54,7 +54,7 @@ export default function App() {
     enabled: backend === "up",
   });
 
-  const jobs = projectQuery.data?.jobs ?? [];
+  const jobs = jobsForProject(projectQuery.data?.jobs ?? [], selectedProjectId);
   const proposedCount = (approvalsQuery.data ?? []).filter(
     (item) => item.status === "proposed",
   ).length;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Job, SseEvent } from "@/types/api";
-import { groupJobsByStation, jobFromSseEvent, upsertJob } from "@/lib/timeline";
+import { groupJobsByStation, jobFromSseEvent, jobsForProject, upsertJob } from "@/lib/timeline";
 
 function job(jobId: string, station: string, status: Job["status"]): Job {
   return {
@@ -68,6 +68,14 @@ describe("groupJobsByStation", () => {
     expect(upsertJob(jobs, updated)).toEqual([updated]);
     expect(upsertJob(jobs, added)).toEqual([existing, added]);
     expect(jobs).toEqual([existing]);
+  });
+
+  it("keeps only jobs that belong to the open project", () => {
+    const current = job("job-1", "ingest", "pass");
+    const other: Job = { ...job("job-other", "loudness", "pass"), project_id: "other-project" };
+
+    expect(jobsForProject([current, other], "project-1")).toEqual([current]);
+    expect(jobsForProject([current, other], null)).toEqual([]);
   });
 
   it("extracts only valid job.updated events", () => {

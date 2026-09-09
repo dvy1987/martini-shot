@@ -58,8 +58,8 @@ describe("FinishBar", () => {
     await waitFor(() => expect(ingestClip).toHaveBeenNthCalledWith(1, "p1", first));
     expect(ingestClip).toHaveBeenNthCalledWith(2, "p1", second);
     expect(screen.queryByRole("button", { name: /add .* clip/i })).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole("button", { name: /start finishing/i })).toBeEnabled());
-    fireEvent.click(screen.getByRole("button", { name: /start finishing/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /call wrap/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /call wrap/i }));
     await waitFor(() => expect(startFinish).toHaveBeenCalledWith("p1", 50_000_000, ["job-a", "job-b"]));
   });
 
@@ -87,10 +87,10 @@ describe("FinishBar", () => {
       target: { files: [first, second] },
     });
     await waitFor(() => expect(screen.getByText("a.mp4")).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByRole("button", { name: /start finishing/i })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: /call wrap/i })).toBeEnabled());
     fireEvent.dragStart(screen.getByRole("listitem", { name: /clip 2: b\.mp4/i }));
     fireEvent.drop(screen.getByRole("listitem", { name: /clip 1: a\.mp4/i }));
-    fireEvent.click(screen.getByRole("button", { name: /start finishing/i }));
+    fireEvent.click(screen.getByRole("button", { name: /call wrap/i }));
     await waitFor(() => expect(startFinish).toHaveBeenCalledWith("p1", 50_000_000, ["job-b", "job-a"]));
   });
 
@@ -102,5 +102,43 @@ describe("FinishBar", () => {
     fireEvent.change(screen.getByLabelText(/upload media/i), { target: { files: [file] } });
     expect(screen.getByText("take-01.mp4")).toBeInTheDocument();
     await waitFor(() => expect(ingestClip).toHaveBeenCalledWith("p1", file));
+  });
+
+  it("keeps uploading the rest when one clip fails", async () => {
+    const first = new File(["a"], "test-clip01.mp4", { type: "video/mp4" });
+    const second = new File(["b"], "test-clip02.mp4", { type: "video/mp4" });
+    vi.mocked(ingestClip)
+      .mockRejectedValueOnce(new Error("broken file"))
+      .mockResolvedValueOnce(job("job-b", "test-clip02.mp4"));
+    vi.mocked(getJob).mockResolvedValue(passed("job-b", "test-clip02.mp4"));
+    render(<FinishBar projectId="p1" />);
+    fireEvent.change(screen.getByLabelText(/upload media/i), {
+      target: { files: [first, second] },
+    });
+    await waitFor(() => expect(ingestClip).toHaveBeenCalledTimes(2));
+    expect(ingestClip).toHaveBeenNthCalledWith(1, "p1", first);
+    expect(ingestClip).toHaveBeenNthCalledWith(2, "p1", second);
+    expect(
+      screen.queryByText(/the remaining clips were not uploaded/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/could not upload “test-clip01.mp4”/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: /call wrap/i })).toBeEnabled());
+  });
+
+  it("says uploading while a clip is still being sent", () => {
+    const file = new File(["x"], "take-01.mp4", { type: "video/mp4" });
+    vi.mocked(ingestClip).mockReturnValue(new Promise(() => undefined));
+    render(<FinishBar projectId="p1" />);
+    fireEvent.change(screen.getByLabelText(/upload media/i), { target: { files: [file] } });
+    expect(screen.getByText("uploading")).toBeInTheDocument();
+    expect(screen.queryByText("accepting")).not.toBeInTheDocument();
+  });
+
+  it("promises highest-impact improvements in the budget copy", () => {
+    render(<FinishBar projectId="p1" />);
+    expect(
+      screen.getByText(/highest-impact improvements that fit this budget/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/highest-priority improvements/i)).not.toBeInTheDocument();
   });
 });

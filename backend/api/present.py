@@ -44,6 +44,7 @@ def project_to_api(
     title: str,
     created_at: str,
     jobs: list[Job],
+    include_jobs: bool = True,
 ) -> dict[str, object]:
     counts: dict[str, int] = {}
     for job in jobs:
@@ -61,7 +62,7 @@ def project_to_api(
         "created_at": created_at,
         "station_counts": counts,
         "health": health,
-        "jobs": [job_to_api(job) for job in jobs],
+        "jobs": [job_to_api(job) for job in jobs] if include_jobs else [],
     }
 
 

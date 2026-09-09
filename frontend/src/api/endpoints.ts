@@ -29,6 +29,13 @@ export function createProject(title?: string): Promise<Project> {
   });
 }
 
+export function renameProject(projectId: string, title: string): Promise<Project> {
+  return apiFetch<Project>(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title }),
+  });
+}
+
 export function getProject(projectId: string): Promise<Project> {
   return apiFetch<Project>(`/api/v1/projects/${encodeURIComponent(projectId)}`);
 }

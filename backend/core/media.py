@@ -104,9 +104,9 @@ class FFmpeg:
                 "-",
             ]
         )
-        if result.returncode != 0:
-            return False
-        return not result.stderr.strip()
+        # Return code is the corruption signal. Phone/camera exports often
+        # print a null-muxer DTS warning with rc=0; that is not a broken file.
+        return result.returncode == 0
 
     def extract_frames(
         self, path: Path | str, out_dir: Path | str, fps: float

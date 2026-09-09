@@ -42,6 +42,22 @@ def test_project_health_failing_when_any_job_failed() -> None:
     )
     assert body["health"] == "failing"
     assert body["station_counts"] == {"ingest": 1}
+    assert len(body["jobs"]) == 1
+
+
+def test_project_directory_omits_job_bodies() -> None:
+    failed = Job(station="ingest", project_id="g1", input_refs=[])
+    failed.status = "failed"
+    body = project_to_api(
+        project_id="g1",
+        title="Gate G1",
+        created_at="2026-09-01T00:00:00Z",
+        jobs=[failed],
+        include_jobs=False,
+    )
+    assert body["health"] == "failing"
+    assert body["station_counts"] == {"ingest": 1}
+    assert body["jobs"] == []
 
 
 def test_throttled_job_uses_throttled_error_code() -> None:

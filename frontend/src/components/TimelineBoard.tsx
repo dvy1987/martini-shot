@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 import { cost } from "@/lib/formatters";
 import { filterJobsByStatus } from "@/lib/lens";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { STATUS_BOARD_ORDER, statusMetaOrUnknown } from "@/lib/status";
-import { groupJobsByStation } from "@/lib/timeline";
+import { groupJobsByStation, jobsForProject } from "@/lib/timeline";
 import type { Job, JobStatus } from "@/types/api";
 
 interface TimelineBoardProps {
@@ -15,6 +15,7 @@ interface TimelineBoardProps {
   lensOpen?: boolean;
   statusFilter?: ReadonlySet<JobStatus>;
   onToggleStatus?: (status: JobStatus) => void;
+  projectId?: string | null;
 }
 
 const COLLAPSED_JOB_LIMIT = 8;
@@ -88,19 +89,24 @@ export default function TimelineBoard({
   lensOpen = false,
   statusFilter,
   onToggleStatus,
+  projectId = null,
 }: TimelineBoardProps) {
-  const visibleJobs = statusFilter ? filterJobsByStatus(jobs, statusFilter) : [...jobs];
+  const projectJobs = useMemo(
+    () => (projectId ? jobsForProject(jobs, projectId) : [...jobs]),
+    [jobs, projectId],
+  );
+  const visibleJobs = statusFilter ? filterJobsByStatus(projectJobs, statusFilter) : [...projectJobs];
   const lanes = groupJobsByStation(visibleJobs);
   const [view, setView] = useState<"timeline" | "table">("timeline");
   const [expandedStations, setExpandedStations] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (lensOpen) {
-      setExpandedStations(new Set(groupJobsByStation(jobs).map((lane) => lane.station)));
+      setExpandedStations(new Set(groupJobsByStation(projectJobs).map((lane) => lane.station)));
       return;
     }
     setExpandedStations(new Set());
-  }, [lensOpen, jobs]);
+  }, [lensOpen, projectJobs]);
 
   function toggleStation(station: string) {
     setExpandedStations((current) => {
@@ -176,7 +182,7 @@ export default function TimelineBoard({
         </fieldset>
       ) : null}
 
-      {jobs.length > 0 && visibleJobs.length === 0 ? (
+      {projectJobs.length > 0 && visibleJobs.length === 0 ? (
         <p className="mb-3 font-mono text-xs uppercase tracking-widest text-ink-muted">
           No observed jobs match the Lens filter.
         </p>

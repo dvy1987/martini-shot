@@ -56,5 +56,5 @@ export function deriveJourney(jobs: readonly Job[], worklist: Worklist | null): 
     return { phase: "executing", label: "Finishing the handoff", detail: "The selected improvements are running in priority order.", completed: passed, total: worklist.items.length, attention: 0 };
   }
   if (worklist && worklist.items.length > 0) return { phase: "complete", label: "Run complete", detail: "The run is complete. Review the results below and open any finished clips or reports.", completed: worklist.items.filter((item) => item.status === "passed").length, total: worklist.items.length, attention: 0 };
-  return { phase: "prepare", label: "Ready to start", detail: "Choose clips in order, set a budget, and start the finishing run.", completed: 0, total: 0, attention: 0 };
+  return { phase: "prepare", label: "Ready to start", detail: "Choose clips in order, set a budget, and call wrap.", completed: 0, total: 0, attention: 0 };
 }
