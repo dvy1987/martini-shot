@@ -1,9 +1,9 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getJobClip } from "@/api/endpoints";
 import TimelineBoard from "@/components/TimelineBoard";
-import type { Job } from "@/types/api";
+import type { Job, Worklist } from "@/types/api";
 
 vi.mock("@/api/endpoints", () => ({
   getJobClip: vi.fn(),
@@ -12,6 +12,8 @@ vi.mock("@/api/endpoints", () => ({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
+  localStorage.clear();
 });
 
 function job(index: number): Job {
@@ -82,8 +84,40 @@ describe("TimelineBoard", () => {
     expect(onSelectJob).toHaveBeenCalledWith("job-2", expect.any(HTMLButtonElement));
     expect(screen.getAllByText("Upload").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Ingest").length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/file opens/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/spoken words/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/file opens/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/spoken words/i)).not.toBeInTheDocument();
+  });
+
+  it("opens agent notes from the table instead of repeating the stage blurb", () => {
+    const loud: Job = {
+      ...job(3),
+      job_id: "job-loud",
+      station: "loudness",
+      status: "pass",
+      result: {
+        mixed: true,
+        stems: "balanced",
+        agent: {
+          reason:
+            "Standard conversational dialogue in a stormy lighthouse interior. Current integrated loudness of -19.9 LUFS fails the streaming target.",
+        },
+      },
+    };
+    render(<TimelineBoard jobs={[loud]} selectedJobId={null} onSelectJob={vi.fn()} />);
+
+    expect(screen.queryByText(/file opens/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/balance the mix/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+    expect(screen.getByRole("columnheader", { name: /what changed/i })).toBeInTheDocument();
+    expect(screen.getByText("Mixed the soundtrack")).toBeInTheDocument();
+    expect(screen.queryByText(/file opens/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /agent notes for job-loud \(fix audio\)/i }));
+    expect(screen.getByRole("dialog", { name: /job-loud · fix audio/i })).toBeInTheDocument();
+    expect(screen.getByText(/stormy lighthouse/i)).toBeInTheDocument();
+    expect(screen.getByText(/weather as louder than the voices/i)).toBeInTheDocument();
+    expect(screen.getByText(/toward the streaming target/i)).toBeInTheDocument();
   });
 
   it("hides jobs from other projects in timeline and table views", () => {
@@ -165,4 +199,167 @@ describe("TimelineBoard", () => {
     expect(screen.getByText("Scene")).toBeInTheDocument();
     expect(screen.getByText("A quiet cafe.")).toBeInTheDocument();
   });
+
+  it("keeps Final cut empty while leftover work is still running", () => {
+    const origin = "projects/project-1/ingest/job-1/cafe.mp4";
+    const ingest = finishedIngest("job-1", origin, 0);
+    const mixed = finishedMix("job-loud", origin);
+    render(
+      <TimelineBoard
+        jobs={[ingest, mixed]}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+        worklist={runningWorklist()}
+      />,
+    );
+
+    const strip = screen.getByRole("region", { name: "Final cut" });
+    expect(strip).toHaveTextContent(/fills when the orchestrator has stopped/i);
+    expect(screen.queryByRole("button", { name: /add to final cut/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Final Cut")).not.toBeInTheDocument();
+  });
+
+  it("fills Final cut with the latest After and lets the operator swap it from the table", async () => {
+    vi.mocked(getJobClip).mockImplementation(async (jobId, side) => ({
+      job_id: jobId,
+      side,
+      clip_name: "cafe.mp4",
+      url: `https://example.test/${jobId}-${side}.mp4`,
+      expires_in_minutes: 15,
+      metadata: {},
+    }));
+    const origin = "projects/project-1/ingest/job-1/cafe.mp4";
+    const ingest = finishedIngest("job-1", origin, 0);
+    const mixed = finishedMix("job-loud", origin);
+    render(
+      <TimelineBoard
+        projectId="project-1"
+        jobs={[ingest, mixed]}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+        worklist={idleWorklist()}
+      />,
+    );
+
+    const strip = screen.getByRole("region", { name: "Final cut" });
+    await waitFor(() =>
+      expect(within(strip).getByRole("button", { name: /open cafe.mp4/i })).toBeInTheDocument(),
+    );
+    expect(getJobClip).toHaveBeenCalledWith("job-loud", "after");
+
+    fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+    expect(screen.getByRole("columnheader", { name: /final cut/i })).toBeInTheDocument();
+    expect(screen.getByText("Final Cut")).toBeInTheDocument();
+    const addButtons = screen.getAllByRole("button", { name: /^add to final cut$/i });
+    const addButton = addButtons[0];
+    expect(addButton).toBeTruthy();
+    fireEvent.click(addButton as HTMLElement);
+    await waitFor(() => expect(getJobClip).toHaveBeenCalledWith("job-1", "before"));
+    expect(within(strip).getByRole("button", { name: /open cafe.mp4/i })).toBeInTheDocument();
+  });
+
+  it("places a Play control next to the Final cut thumbs and plays downloaded clips in order", async () => {
+    HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+    let created = 0;
+    const createUrl = vi.fn(() => `blob:final-${created++}`);
+    Object.assign(URL, { createObjectURL: createUrl, revokeObjectURL: vi.fn() });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => ({
+        ok: true,
+        blob: async () => new Blob([url], { type: "video/mp4" }),
+      })),
+    );
+    vi.mocked(getJobClip).mockImplementation(async (jobId, side) => ({
+      job_id: jobId,
+      side,
+      clip_name: `${jobId}.mp4`,
+      url: `/api/v1/jobs/${jobId}/clip/${side}/media`,
+      expires_in_minutes: 15,
+      metadata: {},
+    }));
+    const firstOrigin = "projects/project-1/ingest/job-1/cafe.mp4";
+    const secondOrigin = "projects/project-1/ingest/job-2/street.mp4";
+    render(
+      <TimelineBoard
+        projectId="project-1"
+        jobs={[
+          finishedIngest("job-1", firstOrigin, 0),
+          finishedMix("job-loud", firstOrigin),
+          finishedIngest("job-2", secondOrigin, 1),
+        ]}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+        worklist={idleWorklist()}
+      />,
+    );
+
+    const strip = screen.getByRole("region", { name: "Final cut" });
+    const play = within(strip).getByRole("button", { name: /^play$/i });
+    expect(play.compareDocumentPosition(within(strip).getByText(/clip 1/i))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+
+    fireEvent.click(play);
+    expect(await screen.findByText(/downloading/i)).toBeInTheDocument();
+    const player = await screen.findByRole("video", { name: /final cut playback/i });
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    expect(getJobClip).toHaveBeenCalledWith("job-loud", "after");
+    expect(getJobClip).toHaveBeenCalledWith("job-2", "after");
+    expect(player).toHaveAttribute("src", "blob:final-0");
+
+    fireEvent.ended(player);
+    await waitFor(() =>
+      expect(screen.getByRole("video", { name: /final cut playback/i })).toHaveAttribute(
+        "src",
+        "blob:final-1",
+      ),
+    );
+  });
 });
+
+function finishedIngest(jobId: string, origin: string, index: number): Job {
+  return {
+    job_id: jobId,
+    station: "ingest",
+    project_id: "project-1",
+    input_refs: [origin],
+    status: "pass",
+    attempts: 1,
+    result: { upload_index: index, ingested: true, scene: "Cafe.", probe: { duration_s: 4 } },
+  };
+}
+
+function finishedMix(jobId: string, origin: string): Job {
+  return {
+    job_id: jobId,
+    station: "loudness",
+    project_id: "project-1",
+    input_refs: [origin],
+    status: "pass",
+    attempts: 1,
+    result: { artifact_ref: `${origin}-loud.mp4` },
+  };
+}
+
+function idleWorklist(): Worklist {
+  return {
+    project_id: "project-1",
+    budget_micros: 1,
+    spent_micros: 0,
+    status: "idle",
+    attendance: [],
+    items: [],
+    final_refs: [],
+    original_refs: [],
+  };
+}
+
+function runningWorklist(): Worklist {
+  return {
+    ...idleWorklist(),
+    status: "running",
+    phase: "executing",
+    items: [{ id: "extend::a", station: "extend", status: "running" }],
+  };
+}

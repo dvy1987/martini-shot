@@ -144,7 +144,7 @@ def test_envelope_is_the_only_quantity_bound_and_stops_the_list(h):
     assert summary["decisions"][1] == {
         **summary["decisions"][1],
         "decision": "skipped",
-        "reason": "nightly envelope exhausted",
+        "reason": "nightly budget exhausted",
     }
     assert summary["envelope_micros"] == 10_000_000
 
@@ -158,7 +158,7 @@ def test_consecutive_cycles_share_one_nightly_envelope(h):
     )
 
     assert first["decisions"][0]["decision"] == "dispatched"
-    assert second["decisions"][0]["reason"] == "nightly envelope exhausted"
+    assert second["decisions"][0]["reason"] == "nightly budget exhausted"
 
 
 def test_daily_house_cap_halts_spend_even_with_envelope_room(h, jobs_col):
@@ -475,7 +475,7 @@ def test_envelope_round_trips_from_firestore_without_redeploy(h, run_id):
         [_action(job_id="job-1", cost=6_000_000)],
         envelope_collection=col,
     )
-    assert summary["decisions"][0]["reason"] == "nightly envelope exhausted"
+    assert summary["decisions"][0]["reason"] == "nightly budget exhausted"
     assert summary["envelope_micros"] == 5_000_000
 
 
@@ -754,7 +754,7 @@ def test_second_dispatch_skips_when_reservation_exhausts_envelope(h):
         reservation_collection=res_col,
     )
     assert [d["decision"] for d in second["decisions"]] == ["skipped"]
-    assert "envelope" in second["decisions"][0]["reason"]
+    assert "budget" in second["decisions"][0]["reason"]
 
 
 def test_reservation_reconciles_to_actual_cost(h):

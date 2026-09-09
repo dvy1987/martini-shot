@@ -658,7 +658,7 @@ def run_budgeted_dispatch(
                 {
                     **base,
                     "decision": "skipped",
-                    "reason": "nightly envelope exhausted",
+                    "reason": "nightly budget exhausted",
                     "ranked_for_morning_report": True,
                 }
             )

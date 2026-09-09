@@ -70,7 +70,7 @@ export const STATION_COPY: Record<string, StationCopy> = {
   },
   spend: {
     name: "Budget check",
-    description: "We watch the envelope and stop work that no longer fits.",
+    description: "We watch the budget and stop work that no longer fits.",
   },
 };
 

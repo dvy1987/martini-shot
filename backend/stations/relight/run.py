@@ -10,7 +10,8 @@ from pathlib import Path
 from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
-from backend.core.generative import estimate_extend_cost_micros, omni_edit
+from backend.core.generative import estimate_extend_cost_micros, omni_edit_bounded
+from backend.core.media import FFmpeg
 from backend.jobs.models import Job
 from backend.jobs.telemetry import job_span, log, record_job, timed
 from backend.shots import lifecycle as shots
@@ -18,6 +19,10 @@ from backend.stations.pickups.flicker import flicker_score
 
 STATION = "relight"
 FLICKER_GATE = 0.02
+# The mean above dilutes one bad frame across dozens of clean ones
+# (2026-09-09 demo: a real, visually-confirmed single-frame corruption
+# scored ~0.005 mean, well under gate). spike is the worst single frame.
+FLICKER_SPIKE_GATE = 0.02
 
 # Practical lighting presets (E-1 locked scope). Each preset names the
 # intended look; the model owns HOW, never invents a different mood.
@@ -53,8 +58,10 @@ def build_relight_prompt(preset: str) -> str:
     )
 
 
-def draft_qc_decision(flicker: float) -> str:
-    return "pass" if flicker < FLICKER_GATE else "needs_human"
+def draft_qc_decision(flicker: float, spike: float = 0.0) -> str:
+    if flicker >= FLICKER_GATE or spike >= FLICKER_SPIKE_GATE:
+        return "needs_human"
+    return "pass"
 
 
 def run_relight(
@@ -76,7 +83,15 @@ def run_relight(
                 raise ValueError("relight requires result.shot_id")
             preset = str(job.result.get("preset") or "")
             prompt = str(job.result.get("prompt") or build_relight_prompt(preset))
-            render = omni_edit(settings, input_uri=source_uri, prompt=prompt)
+            media = FFmpeg(settings.ffmpeg_bin, settings.ffprobe_bin)
+            render = omni_edit_bounded(
+                settings,
+                gcs,
+                media,
+                input_uri=source_uri,
+                prompt=prompt,
+                scratch_prefix=f"projects/{job.project_id}/_omni_scratch/{job.id}",
+            )
             destination_key = str(
                 job.result.get("destination_key")
                 or f"projects/{job.project_id}/relight/{job.id}.mp4"
@@ -92,7 +107,8 @@ def run_relight(
             finally:
                 tmp.unlink(missing_ok=True)
             flicker = float(score.get("flicker_score") or 1.0)
-            decision = draft_qc_decision(flicker)
+            spike = float(score.get("spike_score") or 0.0)
+            decision = draft_qc_decision(flicker, spike)
 
             artifact_ref = f"gs://{settings.gcs_bucket}/{destination_key}"
             alternate_id = shots.record_alternate(
@@ -116,11 +132,15 @@ def run_relight(
                 "render_model": render.get("model"),
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
+                "flicker_spike": spike,
+                "flicker_spike_gate": FLICKER_SPIKE_GATE,
                 "qc_decision": decision,
                 "interaction_id": render.get("interaction_id"),
                 "prompt": prompt,
                 "preset": preset,
                 "tier": tier,
+                "omni_chunked": bool(render.get("chunked")),
+                "omni_chunk_count": render.get("chunk_count"),
             }
             if decision != "pass":
                 job.status = "needs_human"

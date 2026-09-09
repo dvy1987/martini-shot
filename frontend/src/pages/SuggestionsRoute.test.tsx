@@ -1,19 +1,31 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getWorklist } from "@/api/endpoints";
+import { getWorklist, listProjectShots } from "@/api/endpoints";
 import SuggestionsRoute from "@/pages/SuggestionsRoute";
 import type { Worklist } from "@/types/api";
 
 vi.mock("@/api/endpoints", () => ({
   getWorklist: vi.fn(),
+  listProjectShots: vi.fn(),
 }));
 
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+
+beforeEach(() => {
+  vi.mocked(listProjectShots).mockResolvedValue([]);
+});
+
+const cafeShot = {
+  shot_id: "shot-a",
+  title: "projects/p1/ingest/job-1/cafe.mp4",
+  locked: false,
+  alternates: [],
+};
 
 function renderSuggestions(
   backend: "checking" | "up" | "down",
@@ -45,6 +57,7 @@ describe("SuggestionsRoute", () => {
   it("does not fetch when the backend is down", () => {
     renderSuggestions("down", "p1");
     expect(getWorklist).not.toHaveBeenCalled();
+    expect(listProjectShots).not.toHaveBeenCalled();
     expect(screen.getByText(/suggestions are unavailable/i)).toBeInTheDocument();
   });
 
@@ -96,8 +109,108 @@ describe("SuggestionsRoute", () => {
     );
     renderSuggestions("up", "p1");
     expect(await screen.findByText(/keep rolling past the cut/i)).toBeInTheDocument();
-    expect(screen.getByText(/incoming suggestions/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /agent stations/i })).toBeInTheDocument();
+    expect(screen.queryByText(/area checked/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/estimated cutoff/i)).not.toBeInTheDocument();
+  });
+
+  it("lists the clip name with each leftover suggestion", async () => {
+    vi.mocked(listProjectShots).mockResolvedValue([cafeShot]);
+    vi.mocked(getWorklist).mockResolvedValue(
+      worklist({
+        phase: "consulting",
+        attendance: [
+          {
+            station: "extend",
+            agent: "extend-agent",
+            status: "needs_work",
+            impact: "medium",
+            kind: "defect",
+            summary: "Keep rolling past the cut",
+            cost_estimate_micros: 3_000_000,
+            shot_id: "shot-a",
+          },
+        ],
+        items: [
+          {
+            id: "extend::shot-a",
+            station: "extend",
+            status: "waiting",
+            summary: "Keep rolling past the cut",
+            cost_estimate_micros: 3_000_000,
+            shot_id: "shot-a",
+          },
+        ],
+      }),
+    );
+    renderSuggestions("up", "p1");
+    expect((await screen.findAllByText(/keep rolling past the cut/i)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("cafe.mp4").length).toBeGreaterThan(0);
+  });
+
+  it("puts grouped raw suggestions last, high to low, with Delivery after the other stations", async () => {
+    vi.mocked(getWorklist).mockResolvedValue(
+      worklist({
+        phase: "planning",
+        status: "waiting_for_budget",
+        items: [
+          {
+            id: "extend::shot-a",
+            station: "extend",
+            status: "waiting",
+            summary: "Keep rolling",
+            cost_estimate_micros: 3_000_000,
+          },
+        ],
+        attendance: [
+          {
+            station: "delivery",
+            agent: "delivery-agent",
+            status: "needs_work",
+            impact: "low",
+            kind: "defect",
+            summary: "Burn in captions",
+            cost_estimate_micros: 200_000,
+            shot_id: "shot-a",
+          },
+          {
+            station: "relight",
+            agent: "relight-agent",
+            status: "needs_work",
+            impact: "low",
+            kind: "improvement",
+            summary: "Soft fill",
+            cost_estimate_micros: 800_000,
+            shot_id: "shot-a",
+          },
+          {
+            station: "relight",
+            agent: "relight-agent",
+            status: "needs_work",
+            impact: "high",
+            kind: "defect",
+            summary: "Faces are dark",
+            cost_estimate_micros: 1_500_000,
+            shot_id: "shot-a",
+          },
+        ],
+      }),
+    );
+    renderSuggestions("up", "p1");
+    expect(await screen.findByText(/ranked plan/i)).toBeInTheDocument();
+    const ranked = screen.getByRole("heading", { name: /ranked plan/i });
+    const raw = screen.getByRole("heading", { name: /^agent stations$/i });
+    expect(ranked.compareDocumentPosition(raw) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText(/agent stations/i)).toBeInTheDocument();
+    const found = screen.getAllByText(/faces are dark|soft fill|burn in captions/i);
+    expect(found.map((node) => node.textContent)).toEqual([
+      "Faces are dark",
+      "Soft fill",
+      "Burn in captions",
+    ]);
+    const lighting = screen.getByRole("heading", { name: /improve lighting/i });
+    const delivery = screen.getByRole("heading", { name: /^delivery$/i });
+    expect(lighting.compareDocumentPosition(delivery) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("shows stack rank and a budget cutoff after the orchestrator plans the work", async () => {
@@ -136,6 +249,9 @@ describe("SuggestionsRoute", () => {
     expect(screen.getByText("02")).toBeInTheDocument();
     expect(screen.getByText("03")).toBeInTheDocument();
     expect(screen.getByText(/estimated cutoff/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/fits the budget/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/until the budget has room/i)).toBeInTheDocument();
+    expect(screen.queryByText(/envelope/i)).not.toBeInTheDocument();
     expect(screen.getByText(/add a closer angle/i).closest("li")?.className).toMatch(
       /opacity/,
     );

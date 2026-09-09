@@ -33,10 +33,16 @@ STATION = "extend"
 # a broken render is an order of magnitude worse). Drafts breaching the gate
 # land as needs_human — never silently pass.
 FLICKER_GATE = 0.02
+# The mean above dilutes one bad frame across dozens of clean ones
+# (2026-09-09 demo: a real, visually-confirmed single-frame corruption
+# scored ~0.005 mean, well under gate). spike is the worst single frame.
+FLICKER_SPIKE_GATE = 0.02
 
 
-def draft_qc_decision(flicker: float) -> str:
-    return "pass" if flicker < FLICKER_GATE else "needs_human"
+def draft_qc_decision(flicker: float, spike: float = 0.0) -> str:
+    if flicker >= FLICKER_GATE or spike >= FLICKER_SPIKE_GATE:
+        return "needs_human"
+    return "pass"
 
 
 def resolution_for_tier(tier: str) -> str:
@@ -107,7 +113,8 @@ def run_extend(
             finally:
                 tmp.unlink(missing_ok=True)
             flicker = float(score.get("flicker_score") or 1.0)
-            decision = draft_qc_decision(flicker)
+            spike = float(score.get("spike_score") or 0.0)
+            decision = draft_qc_decision(flicker, spike)
             tier = str(job.result.get("tier") or "draft")
             resolution = resolution_for_tier(tier)
 
@@ -138,6 +145,8 @@ def run_extend(
                 "omni_error": omni_error_text,
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
+                "flicker_spike": spike,
+                "flicker_spike_gate": FLICKER_SPIKE_GATE,
                 "qc_decision": decision,
                 "interaction_id": render.get("interaction_id"),
                 "prompt": prompt,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSuggestionPlan } from "@/lib/suggestionPlan";
+import { buildSuggestionPlan, groupRawSuggestions } from "@/lib/suggestionPlan";
 import type { InspectNote, Worklist, WorklistItem } from "@/types/api";
 
 function note(partial: Partial<InspectNote> & Pick<InspectNote, "station">): InspectNote {
@@ -178,5 +178,19 @@ describe("buildSuggestionPlan", () => {
     expect(overrun.ranked.map((row) => row.fit)).toEqual(["in_budget", "below_cutoff", "below_cutoff"]);
     expect(overrun.cutoffAfterRank).toBe(1);
     expect(overrun.remainingMicros).toBe(800_000);
+  });
+
+  it("groups raw suggestions by agent station, high to low, with Delivery last", () => {
+    const grouped = groupRawSuggestions([
+      note({ station: "delivery", impact: "low", summary: "Burn in captions" }),
+      note({ station: "relight", impact: "low", summary: "Soft fill" }),
+      note({ station: "relight", impact: "high", summary: "Faces are dark" }),
+      note({ station: "extend", impact: "medium", summary: "Keep rolling" }),
+      note({ station: "relight", status: "empty", summary: "" }),
+      note({ station: "loudness", impact: "high", summary: "Mix is in family" }),
+    ]);
+    expect(grouped.map((group) => group.station)).toEqual(["extend", "relight", "delivery"]);
+    expect(grouped[1]?.notes.map((row) => row.summary)).toEqual(["Faces are dark", "Soft fill"]);
+    expect(grouped[1]?.notes.map((row) => row.impact)).toEqual(["high", "low"]);
   });
 });

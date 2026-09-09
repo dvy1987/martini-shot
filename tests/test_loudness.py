@@ -48,6 +48,17 @@ def test_stem_and_me_helpers() -> None:
     assert me_present(1) is False
 
 
+def test_stem_diagnosis_catches_a_loud_low_broadband_room_a_music_band_miss() -> None:
+    """A storm/wind/room bed sits low and broadband, not in the 4-12 kHz
+    'music' band. Without the room-band reading this reads 'balanced' and
+    the station just turns the whole mix up (2026-09-09 demo miss)."""
+    dialogue, music, room = -16.0, -16.5, -6.0
+    assert stem_diagnosis(dialogue, music) == "balanced"
+    assert stem_diagnosis(dialogue, music, room) == "music_hot"
+    # A quiet room with the same music-band reading stays balanced.
+    assert stem_diagnosis(dialogue, music, -24.0) == "balanced"
+
+
 def test_measured_lufs_matches_ffmpeg_reference() -> None:
     if not SPIKE.exists():
         pytest.skip("spike fixture not on disk")

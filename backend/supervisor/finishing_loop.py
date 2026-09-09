@@ -21,7 +21,7 @@ from backend.supervisor.rank import (
 
 log = logging.getLogger("pc.finishing")
 
-PAUSE_REASON = "paused: finishing envelope exhausted"
+PAUSE_REASON = "paused: finishing budget exhausted"
 DEFAULT_BUDGET_MICROS = 50_000_000
 INSPECT_ESTIMATE_MICROS = 200_000  # per station billed look, printed (C-7.2)
 
@@ -69,7 +69,7 @@ def _stamp_job_scene(
 
 
 def pause_inflight(jobs: list[Job], remaining_micros: int) -> list[Job]:
-    """When the envelope is gone, in-flight jobs do not get to finish.
+    """When the budget is gone, in-flight jobs do not get to finish.
 
     `throttled` is the existing non-terminal-but-stopped vocabulary (spend
     control). Unfinished artifact refs must not enter the final cut.

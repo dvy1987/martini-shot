@@ -106,7 +106,7 @@ def test_suggestion_abstains_without_a_shot() -> None:
 def test_prompt_says_supervisor_may_change_the_cut() -> None:
     prompt = build_prompt({"id": "job-x", "station": "pickups"}, UNLOCKED_DRAFT)
     assert "remove_from_continuity" in prompt
-    assert "night envelope" in prompt.lower() or "supervisor" in prompt.lower()
+    assert "night budget" in prompt.lower() or "supervisor" in prompt.lower()
     assert "NEVER propose retry_job" in prompt or "locked" in prompt.lower()
 
 

@@ -19,8 +19,11 @@ import json
 import logging
 import math
 import subprocess
+import tempfile
+import time
 import urllib.request
-from typing import Any
+from pathlib import Path
+from typing import Any, Callable
 
 from backend.core.api_resilience import call_with_resilience
 from backend.core.config import Settings
@@ -47,6 +50,14 @@ PRICE_PER_SECOND_MICROS = {"720p": 100_000, "360p": 33_334}
 
 # Google Cloud TTS Chirp 3 HD list price (2026-09): $30 per 1M characters.
 PRICE_PER_CHAR_MICROS = 30.0
+
+# Real, previously-undocumented Omni "edit" server-side constraint
+# (2026-09-09 demo failure: "Editing duration 14 exceeds maximum duration
+# 10"). omni_edit_bounded chunks anything longer than this.
+OMNI_EDIT_MAX_DURATION_S = 10.0
+# Gap between sequential per-chunk calls so back-to-back edits on the same
+# source clip don't trip a rate limit (owner directive 2026-09-09).
+OMNI_EDIT_CHUNK_GAP_S = 2.0
 
 
 def estimate_tts_cost_micros(chars: int) -> int:
@@ -268,6 +279,85 @@ def omni_edit(
         "interaction_id": str(getattr(interaction, "id", "")),
         "total_token_count": getattr(usage, "total_token_count", None),
     }
+
+
+def omni_edit_bounded(
+    settings: Settings,
+    gcs: Any,
+    media: Any,
+    *,
+    input_uri: str,
+    prompt: str,
+    scratch_prefix: str,
+    reference_uris: tuple[str, ...] = (),
+    timeout_s: int = 900,
+    max_duration_s: float = OMNI_EDIT_MAX_DURATION_S,
+    gap_s: float = OMNI_EDIT_CHUNK_GAP_S,
+    omni_edit: Callable[..., dict[str, Any]] = omni_edit,
+) -> dict[str, Any]:
+    """omni_edit, but chop-and-reassemble when the source exceeds Omni's
+    real, server-enforced edit duration cap (owner directive 2026-09-09,
+    after "Editing duration 14 exceeds maximum duration 10" broke Relight
+    mid-demo): split into <=max_duration_s segments, call Omni on each
+    SEQUENTIALLY with a gap between calls (avoid tripping a rate limit),
+    then concat the edited segments back into one clip. Short clips take
+    the single-call path unchanged. `scratch_prefix` is a GCS key prefix
+    the caller owns (per-job) for the intermediate chunk uploads; nothing
+    else reads them. Not an HTTP path (C-6.5): stations run this inside
+    lease-queue jobs. `omni_edit` is injectable for tests (same pattern as
+    `render_pickup_repair`) — production always uses the real adapter."""
+    source_bytes = gcs.download_bytes(input_uri)
+    with tempfile.TemporaryDirectory() as tmp_name:
+        tmp = Path(tmp_name)
+        src_path = tmp / "source.mp4"
+        src_path.write_bytes(source_bytes)
+        duration_s = float(media.probe(src_path).get("duration_s") or 0.0)
+        if duration_s <= max_duration_s:
+            return omni_edit(
+                settings,
+                input_uri=input_uri,
+                prompt=prompt,
+                reference_uris=reference_uris,
+                timeout_s=timeout_s,
+            )
+        segment_paths = media.split_segments(src_path, tmp, max_duration_s)
+        edited_paths: list[Path] = []
+        interaction_ids: list[str] = []
+        total_tokens = 0
+        for index, segment_path in enumerate(segment_paths):
+            if index > 0:
+                time.sleep(gap_s)
+            scratch_key = f"{scratch_prefix}/chunk-{index:02d}.mp4"
+            gcs.upload_bytes(
+                scratch_key, segment_path.read_bytes(), content_type="video/mp4"
+            )
+            scratch_uri = f"gs://{settings.gcs_bucket}/{scratch_key}"
+            render = omni_edit(
+                settings,
+                input_uri=scratch_uri,
+                prompt=prompt,
+                reference_uris=reference_uris,
+                timeout_s=timeout_s,
+            )
+            edited_path = tmp / f"edited-{index:02d}.mp4"
+            edited_path.write_bytes(render["video_bytes"])
+            edited_paths.append(edited_path)
+            interaction_id = str(render.get("interaction_id") or "")
+            if interaction_id:
+                interaction_ids.append(interaction_id)
+            tokens = render.get("total_token_count")
+            if isinstance(tokens, (int, float)):
+                total_tokens += int(tokens)
+        out_path = tmp / "reassembled.mp4"
+        media.concat_videos(edited_paths, out_path)
+        return {
+            "video_bytes": out_path.read_bytes(),
+            "model": OMNI_MODEL,
+            "interaction_id": ",".join(interaction_ids),
+            "total_token_count": total_tokens or None,
+            "chunked": True,
+            "chunk_count": len(segment_paths),
+        }
 
 
 def _extract_video(interaction: Any) -> bytes | None:

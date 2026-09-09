@@ -46,7 +46,7 @@ export const PROGRESS_STAGES: ReadonlyArray<{
   {
     phase: "executing",
     name: "Execute",
-    description: "The ranked jobs that still fit the envelope are running.",
+    description: "The ranked jobs that still fit the budget are running.",
   },
   {
     phase: "delivering",
@@ -62,6 +62,76 @@ export function progressStageIndex(phase: JourneyPhase): number {
   return PROGRESS_STAGES.findIndex((stage) => stage.phase === phase);
 }
 
+export type ProgressStageTone = "pending" | "active" | "complete" | "failed";
+
+type RailStage = (typeof PROGRESS_STAGES)[number]["phase"];
+
+const ATTENTION_STATUSES = new Set([
+  "fail",
+  "failed",
+  "quarantined",
+  "needs_human",
+  "throttled",
+  "paused",
+]);
+
+function stageForStation(station: string, worklist: Worklist | null): RailStage {
+  if (station === "upload") return "uploading";
+  if (station === "ingest") {
+    if (worklist && worklist.status !== "waiting_for_ingest") return "watching";
+    return "uploading";
+  }
+  if (station === "loudness") return "mixing";
+  if (station === "pickups") return "repairing";
+  if (station === "delivery") return "delivering";
+  return "executing";
+}
+
+function failedStages(jobs: readonly Job[], worklist: Worklist | null): Set<RailStage> {
+  const stages = new Set<RailStage>();
+  for (const row of jobs) {
+    if (ATTENTION_STATUSES.has(row.status)) {
+      stages.add(stageForStation(row.station, worklist));
+    }
+  }
+  for (const item of worklist?.items ?? []) {
+    if (ATTENTION_STATUSES.has(item.status)) {
+      stages.add(stageForStation(item.station, worklist));
+    }
+  }
+  return stages;
+}
+
+function focusIndex(
+  phase: JourneyPhase,
+  jobs: readonly Job[],
+  worklist: Worklist | null,
+): number {
+  if (phase === "attention") {
+    const failed = failedStages(jobs, worklist);
+    const index = PROGRESS_STAGES.findIndex((stage) => failed.has(stage.phase));
+    return index >= 0 ? index : 0;
+  }
+  return progressStageIndex(phase);
+}
+
+export function progressStageTone(
+  stage: RailStage,
+  phase: JourneyPhase,
+  jobs: readonly Job[] = [],
+  worklist: Worklist | null = null,
+): ProgressStageTone {
+  if (failedStages(jobs, worklist).has(stage)) return "failed";
+  if (phase === "prepare") return "pending";
+  const current = focusIndex(phase, jobs, worklist);
+  const index = PROGRESS_STAGES.findIndex((item) => item.phase === stage);
+  if (index < 0) return "pending";
+  if (index < current) return "complete";
+  if (phase === "attention") return "pending";
+  if (index === current) return "active";
+  return "pending";
+}
+
 export function deriveJourney(jobs: readonly Job[], worklist: Worklist | null): JourneySummary {
   const ingest = jobs.filter((job) => job.station === "ingest");
   const loudness = jobs.filter((job) => job.station === "loudness");
@@ -73,13 +143,14 @@ export function deriveJourney(jobs: readonly Job[], worklist: Worklist | null): 
   const terminal = (rows: readonly Job[]) =>
     rows.length > 0 && rows.every((job) => ["pass", "fail", "quarantined", "needs_human", "throttled"].includes(job.status));
   const done = (rows: readonly Job[]) => rows.filter((job) => job.status === "pass").length;
+  const passedItems = (worklist?.items ?? []).filter((item) => item.status === "passed").length;
 
   if (worklist?.status === "waiting_for_budget" || attention > 0) {
     return {
       phase: "attention",
       label: "Needs your attention",
       detail: "A file or finishing job needs your attention before the run can continue.",
-      completed: 0,
+      completed: worklist ? passedItems : done(jobs),
       total: worklist?.items.length ?? jobs.length,
       attention: Math.max(1, attention),
     };

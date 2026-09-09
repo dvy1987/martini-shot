@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Pencil } from "lucide-react";
+import { ChevronDown, Pencil } from "lucide-react";
 
 import { ApiError } from "@/api/client";
-import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist, renameProject } from "@/api/endpoints";
-import AlternatesLane from "@/components/AlternatesLane";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjects, patchWorklist, renameProject } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
 import FinishBar from "@/components/FinishBar";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
 import ProgressRail from "@/components/ProgressRail";
-import RevisionRoom from "@/components/RevisionRoom";
 import TimelineBoard from "@/components/TimelineBoard";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
@@ -154,11 +152,6 @@ export default function TimelineRoute({
     queryFn: () => listDeliberations(selectedProjectId ?? "", inspectedJobId ?? ""),
     enabled: inspectedJobId !== null && selectedProjectId !== null,
   });
-  const shotsQuery = useQuery({
-    queryKey: ["shots", selectedProjectId],
-    queryFn: () => listProjectShots(selectedProjectId ?? ""),
-    enabled: selectedProjectId !== null,
-  });
   const worklistQuery = useQuery({
     queryKey: ["worklist", selectedProjectId],
     queryFn: async () => {
@@ -236,6 +229,7 @@ export default function TimelineRoute({
     setSelectedJobId(null);
     setInspectedJobId(null);
     jobTriggerRef.current = null;
+    setProgressDetailOpen(false);
   }, [selectedProjectId]);
 
   useEffect(() => {
@@ -251,6 +245,7 @@ export default function TimelineRoute({
   // The evidence surfaces remain available immediately when real activity exists;
   // the guided brief and live plan above them still own the first reading order.
   const [expertOpen, setExpertOpen] = useState(true);
+  const [progressDetailOpen, setProgressDetailOpen] = useState(false);
 
   useEffect(() => {
     if (!pendingJobId || !projectQuery.isSuccess) return;
@@ -375,7 +370,7 @@ export default function TimelineRoute({
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-            Season timeline
+            Wrap it up
           </p>
           {naming === "rename" ? (
             <form
@@ -517,6 +512,25 @@ export default function TimelineRoute({
         />
       ) : null}
 
+      {selectedProjectId ? (
+        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="changes-pointer-heading">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Studio</p>
+          <h2 id="changes-pointer-heading" className="mt-1 text-lg text-ink">
+            Bespoke shot edits live on their own tab
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
+            Ask for a longer take, a picture fix, lighting, coverage, or a camera move. New versions stay attached
+            to the shot. Script updates are there too.
+          </p>
+          <a
+            href="/changes"
+            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            Open Studio
+          </a>
+        </section>
+      ) : null}
+
       {selectedProjectId && worklistQuery.data ? (
         <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="suggestions-pointer-heading">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Suggestions</p>
@@ -549,7 +563,47 @@ export default function TimelineRoute({
               {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} complete</p> : null}
             </div>
           </div>
-          <ProgressRail phase={journey.phase} />
+          <ProgressRail
+            phase={journey.phase}
+            jobs={jobs}
+            worklist={worklistQuery.data ?? null}
+          />
+          {worklistQuery.data ? (
+            <div className="mt-3">
+              <button
+                type="button"
+                aria-expanded={progressDetailOpen}
+                aria-controls="progress-detail"
+                aria-label="More detail about this run"
+                onClick={() => setProgressDetailOpen((open) => !open)}
+                className="mx-auto flex h-8 w-8 items-center justify-center rounded-sm text-ink-muted transition-colors ease-chrome hover:text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                <ChevronDown
+                  aria-hidden
+                  className={`size-4 transition-transform duration-200 ${progressDetailOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {progressDetailOpen ? (
+                <div id="progress-detail" className="mt-3">
+                  <WorklistPanel
+                    worklist={worklistQuery.data}
+                    onReorder={(order) => {
+                      setWorklistMutationError(null);
+                      void patchWorklist(selectedProjectId, order)
+                        .then(() => {
+                          void worklistQuery.refetch();
+                        })
+                        .catch((error: unknown) => {
+                          setWorklistMutationError(
+                            error instanceof Error ? error.message : "The work order could not be saved.",
+                          );
+                        });
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {worklistQuery.isError ? (
             <div className="mt-4 border-l-2 border-danger pl-3 text-sm text-danger">
               The current work plan could not be loaded.
@@ -598,7 +652,7 @@ export default function TimelineRoute({
         />
       ) : null}
 
-      {projectQuery.isSuccess && jobs.length > 0 && expertOpen ? (
+      {projectQuery.isSuccess && jobs.length > 0 ? (
         <TimelineBoard
           projectId={selectedProjectId}
           jobs={jobs}
@@ -607,6 +661,8 @@ export default function TimelineRoute({
           lensOpen={lensOpen}
           statusFilter={statusFilter}
           onToggleStatus={(status) => setStatusFilter((current) => toggleStatus(current, status))}
+          worklist={worklistQuery.data ?? null}
+          showJobsBoard={expertOpen}
         />
       ) : null}
 
@@ -617,30 +673,6 @@ export default function TimelineRoute({
             {clipName(jobs.find((job) => job.job_id === selectedJobId) ?? { job_id: selectedJobId, input_refs: [] })}
           </span>
         </p>
-      ) : null}
-
-      {projectQuery.isSuccess && selectedProjectId && expertOpen ? (
-        <AlternatesLane shots={shotsQuery.data ?? []} />
-      ) : null}
-
-      {selectedProjectId && expertOpen ? <RevisionRoom projectId={selectedProjectId} /> : null}
-
-      {selectedProjectId && expertOpen ? (
-        <WorklistPanel
-          worklist={worklistQuery.data ?? null}
-          onReorder={(order) => {
-            setWorklistMutationError(null);
-            void patchWorklist(selectedProjectId, order)
-              .then(() => {
-                void worklistQuery.refetch();
-              })
-              .catch((error: unknown) => {
-                setWorklistMutationError(
-                  error instanceof Error ? error.message : "The work order could not be saved.",
-                );
-              });
-          }}
-        />
       ) : null}
 
       {lensOpen || jobs.length === 0 ? <StatusLegend /> : null}

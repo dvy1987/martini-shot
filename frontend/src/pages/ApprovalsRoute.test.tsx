@@ -40,13 +40,13 @@ describe("ApprovalsRoute", () => {
     renderApprovals("down");
     expect(listApprovals).not.toHaveBeenCalled();
     expect(decideApproval).not.toHaveBeenCalled();
-    expect(screen.getByText(/approvals are unavailable/i)).toBeInTheDocument();
+    expect(screen.getByText(/decisions are unavailable/i)).toBeInTheDocument();
   });
 
   it("does not POST a decision when the queue is honestly empty", async () => {
     vi.mocked(listApprovals).mockResolvedValue([]);
     renderApprovals("up");
-    expect(await screen.findByText(/no approval requests/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no pending decisions/i)).toBeInTheDocument();
     expect(decideApproval).not.toHaveBeenCalled();
   });
 

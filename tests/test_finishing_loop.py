@@ -50,7 +50,7 @@ def test_pause_inflight_excludes_unfinished_from_final() -> None:
     )
     paused = pause_inflight([inflight], remaining_micros=0)
     assert paused[0].status == "throttled"
-    assert paused[0].error == "paused: finishing envelope exhausted"
+    assert paused[0].error == "paused: finishing budget exhausted"
     refs = assemble_final(original_refs=originals, jobs=paused)
     assert refs == originals
 

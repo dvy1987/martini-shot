@@ -55,7 +55,7 @@ export default function TopBar({
             }
           >
             {entry.label}
-            {entry.id === "approvals" && proposedCount > 0 ? (
+            {entry.id === "decisions" && proposedCount > 0 ? (
               <span className="ml-2 font-mono text-xs text-tungsten">{proposedCount}</span>
             ) : null}
           </NavLink>

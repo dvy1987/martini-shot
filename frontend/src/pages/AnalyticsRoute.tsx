@@ -96,7 +96,7 @@ export default function AnalyticsRoute({
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-4 px-6 py-8" aria-labelledby="analytics-heading">
+    <section className="mx-auto max-w-5xl space-y-8 px-6 py-8" aria-labelledby="analytics-heading">
       <header>
         <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">Analytics</p>
         <h1 id="analytics-heading" className="mt-1 text-2xl text-ink">

@@ -113,5 +113,24 @@
 | 2026-09-09 10:00 | test-driven-development | frontend/src/lib/runBriefing.test.ts frontend/src/components/RunPulse.test.tsx | Analytics explains this run in-product; Grafana links removed from the operator UI |
 | 2026-09-09 10:02 | memory-handoff | agent-handoffs.md#2026-09-09-10:02 + current-state.md | Owner asked commit+push all uncommitted work; tree already clean on origin |
 | 2026-09-09 10:02 | git-workflow-and-versioning | main | no-op: nothing to commit; origin/main already at 4571ffa |
+| 2026-09-09 10:14 | debug-and-fix | frontend/src/lib/journey.test.ts frontend/src/lib/journey.ts | Prove-it: Current Progress showed 0/N whenever any leftover job failed |
+| 2026-09-09 10:36 | test-driven-development | frontend/src/lib/suggestionPlan.test.ts frontend/src/pages/SuggestionsRoute.test.tsx | TDD: raw suggestions last on Suggestions, grouped by agent station, Delivery last |
+| 2026-09-09 10:15 | test-driven-development | frontend/src/pages/ChangesRoute.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: move bespoke shot/script edits from Timeline to a Changes tab |
+| 2026-09-09 10:32 | test-driven-development | frontend/src/lib/agentNotes.test.ts frontend/src/components/AgentNotesModal.test.tsx frontend/src/components/TimelineBoard.test.tsx | TDD: table What changed + Agent Notes modal; stage blurbs stay on Current Progress only |
+| 2026-09-09 10:45 | test-driven-development | frontend/src/lib/agentNotes.test.ts frontend/src/components/AgentNotesModal.test.tsx tests/test_station_operator_notes.py | TDD: station reason covers problem/ignored/fixed/failed as flowing notes, no question headings |
+| 2026-09-09 11:24 | frontend-design | frontend/src/components/RunPulse.tsx frontend/src/components/RunPulse.test.tsx | Analytics four facts as separate taller cards with 24px gutters; mosaic tiling removed |
+| 2026-09-09 10:40 | test-driven-development | frontend/src/components/WorklistPanel.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: nameless chevron under Current progress reveals the ranked work table; heading "Work Martini Shot is running" removed |
+| 2026-09-09 11:15 | test-driven-development | frontend/src/lib/journey.test.ts frontend/src/components/ProgressRail.test.tsx | TDD: Current progress stages fill green / yellow / red; a fault no longer wipes the rail empty |
+| 2026-09-09 11:20 | test-driven-development | frontend/src/components/ProgressRail.test.tsx | TDD: restore unfilled stage cards; status is a green / yellow / red underline under each box |
+| 2026-09-09 11:50 | test-driven-development | frontend/src/lib/finalCut.test.ts frontend/src/components/TimelineBoard.test.tsx | TDD: Final cut fills latest After when orchestrator stops; table Add to final cut swaps the slot; Before cannot be added |
+| 2026-09-09 11:23 | test-driven-development | frontend/src/components/ProgressRail.test.tsx | TDD: drop bottom underline; status color stays on the top edge only |
+| 2026-09-09 11:32 | test-driven-development | frontend/src/pages/TimelineRoute.test.tsx | TDD: replace Season timeline eyebrow with Wrap it up |
+| 2026-09-09 11:38 | test-driven-development | frontend/src/lib/navigation.test.ts frontend/src/components/CommandPalette.test.tsx | TDD: primary nav home tab is Central station |
+| 2026-09-09 11:56 | test-driven-development | frontend/src/lib/clipDisplay.test.ts frontend/src/pages/SuggestionsRoute.test.tsx | TDD: Suggestions lists the clip name with each leftover suggestion |
+| 2026-09-09 12:17 | test-driven-development | frontend/src/lib/navigation.test.ts frontend/src/pages/ChangesRoute.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: rename Changes tab to Studio |
+| 2026-09-09 11:53 | test-driven-development | frontend/src/pages/SuggestionsRoute.test.tsx tests/test_budget_loop.py | Operator copy: budget, not envelope |
+| 2026-09-09 12:00 | test-driven-development | frontend/src/lib/navigation.ts frontend/src/pages/ApprovalsRoute.test.tsx frontend/src/lib/palette.test.ts | Approvals tab renamed Decisions; /approvals redirects |
+| 2026-09-09 12:14 | memory-handoff | agent-handoffs.md#2026-09-09-12:14 + current-state.md | Operator cockpit + Omni 10s bound; owner commit+push all uncommitted work |
+| 2026-09-09 12:24 | test-driven-development | frontend/src/lib/finalCut.test.ts | TDD: Final cut fills when orchestrator stops for any reason; last successful After, leftover steps not required |
 
 

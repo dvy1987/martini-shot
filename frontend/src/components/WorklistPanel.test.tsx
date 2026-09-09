@@ -52,6 +52,12 @@ describe("WorklistPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /move relight up/i }));
     expect(onReorder).toHaveBeenCalledWith(["loud", "rel", "ext"]);
   });
+
+  it("does not title the extra progress detail", () => {
+    render(<WorklistPanel worklist={worklist} />);
+    expect(screen.queryByRole("heading", { name: /work martini shot is running/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/work martini shot is running/i)).not.toBeInTheDocument();
+  });
 });
 
 describe("nextWorklistOrder", () => {

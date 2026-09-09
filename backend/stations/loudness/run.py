@@ -96,9 +96,10 @@ def run_loudness(
                 probe = media.probe(src)
                 dialogue = media.band_lufs(src, 300, 3000)
                 music = media.band_lufs(src, 4000, 12000)
+                room = media.band_lufs(src, 20, 300)
                 lufs = float(report["lufs"])
                 peak = report.get("true_peak_dbtp")
-                stems = stem_diagnosis(dialogue, music)
+                stems = stem_diagnosis(dialogue, music, room)
 
                 season_rows: list[dict[str, Any]] = []
                 batch_id = str(job.result.get("batch_id") or "")
@@ -132,6 +133,7 @@ def run_loudness(
                     "stem_diagnosis": stems,
                     "dialogue_band_lufs": dialogue,
                     "music_band_lufs": music,
+                    "room_band_lufs": room,
                     "previous_loudness": {
                         "scene_class": job.result.get("previous_scene_class"),
                         "target_lufs": job.result.get("previous_target_lufs"),
@@ -184,7 +186,12 @@ def run_loudness(
                     else:
                         target = table
                     skip_mix = False
-                    lift_speech = decision.decision == "fix_stem"
+                    # Hard gate (not prompt-only): a loud room/storm must
+                    # lift the voice even if the agent's own decision missed
+                    # it. The agent still owns scene_class/target_lufs.
+                    lift_speech = decision.decision == "fix_stem" or (
+                        stems == "music_hot" and has_dialogue(scene_class)
+                    )
                 else:
                     scene_class = str(
                         job.result.get("scene_class") or "normal-with-dialogue"
@@ -238,7 +245,8 @@ def run_loudness(
                         peak = report.get("true_peak_dbtp")
                         dialogue = media.band_lufs(mixed_path, 300, 3000)
                         music = media.band_lufs(mixed_path, 4000, 12000)
-                        stems = stem_diagnosis(dialogue, music)
+                        room = media.band_lufs(mixed_path, 20, 300)
+                        stems = stem_diagnosis(dialogue, music, room)
 
                 decision_code = verdict(lufs, target=target, true_peak_dbtp=peak)
                 speech = has_dialogue(scene_class)
@@ -281,6 +289,10 @@ def run_loudness(
                     "scene_class": scene_class,
                     "verdict": decision_code,
                     "stems": stems,
+                    "dialogue_band_lufs": dialogue,
+                    "music_band_lufs": music,
+                    "room_band_lufs": room,
+                    "lift_speech": lift_speech,
                     "me_present": me_present(_as_int(probe.get("audio_streams"))),
                     "audio_kind": audio_kind,
                     "audio_ref": audio_ref,

@@ -11,7 +11,8 @@ from typing import Iterable
 from backend.core.config import Settings
 from backend.core.firestore import FirestoreStore
 from backend.core.gcs import GCSMedia
-from backend.core.generative import estimate_extend_cost_micros, omni_edit
+from backend.core.generative import estimate_extend_cost_micros, omni_edit_bounded
+from backend.core.media import FFmpeg
 from backend.jobs.models import Job
 from backend.jobs.telemetry import job_span, log, record_job, timed
 from backend.shots import lifecycle as shots
@@ -19,6 +20,10 @@ from backend.stations.pickups.flicker import flicker_score
 
 STATION = "coverage"
 FLICKER_GATE = 0.02
+# The mean above dilutes one bad frame across dozens of clean ones
+# (2026-09-09 demo: a real, visually-confirmed single-frame corruption
+# scored ~0.005 mean, well under gate). spike is the worst single frame.
+FLICKER_SPIKE_GATE = 0.02
 
 # Approved coverage-angle vocabulary (locked scope, mirrors D-16's
 # constrained vocabulary pattern so both stay auditable and comparable).
@@ -72,8 +77,10 @@ def build_coverage_prompt(
     )
 
 
-def draft_qc_decision(flicker: float) -> str:
-    return "pass" if flicker < FLICKER_GATE else "needs_human"
+def draft_qc_decision(flicker: float, spike: float = 0.0) -> str:
+    if flicker >= FLICKER_GATE or spike >= FLICKER_SPIKE_GATE:
+        return "needs_human"
+    return "pass"
 
 
 def run_coverage(
@@ -109,11 +116,15 @@ def run_coverage(
                     extra_still_count=len(edit_refs),
                 )
             )
-            render = omni_edit(
+            media = FFmpeg(settings.ffmpeg_bin, settings.ffprobe_bin)
+            render = omni_edit_bounded(
                 settings,
+                gcs,
+                media,
                 input_uri=source_uri,
                 prompt=prompt,
                 reference_uris=edit_refs,
+                scratch_prefix=f"projects/{job.project_id}/_omni_scratch/{job.id}",
             )
             destination_key = str(
                 job.result.get("destination_key")
@@ -130,7 +141,8 @@ def run_coverage(
             finally:
                 tmp.unlink(missing_ok=True)
             flicker = float(score.get("flicker_score") or 1.0)
-            decision = draft_qc_decision(flicker)
+            spike = float(score.get("spike_score") or 0.0)
+            decision = draft_qc_decision(flicker, spike)
 
             artifact_ref = f"gs://{settings.gcs_bucket}/{destination_key}"
             alternate_id = shots.record_alternate(
@@ -154,11 +166,15 @@ def run_coverage(
                 "render_model": render.get("model"),
                 "flicker": flicker,
                 "flicker_gate": FLICKER_GATE,
+                "flicker_spike": spike,
+                "flicker_spike_gate": FLICKER_SPIKE_GATE,
                 "qc_decision": decision,
                 "interaction_id": render.get("interaction_id"),
                 "prompt": prompt,
                 "angle": angle,
                 "tier": tier,
+                "omni_chunked": bool(render.get("chunked")),
+                "omni_chunk_count": render.get("chunk_count"),
             }
             if decision != "pass":
                 job.status = "needs_human"

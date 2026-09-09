@@ -7,8 +7,8 @@ import type { PaletteCommand } from "@/lib/palette";
 afterEach(cleanup);
 
 const COMMANDS: PaletteCommand[] = [
-  { id: "route:timeline", label: "Timeline", hint: "Season board", kind: "route" },
-  { id: "route:approvals", label: "Approvals", hint: "Screening room", kind: "route" },
+  { id: "route:timeline", label: "Central station", hint: "Season board", kind: "route" },
+  { id: "route:decisions", label: "Decisions", hint: "Screening room", kind: "route" },
   { id: "lens", label: "Toggle Lens", hint: "Reveal collapsed lanes", kind: "lens" },
 ];
 
@@ -25,18 +25,18 @@ describe("CommandPalette", () => {
       />,
     );
 
-    expect(screen.getByRole("option", { name: /approvals/i })).toHaveAttribute(
+    expect(screen.getByRole("option", { name: /central station/i })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     fireEvent.keyDown(window, { key: "ArrowDown" });
-    expect(screen.getByRole("option", { name: /timeline/i })).toHaveAttribute(
+    expect(screen.getByRole("option", { name: /decisions/i })).toHaveAttribute(
       "aria-selected",
       "true",
     );
     fireEvent.keyDown(window, { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "route:timeline" }),
+      expect.objectContaining({ id: "route:decisions" }),
     );
   });
 

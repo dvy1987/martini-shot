@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveJourney, PROGRESS_STAGES } from "./journey";
+import { deriveJourney, progressStageTone, PROGRESS_STAGES } from "./journey";
 import type { Job, Worklist } from "@/types/api";
 
 const job = (station: string, status: Job["status"]): Job => ({
@@ -30,6 +30,35 @@ describe("deriveJourney", () => {
   });
   it("prioritizes a genuine fault", () => {
     expect(deriveJourney([job("ingest", "quarantined")], null).phase).toBe("attention");
+  });
+  it("still counts passed leftover jobs when only some have failed", () => {
+    const leftover: Worklist = {
+      project_id: "p",
+      budget_micros: 1,
+      spent_micros: 0,
+      status: "running",
+      phase: "executing",
+      attendance: [],
+      items: [
+        ...Array.from({ length: 9 }, (_, index) => ({
+          id: `ok-${index}`,
+          station: "extend",
+          status: "passed",
+        })),
+        { id: "bad-1", station: "corrections", status: "failed" },
+        { id: "bad-2", station: "relight", status: "failed" },
+      ],
+      final_refs: [],
+      original_refs: [],
+    };
+    const summary = deriveJourney(
+      [job("ingest", "pass"), job("loudness", "pass"), job("pickups", "pass")],
+      leftover,
+    );
+    expect(summary.phase).toBe("attention");
+    expect(summary.completed).toBe(9);
+    expect(summary.total).toBe(11);
+    expect(summary.attention).toBe(2);
   });
   it("keeps consultation and planning distinct from execution", () => {
     const inspecting = { project_id: "p", budget_micros: 1, spent_micros: 0, status: "inspecting", attendance: [], items: [], final_refs: [], original_refs: [] };
@@ -92,5 +121,27 @@ describe("deriveJourney", () => {
       original_refs: [],
     };
     expect(deriveJourney([job("ingest", "pass")], cleanup).phase).not.toBe("watching");
+  });
+});
+
+describe("progressStageTone", () => {
+  it("marks earlier stages complete, the current stage in progress, and later stages pending", () => {
+    expect(progressStageTone("uploading", "mixing")).toBe("complete");
+    expect(progressStageTone("watching", "mixing")).toBe("complete");
+    expect(progressStageTone("mixing", "mixing")).toBe("active");
+    expect(progressStageTone("repairing", "mixing")).toBe("pending");
+  });
+
+  it("keeps finished stages complete when a later stage failed", () => {
+    const jobs = [job("ingest", "pass"), job("loudness", "fail")];
+    expect(progressStageTone("uploading", "attention", jobs)).toBe("complete");
+    expect(progressStageTone("watching", "attention", jobs)).toBe("complete");
+    expect(progressStageTone("mixing", "attention", jobs)).toBe("failed");
+    expect(progressStageTone("repairing", "attention", jobs)).toBe("pending");
+  });
+
+  it("paints every stage complete after the run finishes", () => {
+    expect(progressStageTone("delivering", "complete")).toBe("complete");
+    expect(progressStageTone("uploading", "complete")).toBe("complete");
   });
 });

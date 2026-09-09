@@ -20,8 +20,9 @@ export function clearSlateSeen(id: SlateId, storage: Pick<Storage, "removeItem">
 }
 
 export function slateForRoute(path: string): SlateId {
-  if (path.startsWith("/approvals")) return "accounting";
+  if (path.startsWith("/decisions") || path.startsWith("/approvals")) return "accounting";
   if (path.startsWith("/suggestions")) return "accounting";
+  if (path.startsWith("/changes")) return "accounting";
   if (path.startsWith("/reports")) return "dailies";
   if (path.startsWith("/analytics")) return "investigation";
   return "welcome";
@@ -40,7 +41,7 @@ export const SLATE_FRAMES: Record<SlateId, SlateFrame[]> = {
     },
     {
       caption: "Martini Shot watches the run and highlights problems that need your attention.",
-      term: "Markers & approvals",
+      term: "Markers & decisions",
     },
     {
       caption: "Open the evidence behind a result instead of relying on a summary alone.",
@@ -51,7 +52,7 @@ export const SLATE_FRAMES: Record<SlateId, SlateFrame[]> = {
     { caption: "See what happened and when it happened.", term: "Alert" },
     { caption: "Open the logs, metrics, and traces used to investigate the problem.", term: "Evidence chain" },
     { caption: "See the problem, its likely cause, and how serious it is.", term: "Verdict" },
-    { caption: "Review suggested work, its cost, and whether you need to approve it.", term: "Suggested change" },
+    { caption: "Review suggested work, its cost, and whether you need to decide.", term: "Suggested change" },
   ],
   accounting: [
     {

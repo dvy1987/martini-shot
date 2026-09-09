@@ -28,9 +28,21 @@ def verdict(
     return "fail_hot" if delta > 0 else "fail_quiet"
 
 
-def stem_diagnosis(dialogue_band_lufs: float, music_band_lufs: float) -> str:
-    """ffmpeg highpass/lowpass band comparison (dialogue ~300–3k, music highs)."""
-    gap = dialogue_band_lufs - music_band_lufs
+def stem_diagnosis(
+    dialogue_band_lufs: float,
+    music_band_lufs: float,
+    room_band_lufs: float | None = None,
+) -> str:
+    """ffmpeg band comparison: dialogue ~300-3k vs whatever is competing
+    with it. `music_band_lufs` (4-12k) catches a hot score/hiss; a storm,
+    room tone, or wind bed sits low and broadband instead, so
+    `room_band_lufs` (below ~300 Hz, when measured) is compared too and
+    the LOUDER of the two ambience readings wins the gap check — a loud
+    room must not hide behind a quiet "music" band."""
+    ambience = music_band_lufs
+    if room_band_lufs is not None:
+        ambience = max(music_band_lufs, room_band_lufs)
+    gap = dialogue_band_lufs - ambience
     if gap > 3.0:
         return "dialogue_hot"
     if gap < -3.0:

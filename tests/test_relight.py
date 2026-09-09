@@ -23,6 +23,23 @@ def test_relight_prompt_uses_named_presets() -> None:
     }
 
 
+def test_draft_qc_decision_catches_a_single_frame_spike_the_mean_misses() -> None:
+    """2026-09-09 demo: a real, localized single-frame corruption scored
+    ~0.005 mean (well under gate) because the whole-clip average dilutes
+    one bad frame across dozens of clean ones. The worst-frame spike must
+    still gate it."""
+    from backend.stations.relight.run import (
+        FLICKER_GATE,
+        FLICKER_SPIKE_GATE,
+        draft_qc_decision,
+    )
+
+    assert draft_qc_decision(0.001) == "pass"
+    assert draft_qc_decision(0.001, spike=0.001) == "pass"
+    assert draft_qc_decision(0.001, spike=FLICKER_SPIKE_GATE) == "needs_human"
+    assert draft_qc_decision(FLICKER_GATE) == "needs_human"
+
+
 def test_relight_station_is_dispatched() -> None:
     from backend.stations import run as dispatch
 

@@ -155,7 +155,7 @@ GROUND RULES:
    leaves no permanent change — a retry simply re-runs the same work, a
    pause resumes, an alternate attaches without overwriting anything.
    add_to_continuity and remove_from_continuity are reversible pointer
-   moves; the supervisor may dispatch them inside the night envelope.
+   moves; the supervisor may dispatch them inside the night budget.
    You MUST copy shot_id and alternate_id from the evidence; if those
    ids are missing, leave cut changes to the continuity specialist.
    Irreversible means destructive or one-way (deleted media, overwritten

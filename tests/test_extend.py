@@ -71,6 +71,7 @@ def test_extend_station_is_dispatched() -> None:
 def test_extend_draft_qc_gate() -> None:
     from backend.stations.extend.run import (
         FLICKER_GATE,
+        FLICKER_SPIKE_GATE,
         draft_qc_decision,
         resolution_for_tier,
     )
@@ -80,6 +81,12 @@ def test_extend_draft_qc_gate() -> None:
     assert draft_qc_decision(0.0199) == "pass"
     assert draft_qc_decision(0.02) == "needs_human"
     assert draft_qc_decision(0.5) == "needs_human"
+    # 2026-09-09 demo: a real, localized single-frame corruption scored
+    # ~0.005 mean (well under gate) — the whole-clip average dilutes one
+    # bad frame across dozens of clean ones. The worst-frame spike must
+    # still gate it even when the mean alone would pass.
+    assert draft_qc_decision(0.003, spike=0.003) == "pass"
+    assert draft_qc_decision(0.003, spike=FLICKER_SPIKE_GATE) == "needs_human"
     assert resolution_for_tier("draft") == "360p"
     assert resolution_for_tier("master") == "720p"
     assert resolution_for_tier("") == "360p"

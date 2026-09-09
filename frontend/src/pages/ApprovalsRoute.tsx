@@ -105,7 +105,7 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
   if (backend === "checking") {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Checking for items that need your approval…
+        Checking for items that need your decision…
       </p>
     );
   }
@@ -115,8 +115,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       <section className="mx-auto max-w-3xl px-6 py-10">
         <EmptyState
           glyph="◎"
-          title="Approvals are unavailable"
-          body="The service is unavailable, so approval items cannot be loaded."
+          title="Decisions are unavailable"
+          body="The service is unavailable, so decisions cannot be loaded."
         />
       </section>
     );
@@ -133,7 +133,7 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
   if (query.isPending) {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Loading approval requests…
+        Loading decisions…
       </p>
     );
   }
@@ -147,8 +147,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       <section className="mx-auto max-w-3xl px-6 py-10">
         <EmptyState
           glyph="◎"
-          title="No approval requests"
-          body="When Martini Shot needs you to approve a change, it will appear here with the reason and estimated cost."
+          title="No pending decisions"
+          body="When Martini Shot needs you to decide on a change, it will appear here with the reason and estimated cost."
         />
       </section>
     );
@@ -162,8 +162,8 @@ export default function ApprovalsRoute({ backend }: ApprovalsRouteProps) {
       className="mx-auto max-w-3xl space-y-4 px-6 py-8"
     >
       <header>
-          <p className={`font-mono text-xs uppercase tracking-widest ${actionable.length > 0 ? "text-tungsten" : "text-ink-muted"}`}>{actionable.length > 0 ? "Needs your decision" : "Approval history"}</p>
-          <h1 className="mt-1 text-2xl text-ink">Approvals</h1>
+          <p className={`font-mono text-xs uppercase tracking-widest ${actionable.length > 0 ? "text-tungsten" : "text-ink-muted"}`}>{actionable.length > 0 ? "Needs your decision" : "Decision history"}</p>
+          <h1 className="mt-1 text-2xl text-ink">Decisions</h1>
           <p className="mt-2 max-w-xl text-sm text-ink-muted">{actionable.length > 0 ? "Review the reason and evidence, then approve or reject the work waiting for your decision." : "Nothing needs your decision right now. Previous decisions remain available below."}</p>
       </header>
       {actionable.map((item) => (

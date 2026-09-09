@@ -65,7 +65,7 @@ messages from ingest/handoff. THINK:
 - Empty notes are attendance holes, not work. ok / leave-it notes are not
   candidates — never turn them into jobs.
 - kind=defect is required. Spend it before kind=improvement (nice-to-have).
-- When the envelope is tight, drop low improvements first. Dropped work waits.
+- When the budget is tight, drop low improvements first. Dropped work waits.
 - Spend never becomes a picture job. Mix and pickups already ran.
 
 IDs are "station::shot_id". Return JSON only.

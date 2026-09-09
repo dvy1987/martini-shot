@@ -186,6 +186,76 @@ class FFmpeg:
         if result.returncode != 0:
             raise RuntimeError(f"reassembly failed: {result.stderr[:400]!r}")
 
+    def split_segments(
+        self, path: Path | str, out_dir: Path | str, max_seconds: float
+    ) -> list[Path]:
+        """Split a clip into <=max_seconds segments of even length (real
+        per-segment re-encode, not a keyframe-slop stream copy — Omni's
+        edit task rejects the whole clip once total duration exceeds its
+        server-side cap, so each piece must land under the limit exactly)."""
+        path = Path(path)
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        duration_s = float(self.probe(path).get("duration_s") or 0.0)
+        if duration_s <= 0:
+            raise RuntimeError(f"cannot split {path.name}: unknown duration")
+        count = max(1, math.ceil(duration_s / max_seconds))
+        segment_len = duration_s / count
+        segments: list[Path] = []
+        for index in range(count):
+            start = index * segment_len
+            length = segment_len if index < count - 1 else duration_s - start
+            out_path = out_dir / f"segment-{index:02d}{path.suffix}"
+            result = self._run(
+                [
+                    self.ffmpeg_bin,
+                    "-v",
+                    "error",
+                    "-y",
+                    "-ss",
+                    f"{start:.3f}",
+                    "-i",
+                    str(path),
+                    "-t",
+                    f"{length:.3f}",
+                    str(out_path),
+                ],
+                timeout=300,
+            )
+            if result.returncode != 0 or not out_path.exists():
+                raise RuntimeError(f"segment split failed: {result.stderr[:400]!r}")
+            segments.append(out_path)
+        return segments
+
+    def concat_videos(self, paths: list[Path], out_path: Path | str) -> None:
+        """Reassemble sequential clips into one (concat FILTER, which
+        re-encodes, not the concat demuxer's stream copy — separate Omni
+        renders are not guaranteed to share identical encode parameters)."""
+        if not paths:
+            raise ValueError("no segments to concat")
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        if len(paths) == 1:
+            out_path.write_bytes(Path(paths[0]).read_bytes())
+            return
+        has_audio = all(bool(self.probe(p).get("has_audio")) for p in paths)
+        args = [self.ffmpeg_bin, "-v", "error", "-y"]
+        for p in paths:
+            args += ["-i", str(p)]
+        n = len(paths)
+        if has_audio:
+            filter_parts = "".join(f"[{i}:v:0][{i}:a:0]" for i in range(n))
+            filter_complex = f"{filter_parts}concat=n={n}:v=1:a=1[outv][outa]"
+            maps = ["-map", "[outv]", "-map", "[outa]"]
+        else:
+            filter_parts = "".join(f"[{i}:v:0]" for i in range(n))
+            filter_complex = f"{filter_parts}concat=n={n}:v=1:a=0[outv]"
+            maps = ["-map", "[outv]"]
+        args += ["-filter_complex", filter_complex, *maps, str(out_path)]
+        result = self._run(args, timeout=300)
+        if result.returncode != 0 or not out_path.exists():
+            raise RuntimeError(f"concat failed: {result.stderr[:400]!r}")
+
     def loudness_report(self, path: Path | str) -> dict[str, float]:
         """Integrated LUFS, LRA, and true-peak from the ebur128 filter."""
         result = self._run(
@@ -249,12 +319,20 @@ class FFmpeg:
             timeout=300,
         )
         stderr = result.stderr.decode("utf-8", "replace")
+        # ffmpeg prints one running "I: ... LUFS" line per analysis frame
+        # (the earliest of which is just ebur128's pre-convergence floor,
+        # e.g. -70.0) before the final "Summary: Integrated loudness" line.
+        # Keep the LAST match, not the first, or every band reads as an
+        # arbitrary near-silent floor instead of the true measured level.
+        measured: float | None = None
         for line in stderr.splitlines():
             if "I:" in line and "LUFS" in line:
                 value = _ebur_number(line, "I:", "LUFS")
                 if value is not None:
-                    return value
-        raise RuntimeError(f"band ebur128 not parsed: {stderr[-400:]!r}")
+                    measured = value
+        if measured is None:
+            raise RuntimeError(f"band ebur128 not parsed: {stderr[-400:]!r}")
+        return measured
 
     def lift_speech_over_room(
         self,

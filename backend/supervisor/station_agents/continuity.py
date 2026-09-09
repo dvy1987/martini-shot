@@ -121,7 +121,7 @@ def build_prompt(job: dict[str, Any], alternates_context: dict[str, Any]) -> str
     return (
         "You are the Continuity agent for Martini Shot. One job was flagged "
         "for continuity review; decide the safe action. The Post Supervisor "
-        "may dispatch add/remove from the cut inside the night envelope — "
+        "may dispatch add/remove from the cut inside the night budget — "
         "a human is not required.\n\n"
         f"Job:\n- station: {job.get('station')}\n"
         f"- job_id: {job.get('id')}\n"

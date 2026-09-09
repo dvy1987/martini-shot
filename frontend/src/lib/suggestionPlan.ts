@@ -58,6 +58,28 @@ function leftoverAttendance(notes: readonly InspectNote[]): InspectNote[] {
   return notes.filter((row) => isLeftoverStation(row.station) && row.status !== "empty");
 }
 
+const IMPACT_RANK: Record<InspectNote["impact"], number> = {
+  high: 0,
+  medium: 1,
+  low: 2,
+  none: 3,
+};
+
+export interface RawSuggestionGroup {
+  station: string;
+  notes: InspectNote[];
+}
+
+export function groupRawSuggestions(notes: readonly InspectNote[]): RawSuggestionGroup[] {
+  const leftover = leftoverAttendance(notes);
+  return LEFTOVER_STATIONS.flatMap((station) => {
+    const rows = leftover
+      .filter((row) => row.station === station)
+      .sort((left, right) => IMPACT_RANK[left.impact] - IMPACT_RANK[right.impact]);
+    return rows.length > 0 ? [{ station, notes: rows }] : [];
+  });
+}
+
 function leftoverItems(items: readonly WorklistItem[]): WorklistItem[] {
   return items.filter((item) => isLeftoverStation(item.station));
 }

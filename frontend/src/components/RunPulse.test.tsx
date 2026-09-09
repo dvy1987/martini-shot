@@ -57,6 +57,16 @@ describe("RunPulseStrip", () => {
     expect(screen.queryByRole("heading", { name: /grafana watch/i })).not.toBeInTheDocument();
   });
 
+  it("gives the four facts their own cards instead of one packed grid", () => {
+    render(<RunPulseStrip pulse={pulse} />);
+    const cards = screen.getAllByRole("article");
+    expect(cards).toHaveLength(4);
+    expect(screen.getByRole("heading", { name: /house health/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^spend$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /time left/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /what already ran/i })).toBeInTheDocument();
+  });
+
   it("jumps to the expensive job when asked", () => {
     const onJumpToJob = vi.fn();
     render(<RunPulseStrip pulse={pulse} onJumpToJob={onJumpToJob} />);

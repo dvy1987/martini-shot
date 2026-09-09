@@ -91,7 +91,7 @@ describe("TimelineRoute investigation flow", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the alternates lane from the real project shots endpoint", async () => {
+  it("points bespoke shot edits at the Studio tab instead of listing them here", async () => {
     mockBoard();
     vi.mocked(listProjectShots).mockResolvedValue([
       {
@@ -114,9 +114,33 @@ describe("TimelineRoute investigation flow", () => {
     ]);
     renderRoute();
 
-    expect(await screen.findByText(/Scene 12 — chaser/)).toBeInTheDocument();
-    expect(await screen.findByText(/draft/i)).toBeInTheDocument();
-    expect(listProjectShots).toHaveBeenCalledWith("project-1");
+    expect(await screen.findByRole("link", { name: /open studio/i })).toHaveAttribute(
+      "href",
+      "/changes",
+    );
+    expect(screen.queryByText(/Scene 12 — chaser/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /new versions/i })).not.toBeInTheDocument();
+    expect(listProjectShots).not.toHaveBeenCalled();
+  });
+
+  it("places Studio and Suggestions below the final cut", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      project_id: "project-1",
+      budget_micros: 5_000_000,
+      spent_micros: 0,
+      status: "inspecting",
+      attendance: [],
+      items: [],
+      final_refs: [],
+      original_refs: [],
+    });
+    renderRoute();
+    const finalCut = await screen.findByRole("region", { name: /^final cut$/i });
+    const studio = await screen.findByRole("link", { name: /open studio/i });
+    const suggestions = await screen.findByRole("link", { name: /open suggestions/i });
+    expect(finalCut.compareDocumentPosition(studio) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(studio.compareDocumentPosition(suggestions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("names house-order stages on current progress and hides a missing work plan", async () => {
@@ -246,5 +270,45 @@ describe("TimelineRoute investigation flow", () => {
     renderRoute();
     expect(await screen.findByRole("button", { name: /in progress: job-1/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /complete: job-foreign/i })).not.toBeInTheDocument();
+  });
+
+  it("hides extra work detail under current progress until the chevron is opened", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      project_id: "project-1",
+      budget_micros: 50_000_000,
+      spent_micros: 80_000,
+      status: "running",
+      attendance: [],
+      items: [
+        {
+          id: "loud",
+          station: "loudness",
+          status: "passed",
+          impact: "high",
+          kind: "defect",
+          summary: "unhearable",
+        },
+      ],
+      final_refs: [],
+      original_refs: [],
+    });
+    renderRoute();
+    expect(await screen.findByText(/current progress/i)).toBeInTheDocument();
+    const toggle = await screen.findByRole("button", { name: /more detail about this run/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText(/unhearable/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/work martini shot is running/i)).not.toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(await screen.findByText(/unhearable/i)).toBeInTheDocument();
+    expect(screen.queryByText(/work martini shot is running/i)).not.toBeInTheDocument();
+  });
+
+  it("labels the board Wrap it up instead of Season timeline", async () => {
+    mockBoard();
+    renderRoute();
+    expect(await screen.findByText(/wrap it up/i)).toBeInTheDocument();
+    expect(screen.queryByText(/season timeline/i)).not.toBeInTheDocument();
   });
 });

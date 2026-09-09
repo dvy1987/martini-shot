@@ -1,6 +1,48 @@
 # Agent Handoffs
 
-## 2026-09-09 10:02 - Commit/push requested; tree already on origin
+## 2026-09-09 12:14 - Operator cockpit: Agent Notes, Decisions, Changes, Omni 10s bound
+
+### Done
+- **Timeline table:** dropped recycled stage blurbs. New **What changed** column + **Agent Notes** (plain-language modal, no question headings). Progress-rail blurbs stay.
+- **Station prompts:** every `station.*` Gemini call appends `OPERATOR_NOTES_RULE` (`base.with_operator_notes` via `run_agent_call`). Reason must cover problem / ignored / fixed / failed-or-did-not-fail without those phrases as labels.
+- **Analytics:** four this-run facts are separate taller cards (24px gutters), not a zero-gap mosaic.
+- **Copy:** operator “envelope” → **budget** (“Fits the budget”). Tab **Approvals** → **Decisions** (`/decisions`; `/approvals` redirects). Home tab **Central station**. Timeline eyebrow **Wrap it up**.
+- **Studio** tab (`/changes`, nav label Studio): shot/script/relight/coverage/camera/revision controls moved off Timeline.
+- **Final cut:** one slot per original clip; fills latest After when the orchestrator stops; table can swap After into the slot.
+- **Current progress:** per-stage green/yellow/red on the top edge only; a leftover fail no longer zeros the rail. Ranked work hides behind a nameless chevron.
+- **Suggestions:** raw notes last, grouped by station, Delivery last; clip names on leftover rows.
+- **Omni 10s cap (demo miss):** `omni_edit_bounded` splits clips longer than 10s, edits each segment in sequence, ffmpeg-reassembles. Wired through relight/corrections/coverage/camera. Pickups/loudness test coverage expanded.
+
+### Debated
+- Agent Notes as four labeled questions vs one flowing note — owner: flowing; stations still must address the four facts.
+- Grafana-style tiled Analytics cards — owner: too crowded; split into independent cards.
+
+### Decisions
+- Product language: **budget**, not envelope; **Decisions**, not Approvals. API `/api/v1/approvals` unchanged.
+- Product still Omni-first then Veo. Eval/dev: Veo-finished rows are not an Omni pass (decision-log).
+- Relight (and other Omni edits) on clips >10s must chunk; do not fail the operator on the 10s server cap.
+
+### Deferred
+- Publish Cloud Run + Replit so the live site matches this tree. Ask before deploy.
+- New station notes on **already-finished** jobs stay frontend-stitched until those jobs re-run on a deployed backend.
+- `make check` coverage still below 90%.
+
+### Next Agent Should Know
+- Do not restore “Fits the envelope” or an Approvals tab. Approve/Reject buttons remain the yes/no verbs on Decisions.
+- `_tmp_frames/` and `scripts/_tmp_*` were left untracked on purpose — do not commit.
+- Live storm-breaking clip 3 relight failed on 14s>10s; bounded edit is the product fix. Clip 1 loudness still mixed up, not storm-over-voices; Agent Notes is how the operator sees that.
+
+### Revisit Triggers
+- Owner still sees envelope/Approvals or packed Analytics tiles → published site lags this commit (deploy).
+- Omni edit on a >10s clip still 400s on duration → confirm Cloud Run has `omni_edit_bounded`.
+- Agent Notes empty/thin on old jobs → expected until re-run.
+
+### Working Tree
+- Committing this batch onto `main` (was dirty vs `4571ffa` / `9a21203`).
+
+### Graph
+- Incremental graph build skipped (known hang on `build_graph.py --incremental`).
+
 
 ### Done
 - Owner asked to commit and push **all** uncommitted work (not only this thread).

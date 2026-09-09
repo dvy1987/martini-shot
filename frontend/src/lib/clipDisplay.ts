@@ -1,5 +1,5 @@
 import { stationRank } from "@/lib/stations";
-import type { Job, JobClip, JobStatus } from "@/types/api";
+import type { Job, JobClip, JobStatus, ShotRow } from "@/types/api";
 
 export type AfterState = "pending" | "no_change" | "clip";
 export type BeforeState = "none" | "clip";
@@ -26,6 +26,24 @@ export function clipName(job: Pick<Job, "job_id" | "input_refs">): string {
   const ref = job.input_refs[0] ?? "";
   const name = ref.replaceAll("\\", "/").split("/").pop() ?? "";
   return name || job.job_id;
+}
+
+export function clipNameFromShot(
+  shotId: string | undefined,
+  shots: readonly Pick<ShotRow, "shot_id" | "title">[],
+): string {
+  if (!shotId) return "";
+  const shot = shots.find((row) => row.shot_id === shotId);
+  const title = shot?.title?.trim() ?? "";
+  if (!title) return "";
+  return clipName({ job_id: "", input_refs: [title] });
+}
+
+export function suggestionShotId(item: { shot_id?: string; id?: string }): string | undefined {
+  if (item.shot_id) return item.shot_id;
+  const id = item.id ?? "";
+  const at = id.indexOf("::");
+  return at >= 0 ? id.slice(at + 2) || undefined : undefined;
 }
 
 export function afterState(job: Job): AfterState {

@@ -376,6 +376,83 @@ def test_station_mixes_a_quiet_dub_instead_of_flagging(
     assert out.cost_micros == 1200
 
 
+def test_run_loudness_hard_gates_the_lift_when_a_storm_buries_the_agent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """2026-09-09 demo miss: a storm bed sits low/broadband, not in the
+    'music' band, so stem_diagnosis used to read 'balanced' and the agent
+    (listening or not) chose apply_limiter. The station must lift the
+    voice over the room ANYWAY once the room band says the ambience is
+    hot — the agent's decision is advisory, the gate is not."""
+    media = _media()
+    src = tmp_path / "storm.wav"
+    result = media._run(
+        [
+            media.ffmpeg_bin,
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=80:duration=3",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=1000:duration=3",
+            "-filter_complex",
+            "[0]volume=0dB[storm];[1]volume=-16dB[line];"
+            "[storm][line]amix=inputs=2:duration=shortest",
+            str(src),
+        ],
+        timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr[:400])
+    wav = src.read_bytes()
+    before_gap = media.band_lufs(src, 300, 3000) - media.band_lufs(src, 20, 300)
+    gcs = _MemGCS({"gs://b/e3/ep-01.mp4": wav})
+
+    def fake_decide_apply_limiter(_settings: Any, **_kwargs: Any) -> tuple[Any, int]:
+        from backend.supervisor.station_agents.base import StationDecision
+
+        return (
+            StationDecision(
+                agent="loudness_strategy",
+                decision="apply_limiter",
+                reason="integrated level low; raise toward talk baseline",
+                confidence="high",
+                deterministic_advice="apply_limiter",
+                overridden=False,
+                raw={"scene_class": "normal-with-dialogue", "target_lufs": -16.0},
+            ),
+            900,
+        )
+
+    monkeypatch.setattr(
+        "backend.supervisor.station_agents.loudness_strategy.decide_loudness_strategy",
+        fake_decide_apply_limiter,
+    )
+    job = Job(
+        station="loudness",
+        project_id="batch",
+        input_refs=["gs://b/e3/ep-01.mp4"],
+        id="job-storm",
+        result={"shot_id": "shot-storm"},
+    )
+    settings = get_settings()
+    out = run_loudness(job, gcs, media, store=None, settings=settings)
+    # The hard gate fired even though the agent picked apply_limiter.
+    assert out.result["lift_speech"] is True
+    assert out.result["mixed"] is True
+    assert gcs.uploads, "the lifted/mixed audio must actually be written"
+    # Post-lift, dialogue closed meaningfully on the room band (it was
+    # buried by ~13 LU before the gate fired).
+    after_gap = out.result["dialogue_band_lufs"] - out.result["room_band_lufs"]
+    assert after_gap > before_gap + 5.0
+
+
 def _band_rms(media: FFmpeg, path: Path, highpass_hz: int, lowpass_hz: int) -> float:
     result = media._run(
         [

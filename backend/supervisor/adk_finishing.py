@@ -93,7 +93,7 @@ Hard rails you never break:
 - Name dependencies. Two generative picture edits on the same shot must
   wait on each other. Independent clips may run together. Dub before
   packing captions on the same language when both are work.
-- When the envelope is tight, drop low improvements first. They wait.
+- When the budget is tight, drop low improvements first. They wait.
 - you cannot invent a station, a cost, or a command.
 - spend never becomes a picture job.
 

@@ -82,19 +82,14 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
     .filter((item) => item.status === "waiting")
     .map((item) => item.id);
   return (
-    <section className="mt-6 rounded-md border border-line bg-surface-1">
-      <header className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-4 py-3">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-          Work Martini Shot is running
-        </h2>
-        <p className="font-mono text-xs text-ink-muted">
-          {statusLabel(worklist.status)} · budget {cost(worklist.budget_micros)} · spent {" "}
-          {cost(worklist.spent_micros)}
-        </p>
-        {worklist.rank_reason ? (
-          <p className="basis-full text-sm text-ink">{worklist.rank_reason}</p>
-        ) : null}
-      </header>
+    <section className="rounded-md border border-line bg-surface-2/40">
+      <p className="border-b border-line px-4 py-2 font-mono text-xs text-ink-muted">
+        {statusLabel(worklist.status)} · budget {cost(worklist.budget_micros)} · spent{" "}
+        {cost(worklist.spent_micros)}
+      </p>
+      {worklist.rank_reason ? (
+        <p className="border-b border-line px-4 py-2 text-sm text-ink">{worklist.rank_reason}</p>
+      ) : null}
       {worklist.items.length > 0 ? (
         <table className="w-full border-collapse text-left">
           <thead className="bg-surface-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
@@ -181,32 +176,6 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
             : "No optional improvements have been selected yet."}
         </p>
       )}
-      {worklist.attendance.length > 0 ? (
-        <table className="w-full border-collapse border-t border-line text-left">
-          <thead className="bg-surface-2 font-mono text-xs uppercase tracking-wider text-ink-muted">
-            <tr>
-              <th className="border-b border-line px-4 py-2 font-normal">Area checked</th>
-              <th className="border-b border-line px-4 py-2 font-normal">What it found</th>
-              <th className="border-b border-line px-4 py-2 font-normal">Importance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {worklist.attendance.map((row, index) => (
-              <tr key={`${row.station}-${row.shot_id ?? ""}-${index}`}>
-                <td className="border-b border-line px-4 py-2 font-mono text-xs text-ink-muted">
-                  {stationLabel(row.station)}
-                </td>
-                <td className="border-b border-line px-4 py-2 text-sm text-ink">
-                  {row.status === "empty" ? "" : row.summary}
-                </td>
-                <td className="border-b border-line px-4 py-2 font-mono text-xs text-ink-muted">
-                  {row.status === "empty" ? "" : row.impact}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : null}
     </section>
   );
 }

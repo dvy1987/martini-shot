@@ -1,31 +1,33 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getWorklist } from "@/api/endpoints";
+import { getWorklist, listProjectShots } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
+import { clipNameFromShot, suggestionShotId } from "@/lib/clipDisplay";
 import { isNotFound } from "@/lib/errors";
 import { cost } from "@/lib/formatters";
 import { stationName } from "@/lib/stations";
-import { buildSuggestionPlan, type RankedSuggestion } from "@/lib/suggestionPlan";
-import type { BackendReach, InspectNote, Worklist } from "@/types/api";
+import {
+  buildSuggestionPlan,
+  groupRawSuggestions,
+  type RankedSuggestion,
+} from "@/lib/suggestionPlan";
+import type { BackendReach, ShotRow, Worklist } from "@/types/api";
 
 interface SuggestionsRouteProps {
   backend: BackendReach;
   selectedProjectId: string | null;
 }
 
-function impactLabel(impact: InspectNote["impact"]): string {
-  if (impact === "none") return "";
-  return ` · ${impact} impact`;
-}
-
 function RankedRow({
   row,
   faded,
   fitLabel,
+  clip,
 }: {
   row: RankedSuggestion;
   faded: boolean;
   fitLabel: string;
+  clip: string;
 }) {
   const spentDiffers =
     row.actualMicros != null && row.actualMicros !== row.estimateMicros;
@@ -45,6 +47,7 @@ function RankedRow({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <span className="font-mono text-xs uppercase text-ink">
               {stationName(row.item.station)}
+              {clip ? <span className="normal-case tracking-normal text-ink-muted"> · {clip}</span> : null}
             </span>
             <span className="font-mono text-xs tabular-nums text-ink-muted">
               {spentDiffers
@@ -74,8 +77,17 @@ export default function SuggestionsRoute({
     enabled: backend === "up" && selectedProjectId !== null,
     retry: false,
   });
+  const shotsQuery = useQuery({
+    queryKey: ["shots", selectedProjectId],
+    queryFn: () => listProjectShots(selectedProjectId ?? ""),
+    enabled: backend === "up" && selectedProjectId !== null,
+    retry: false,
+  });
   const worklist: Worklist | null = worklistQuery.data ?? null;
+  const shots: readonly ShotRow[] = shotsQuery.data ?? [];
   const plan = buildSuggestionPlan(worklist);
+  const rawGroups = groupRawSuggestions(worklist?.attendance ?? []);
+  const clipFor = (shotId: string | undefined) => clipNameFromShot(shotId, shots);
 
   if (backend === "checking") {
     return (
@@ -144,37 +156,11 @@ export default function SuggestionsRoute({
         />
       ) : null}
 
-      {plan.stage === "collecting" ? (
-        <article className="border border-line bg-surface-1">
-          <header className="border-b border-line px-5 py-4">
-            <h2 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-              Incoming suggestions
-            </h2>
-            <p className="mt-1 text-sm text-ink-muted">
-              Stations are looking at the updated clips. This list grows as each station reports.
-            </p>
-          </header>
-          {plan.incoming.length === 0 ? (
-            <p className="px-5 py-6 text-sm text-ink-muted">No leftover suggestions yet.</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {plan.incoming.map((row, index) => (
-                <li key={`${row.station}-${row.shot_id ?? "project"}-${index}`} className="px-5 py-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <span className="font-mono text-xs uppercase text-ink">{stationName(row.station)}</span>
-                    <span className="font-mono text-xs tabular-nums text-tungsten">
-                      {cost(row.cost_estimate_micros)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    {row.summary}
-                    {impactLabel(row.impact)}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
+      {plan.stage === "collecting" && rawGroups.length === 0 ? (
+        <p className="border border-line bg-surface-1 px-5 py-6 text-sm text-ink-muted">
+          Stations are looking at the updated clips. Raw suggestions will land here, grouped by
+          agent station.
+        </p>
       ) : null}
 
       {plan.stage === "ranked" ? (
@@ -196,19 +182,73 @@ export default function SuggestionsRoute({
             {plan.ranked
               .filter((row) => row.fit === "in_budget")
               .map((row) => (
-                <RankedRow key={row.item.id} row={row} faded={false} fitLabel="Fits the envelope" />
+                <RankedRow
+                  key={row.item.id}
+                  row={row}
+                  faded={false}
+                  fitLabel="Fits the budget"
+                  clip={clipFor(suggestionShotId(row.item))}
+                />
               ))}
             {plan.cutoffAfterRank !== null ? (
               <li className="border-y border-dashed border-tungsten bg-surface-2 px-5 py-3 font-mono text-[10px] uppercase tracking-wider text-tungsten">
-                Estimated cutoff — work below this line waits until the envelope has room.
+                Estimated cutoff — work below this line waits until the budget has room.
               </li>
             ) : null}
             {plan.ranked
               .filter((row) => row.fit === "below_cutoff")
               .map((row) => (
-                <RankedRow key={row.item.id} row={row} faded fitLabel="Below cutoff" />
+                <RankedRow
+                  key={row.item.id}
+                  row={row}
+                  faded
+                  fitLabel="Below cutoff"
+                  clip={clipFor(suggestionShotId(row.item))}
+                />
               ))}
           </ol>
+        </article>
+      ) : null}
+
+      {rawGroups.length > 0 ? (
+        <article className="border border-line bg-surface-1">
+          <header className="border-b border-line px-5 py-4">
+            <h2 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+              Agent Stations
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Raw suggestions from leftover stations, before the budget rank. Delivery is last.
+            </p>
+          </header>
+          {rawGroups.map((group) => (
+            <section key={group.station} className="border-b border-line last:border-0">
+              <h3 className="bg-surface-2 px-5 py-3 font-mono text-xs uppercase tracking-wider text-ink">
+                {stationName(group.station)}
+              </h3>
+              <table className="w-full border-collapse text-left">
+                <thead className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+                  <tr>
+                    <th className="border-b border-line px-5 py-2 font-normal">Clip</th>
+                    <th className="border-b border-line px-5 py-2 font-normal">What it found</th>
+                    <th className="border-b border-line px-5 py-2 font-normal">Importance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.notes.map((row, index) => (
+                    <tr key={`${row.station}-${row.shot_id ?? "project"}-${index}`}>
+                      <td className="border-b border-line px-5 py-3 font-mono text-xs text-ink">
+                        {clipFor(row.shot_id) || "—"}
+                      </td>
+                      <td className="border-b border-line px-5 py-3 text-sm text-ink">{row.summary}</td>
+                      <td className="border-b border-line px-5 py-3 font-mono text-xs uppercase text-ink-muted">
+                        {row.impact}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          ))}
         </article>
       ) : null}
     </section>

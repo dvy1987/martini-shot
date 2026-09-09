@@ -94,6 +94,10 @@ def run_agent_call(
     response_schema enables typed JSON output (responseMimeType application/json).
     audio = (bytes, mime_type) attaches inline media (e.g. a dub WAV the
     agent must listen to) — same metered call, multimodal contents."""
+    if span_name.startswith("station."):
+        from backend.supervisor.station_agents.base import with_operator_notes
+
+        prompt = with_operator_notes(prompt)
     if instrument:
         instrument_genai()
     from google import genai

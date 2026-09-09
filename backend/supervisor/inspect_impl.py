@@ -52,7 +52,7 @@ _SPECIALTY = {
         "Captions that exist but bury the line or miss a beat are medium."
     ),
     "spend": (
-        "Envelope only. Never propose picture, sound, or editorial work. "
+        "Budget only. Never propose picture, sound, or editorial work. "
         "ok unless the house is already over cap."
     ),
     "pickups": (

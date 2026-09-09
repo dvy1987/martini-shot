@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import { getProject, listApprovals, listProjects, projectEventsUrl } from "@/api/endpoints";
 import CommandPalette from "@/components/CommandPalette";
@@ -15,6 +15,7 @@ import { jobFromSseEvent, jobsForProject, upsertJob } from "@/lib/timeline";
 import { pickProjectId } from "@/lib/projectSelection";
 import AnalyticsRoute from "@/pages/AnalyticsRoute";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
+import ChangesRoute from "@/pages/ChangesRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
 import SuggestionsRoute from "@/pages/SuggestionsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
@@ -195,12 +196,19 @@ export default function App() {
         <Routes>
           <Route path="/" element={timeline} />
           <Route
+            path="/changes"
+            element={
+              <ChangesRoute backend={backend} selectedProjectId={selectedProjectId} />
+            }
+          />
+          <Route
             path="/suggestions"
             element={
               <SuggestionsRoute backend={backend} selectedProjectId={selectedProjectId} />
             }
           />
-          <Route path="/approvals" element={<ApprovalsRoute backend={backend} />} />
+          <Route path="/approvals" element={<Navigate to="/decisions" replace />} />
+          <Route path="/decisions" element={<ApprovalsRoute backend={backend} />} />
           <Route
             path="/analytics"
             element={

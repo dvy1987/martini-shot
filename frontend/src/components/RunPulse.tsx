@@ -28,12 +28,14 @@ export default function RunPulseStrip({
       <section
         aria-busy="true"
         aria-label="Loading this run"
-        className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3"
+        className="space-y-6"
       >
-        <div className="h-3 w-24 rounded-sm bg-surface-2" />
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <div className="h-12 rounded-sm bg-surface-2" />
-          <div className="h-12 rounded-sm bg-surface-2" />
+        <div className="h-3 w-64 rounded-sm bg-surface-2" />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="min-h-52 rounded-md border border-line bg-surface-1" />
+          <div className="min-h-52 rounded-md border border-line bg-surface-1" />
+          <div className="min-h-52 rounded-md border border-line bg-surface-1" />
+          <div className="min-h-52 rounded-md border border-line bg-surface-1" />
         </div>
       </section>
     );
@@ -41,9 +43,9 @@ export default function RunPulseStrip({
 
   if (errorMessage && !pulse) {
     return (
-      <section className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3">
+      <section className="rounded-md border border-line bg-surface-1 px-5 py-6">
         <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">This run</h2>
-        <p className="mt-2 text-sm text-ink-muted">{errorMessage}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-muted">{errorMessage}</p>
       </section>
     );
   }
@@ -55,40 +57,46 @@ export default function RunPulseStrip({
   const briefing = buildRunBriefing(pulse);
 
   return (
-    <section aria-labelledby="run-pulse-heading" className="mb-5 rounded-md border border-line bg-surface-1">
-      <header className="border-b border-line px-4 py-3">
+    <section aria-labelledby="run-pulse-heading" className="space-y-8">
+      <header>
         <h2 id="run-pulse-heading" className="sr-only">
           {briefing.title}
         </h2>
-        <p className="text-sm text-ink-muted">{briefing.sourceLine}</p>
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">{briefing.sourceLine}</p>
       </header>
-      <dl className="grid gap-0 sm:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-2">
         {briefing.sections.map((section) => (
-          <div
+          <article
             key={section.id}
-            className="border-b border-line px-4 py-3 sm:odd:border-r"
+            aria-labelledby={`pulse-${section.id}`}
+            className="flex min-h-52 flex-col rounded-md border border-line bg-surface-1 px-5 py-6"
           >
-            <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">{section.title}</dt>
-            <dd className={`mt-1 text-sm ${toneClass(section.tone)}`}>{section.meaning}</dd>
-            <p className="mt-1 text-sm text-ink">{section.detail}</p>
+            <h3
+              id={`pulse-${section.id}`}
+              className="font-mono text-[10px] uppercase tracking-wider text-ink-muted"
+            >
+              {section.title}
+            </h3>
+            <p className={`mt-4 text-lg leading-snug ${toneClass(section.tone)}`}>{section.meaning}</p>
+            <p className="mt-4 flex-1 text-sm leading-relaxed text-ink">{section.detail}</p>
             {section.id === "spend" && pulse.burn.top[0] && onJumpToJob ? (
               <button
                 type="button"
                 onClick={() => onJumpToJob(pulse.burn.top[0]?.job_id ?? "")}
-                className="mt-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                className="mt-5 self-start font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
               >
                 Open the expensive job
               </button>
             ) : null}
-          </div>
+          </article>
         ))}
-      </dl>
+      </div>
       {briefing.actions.length > 0 ? (
-        <div className="border-t border-line px-4 py-3">
+        <div className="rounded-md border border-line bg-surface-1 px-5 py-6">
           <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Automatic actions</h3>
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-4 space-y-4">
             {briefing.actions.map((item, index) => (
-              <li key={`${item.kind}-${item.jobId ?? index}`} className="text-sm text-ink">
+              <li key={`${item.kind}-${item.jobId ?? index}`} className="text-sm leading-relaxed text-ink">
                 <p>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-agent">{item.label}</span>{" "}
                   {item.text}
@@ -97,7 +105,7 @@ export default function RunPulseStrip({
                   <button
                     type="button"
                     onClick={() => onJumpToJob(item.jobId ?? "")}
-                    className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                    className="mt-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
                   >
                     Open on Timeline
                   </button>
@@ -107,12 +115,12 @@ export default function RunPulseStrip({
           </ul>
         </div>
       ) : null}
-      <div className="border-t border-line px-4 py-3">
+      <div className="rounded-md border border-line bg-surface-1 px-5 py-6">
         <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Jobs this run</h3>
         {(pulse.jobs ?? []).length === 0 ? (
-          <p className="mt-2 text-sm text-ink-muted">No jobs on this project yet.</p>
+          <p className="mt-4 text-sm leading-relaxed text-ink-muted">No jobs on this project yet.</p>
         ) : (
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-4 space-y-3">
             {(pulse.jobs ?? []).map((row) => {
               const meta = statusMetaOrUnknown(row.status);
               const stage = stationName(row.station);
@@ -123,7 +131,7 @@ export default function RunPulseStrip({
                       type="button"
                       aria-label={`${stage} · ${row.clip}`}
                       onClick={() => onJumpToJob(row.job_id)}
-                      className="flex w-full items-baseline justify-between gap-3 text-left text-sm text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                      className="flex w-full items-baseline justify-between gap-4 text-left text-sm text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
                     >
                       <span className="min-w-0 truncate">
                         <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
@@ -136,7 +144,7 @@ export default function RunPulseStrip({
                       </span>
                     </button>
                   ) : (
-                    <p className="flex items-baseline justify-between gap-3 text-sm text-ink">
+                    <p className="flex items-baseline justify-between gap-4 text-sm text-ink">
                       <span className="min-w-0 truncate">
                         <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
                           {stage}

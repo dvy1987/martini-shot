@@ -28,6 +28,12 @@ from backend.supervisor.station_agents.pickups_vision_qc import decide_pickups_v
 
 STATION = "pickups"
 FLICKER_THRESHOLD = 0.18
+# Hard gate (not judge-only): 2026-09-09 demo — a real, visually-confirmed
+# single-frame corruption scored ~0.005 mean (well under 0.18) because the
+# whole-clip average dilutes one bad frame across dozens of clean ones.
+# spike_score is the worst single frame; clean clips measured ~0.0003-0.01
+# here, the real defect ~0.032 — 0.02 sits between the two with margin.
+FLICKER_SPIKE_THRESHOLD = 0.02
 MICROS_PER_FRAME = 0  # identity extract is unbilled; repairs meter separately
 
 JudgeFn = Callable[..., tuple[Any, int]]
@@ -102,11 +108,15 @@ def run_pickups(
                     folder.mkdir()
                     frames, score = _measure(payload, folder, media)
                     flicker = float(score.get("flicker_score") or 1.0)
+                    spike = float(score.get("spike_score") or 0.0)
+                    spike_breach = spike >= FLICKER_SPIKE_THRESHOLD
                     record_flicker(STATION, flicker)
                     images = sample_frame_images(frames)
                     report = {
                         "flicker": flicker,
                         "threshold": FLICKER_THRESHOLD,
+                        "spike": spike,
+                        "spike_threshold": FLICKER_SPIKE_THRESHOLD,
                         "frames_analyzed": int(
                             score.get("frames_analyzed") or len(frames)
                         ),
@@ -117,15 +127,24 @@ def run_pickups(
                     agent_costs.append(int(agent_cost))
                     last_agent = decision.to_doc()
                     name = str(decision.decision)
+                    if name == "accept" and spike_breach:
+                        # A localized single-frame defect breached the
+                        # deterministic gate even though the judge accepted
+                        # on the diluted whole-clip mean — do not pass.
+                        name = "needs_human" if retries_used >= MAX_RETRIES else "retry"
                     if name == "accept":
                         outcome = "pass"
                         break
                     if name == "needs_human" or retries_used >= MAX_RETRIES:
                         job.status = "needs_human"
                         job.error = (
-                            "pickups_needs_human"
-                            if name == "needs_human"
-                            else "flicker_breach"
+                            "flicker_spike_breach"
+                            if spike_breach
+                            else (
+                                "pickups_needs_human"
+                                if str(decision.decision) == "needs_human"
+                                else "flicker_breach"
+                            )
                         )
                         outcome = "needs_human"
                         break

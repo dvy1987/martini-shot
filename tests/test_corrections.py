@@ -43,11 +43,21 @@ def test_corrections_station_is_dispatched() -> None:
 
 
 def test_corrections_draft_qc_gate() -> None:
-    from backend.stations.corrections.run import FLICKER_GATE, draft_qc_decision
+    from backend.stations.corrections.run import (
+        FLICKER_GATE,
+        FLICKER_SPIKE_GATE,
+        draft_qc_decision,
+    )
 
     assert FLICKER_GATE == 0.02
     assert draft_qc_decision(0.003) == "pass"
     assert draft_qc_decision(0.02) == "needs_human"
+    # 2026-09-09 demo: a real, localized single-frame corruption scored
+    # ~0.005 mean (well under gate) — the whole-clip average dilutes one
+    # bad frame across dozens of clean ones. The worst-frame spike must
+    # still gate it even when the mean alone would pass.
+    assert draft_qc_decision(0.003, spike=0.003) == "pass"
+    assert draft_qc_decision(0.003, spike=FLICKER_SPIKE_GATE) == "needs_human"
 
 
 def _payload(decision: str, reason: str) -> str:

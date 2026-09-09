@@ -1,16 +1,29 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
+import { ApiError, mediaUrl } from "@/api/client";
+import { getJobClip } from "@/api/endpoints";
+import { AgentNotesModal } from "@/components/AgentNotesModal";
 import ClipReviewModal from "@/components/ClipReviewModal";
 import ClipThumb from "@/components/ClipThumb";
+import { readAgentNotes, type AgentNotes } from "@/lib/agentNotes";
 import { clipName, groupBoardLanes, withWatchNotes, type BoardRow } from "@/lib/clipDisplay";
+import {
+  applyFinalCutPick,
+  downloadFinalCutBlobs,
+  finalCutAction,
+  finalCutPlaylist,
+  finalCutSlots,
+  orchestratorHasStopped,
+  type FinalCutPick,
+} from "@/lib/finalCut";
 import { cost } from "@/lib/formatters";
 import { filterJobsByStatus } from "@/lib/lens";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { STATUS_BOARD_ORDER, statusMetaOrUnknown } from "@/lib/status";
-import { stationDescription, stationName } from "@/lib/stations";
+import { stationName } from "@/lib/stations";
 import { jobsForProject } from "@/lib/timeline";
-import type { Job, JobClip, JobStatus } from "@/types/api";
+import type { Job, JobClip, JobStatus, Worklist } from "@/types/api";
 
 interface TimelineBoardProps {
   jobs: readonly Job[];
@@ -20,9 +33,32 @@ interface TimelineBoardProps {
   statusFilter?: ReadonlySet<JobStatus>;
   onToggleStatus?: (status: JobStatus) => void;
   projectId?: string | null;
+  worklist?: Worklist | null;
+  showJobsBoard?: boolean;
 }
 
 const COLLAPSED_JOB_LIMIT = 8;
+
+function storageKey(projectId: string): string {
+  return `pc-final-cut:${projectId}`;
+}
+
+function loadOverrides(projectId: string | null): Record<string, FinalCutPick> {
+  if (!projectId || typeof localStorage === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(storageKey(projectId));
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, FinalCutPick>;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveOverrides(projectId: string | null, overrides: Record<string, FinalCutPick>): void {
+  if (!projectId || typeof localStorage === "undefined") return;
+  localStorage.setItem(storageKey(projectId), JSON.stringify(overrides));
+}
 
 function stationLabel(station: string): string {
   return stationName(station);
@@ -33,7 +69,15 @@ function TimelineTable({
   selectedJobId,
   onSelectJob,
   onOpenClip,
-}: TimelineBoardProps & { onOpenClip: (clip: JobClip) => void }) {
+  onOpenNotes,
+  slots,
+  onAddToFinalCut,
+}: TimelineBoardProps & {
+  onOpenClip: (clip: JobClip) => void;
+  onOpenNotes: (title: string, notes: AgentNotes) => void;
+  slots: ReturnType<typeof finalCutSlots>;
+  onAddToFinalCut: (row: BoardRow) => void;
+}) {
   return (
     <div className="overflow-x-auto rounded-md border border-line bg-surface-1">
       <table aria-label="Season timeline jobs" className="w-full min-w-max border-collapse text-left">
@@ -43,6 +87,8 @@ function TimelineTable({
             <th className="border-b border-line px-4 py-2 font-normal">Clip</th>
             <th className="border-b border-line px-4 py-2 font-normal">Before</th>
             <th className="border-b border-line px-4 py-2 font-normal">After</th>
+            <th className="border-b border-line px-4 py-2 font-normal">Final cut</th>
+            <th className="border-b border-line px-4 py-2 font-normal">What changed</th>
             <th className="border-b border-line px-4 py-2 font-normal">Status</th>
             <th className="border-b border-line px-4 py-2 font-normal">Attempt</th>
             <th className="border-b border-line px-4 py-2 font-normal">Cost</th>
@@ -56,13 +102,16 @@ function TimelineTable({
               const selected = selectedJobId === job.job_id;
               const name = clipName(job);
               const stage = stationLabel(row.displayStation);
+              const notes = readAgentNotes(job, row.displayStation);
+              const origin = job.input_refs[0] ?? "";
+              const action = finalCutAction(
+                row,
+                slots.find((slot) => slot.origin === origin)?.pick ?? null,
+              );
               return (
                 <tr key={row.id} className={selected ? "bg-surface-2" : "bg-surface-1"}>
                   <td className="border-b border-line px-4 py-2">
                     <p className="font-mono text-xs uppercase tracking-wider text-ink">{stage}</p>
-                    {stationDescription(row.displayStation) ? (
-                      <p className="mt-1 max-w-xs text-xs text-ink-muted">{stationDescription(row.displayStation)}</p>
-                    ) : null}
                   </td>
                   <td className="border-b border-line px-4 py-2">
                     <button
@@ -92,6 +141,34 @@ function TimelineTable({
                       jobs={jobs}
                       onOpen={onOpenClip}
                     />
+                  </td>
+                  <td className="border-b border-line px-4 py-2">
+                    {action === "Final Cut" ? (
+                      <span className="font-mono text-xs uppercase tracking-wider text-ink">
+                        Final Cut
+                      </span>
+                    ) : action === "Add to final cut" ? (
+                      <button
+                        type="button"
+                        onClick={() => onAddToFinalCut(row)}
+                        className="text-sm text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                      >
+                        Add to final cut
+                      </button>
+                    ) : (
+                      <span className="text-xs text-ink-muted">—</span>
+                    )}
+                  </td>
+                  <td className="border-b border-line px-4 py-2">
+                    <p className="text-sm text-ink">{notes.changed}</p>
+                    <button
+                      type="button"
+                      aria-label={`Agent notes for ${name} (${stage})`}
+                      onClick={() => onOpenNotes(`${name} · ${stage}`, notes)}
+                      className="mt-1 text-sm text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                    >
+                      Agent Notes
+                    </button>
                   </td>
                   <td className={`border-b border-line px-4 py-2 font-mono text-xs ${meta.textClass}`}>
                     <span aria-hidden className="mr-2">{meta.glyph}</span>
@@ -159,6 +236,159 @@ function ClipCell({
   );
 }
 
+function FinalCutStrip({
+  slots,
+  stopped,
+  onOpenClip,
+}: {
+  slots: ReturnType<typeof finalCutSlots>;
+  stopped: boolean;
+  onOpenClip: (clip: JobClip) => void;
+}) {
+  const playlist = finalCutPlaylist(slots);
+  const [phase, setPhase] = useState<"idle" | "downloading" | "playing" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [objectUrls, setObjectUrls] = useState<string[]>([]);
+  const [index, setIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    return () => {
+      for (const url of objectUrls) URL.revokeObjectURL(url);
+    };
+  }, [objectUrls]);
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    void videoRef.current?.play();
+  }, [phase, index]);
+
+  async function handlePlay() {
+    if (playlist.length === 0 || phase === "downloading") return;
+    for (const url of objectUrls) URL.revokeObjectURL(url);
+    setObjectUrls([]);
+    setPhase("downloading");
+    setError(null);
+    try {
+      const urls = await downloadFinalCutBlobs(playlist, {
+        getClip: async (jobId, side) => {
+          try {
+            return await getJobClip(jobId, side);
+          } catch (err) {
+            if (err instanceof ApiError && err.status === 502) {
+              return {
+                job_id: jobId,
+                side,
+                clip_name: "",
+                url: `/api/v1/jobs/${encodeURIComponent(jobId)}/clip/${side}/media`,
+                expires_in_minutes: 60,
+                metadata: {},
+              };
+            }
+            throw err;
+          }
+        },
+        fetchBlob: async (url) => {
+          const response = await fetch(mediaUrl(url));
+          if (!response.ok) {
+            throw new Error("The clip could not be downloaded.");
+          }
+          return response.blob();
+        },
+        toObjectUrl: (blob) => URL.createObjectURL(blob),
+      });
+      setObjectUrls(urls);
+      setIndex(0);
+      setPhase("playing");
+    } catch {
+      setPhase("error");
+      setError("The final cut could not be downloaded.");
+    }
+  }
+
+  function handleEnded() {
+    if (index + 1 >= objectUrls.length) {
+      setPhase("idle");
+      setIndex(0);
+      return;
+    }
+    setIndex(index + 1);
+  }
+
+  const canPlay = stopped && playlist.length > 0;
+  const playLabel = phase === "downloading" ? "Downloading" : phase === "playing" ? "Playing" : "Play";
+
+  return (
+    <section
+      aria-label="Final cut"
+      className="mt-4 rounded-md border border-line bg-surface-1 px-4 py-3"
+    >
+      <header className="mb-3">
+        <h3 className="font-mono text-xs uppercase tracking-widest text-ink">Final cut</h3>
+        <p className="mt-1 text-sm text-ink-muted">
+          {stopped
+            ? "The last successful After of each original clip, in upload order. Add a different After from the table to swap it."
+            : "Fills when the orchestrator has stopped."}
+        </p>
+      </header>
+      {!stopped ? (
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
+          Waiting for the orchestrator to stop.
+        </p>
+      ) : slots.length === 0 ? (
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
+          No original clips yet.
+        </p>
+      ) : (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            disabled={!canPlay || phase === "downloading"}
+            onClick={() => void handlePlay()}
+            className="shrink-0 rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-colors ease-chrome hover:border-ink hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            {playLabel}
+          </button>
+          <ol className="flex min-w-0 flex-1 gap-3 overflow-x-auto">
+            {slots.map((slot, slotIndex) => (
+              <li key={slot.origin} className="min-w-28">
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+                  Clip {slotIndex + 1}
+                </p>
+                {slot.pick ? (
+                  <ClipThumb
+                    jobId={slot.pick.jobId}
+                    side={slot.pick.side}
+                    label={slot.name}
+                    reviewSide="after"
+                    onOpen={onOpenClip}
+                  />
+                ) : (
+                  <p className="text-xs text-ink-muted">No After yet</p>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {error ? <p className="mt-3 border-l-2 border-danger pl-3 text-sm text-danger">{error}</p> : null}
+      {phase === "playing" && objectUrls[index] ? (
+        <video
+          ref={videoRef}
+          key={objectUrls[index]}
+          role="video"
+          aria-label="Final cut playback"
+          src={objectUrls[index]}
+          controls
+          autoPlay
+          className="mt-3 w-full max-w-3xl rounded-sm border border-line bg-surface-2"
+          onEnded={handleEnded}
+        />
+      ) : null}
+    </section>
+  );
+}
+
 export default function TimelineBoard({
   jobs,
   selectedJobId,
@@ -167,6 +397,8 @@ export default function TimelineBoard({
   statusFilter,
   onToggleStatus,
   projectId = null,
+  worklist = null,
+  showJobsBoard = true,
 }: TimelineBoardProps) {
   const projectJobs = useMemo(
     () => (projectId ? jobsForProject(jobs, projectId) : [...jobs]),
@@ -177,6 +409,19 @@ export default function TimelineBoard({
   const [view, setView] = useState<"timeline" | "table">("timeline");
   const [expandedStations, setExpandedStations] = useState<Set<string>>(() => new Set());
   const [reviewClip, setReviewClip] = useState<JobClip | null>(null);
+  const [agentNotes, setAgentNotes] = useState<{ title: string; notes: AgentNotes } | null>(null);
+  const [overrides, setOverrides] = useState<Record<string, FinalCutPick>>(() =>
+    loadOverrides(projectId ?? null),
+  );
+  const slots = useMemo(
+    () => finalCutSlots(projectJobs, overrides, worklist),
+    [projectJobs, overrides, worklist],
+  );
+  const stopped = orchestratorHasStopped(worklist);
+
+  useEffect(() => {
+    setOverrides(loadOverrides(projectId ?? null));
+  }, [projectId]);
 
   useEffect(() => {
     if (lensOpen) {
@@ -195,8 +440,23 @@ export default function TimelineBoard({
     });
   }
 
+  function handleAddToFinalCut(row: BoardRow) {
+    const origin = row.job.input_refs[0] ?? "";
+    if (!origin || row.after !== "clip") return;
+    setOverrides((current) => {
+      const next = applyFinalCutPick(current, origin, {
+        jobId: row.job.job_id,
+        side: row.afterSide,
+      });
+      saveOverrides(projectId ?? null, next);
+      return next;
+    });
+  }
+
   return (
     <div>
+      {showJobsBoard ? (
+        <>
       <div
         role="group"
         aria-label="Timeline display"
@@ -272,6 +532,9 @@ export default function TimelineBoard({
           selectedJobId={selectedJobId}
           onSelectJob={onSelectJob}
           onOpenClip={setReviewClip}
+          onOpenNotes={(title, notes) => setAgentNotes({ title, notes })}
+          slots={slots}
+          onAddToFinalCut={handleAddToFinalCut}
         />
       ) : (
         <motion.div
@@ -306,11 +569,6 @@ export default function TimelineBoard({
                     <h2 className="font-mono text-xs uppercase tracking-wider text-ink">
                       {stationLabel(lane.station)}
                     </h2>
-                    {stationDescription(lane.station) ? (
-                      <p className="mt-1 text-xs font-sans normal-case tracking-normal leading-relaxed text-ink-muted">
-                        {stationDescription(lane.station)}
-                      </p>
-                    ) : null}
                   </div>
 
                   <div className="grid auto-cols-fr grid-flow-col gap-2">
@@ -374,8 +632,19 @@ export default function TimelineBoard({
           </div>
         </motion.div>
       )}
+        </>
+      ) : null}
+
+      <FinalCutStrip slots={slots} stopped={stopped} onOpenClip={setReviewClip} />
 
       {reviewClip ? <ClipReviewModal clip={reviewClip} onClose={() => setReviewClip(null)} /> : null}
+      {agentNotes ? (
+        <AgentNotesModal
+          title={agentNotes.title}
+          notes={agentNotes.notes}
+          onClose={() => setAgentNotes(null)}
+        />
+      ) : null}
     </div>
   );
 }

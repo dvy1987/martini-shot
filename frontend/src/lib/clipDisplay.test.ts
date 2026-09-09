@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { afterState, boardRows, clipName, groupBoardLanes, withWatchNotes } from "@/lib/clipDisplay";
+import { afterState, boardRows, clipName, clipNameFromShot, groupBoardLanes, withWatchNotes } from "@/lib/clipDisplay";
 import type { Job } from "@/types/api";
 
 function job(partial: Partial<Job> = {}): Job {
@@ -18,6 +18,16 @@ function job(partial: Partial<Job> = {}): Job {
 describe("clipDisplay", () => {
   it("names the clip from the file, not the job id", () => {
     expect(clipName(job())).toBe("test-clip01.mp4");
+  });
+
+  it("names a suggestion clip from the shot title file, not the shot id", () => {
+    expect(
+      clipNameFromShot("shot-a", [
+        { shot_id: "shot-a", title: "projects/p1/ingest/job-1/cafe.mp4" },
+      ]),
+    ).toBe("cafe.mp4");
+    expect(clipNameFromShot("shot-a", [])).toBe("");
+    expect(clipNameFromShot(undefined, [])).toBe("");
   });
 
   it("treats a file check with probe data as an after clip", () => {

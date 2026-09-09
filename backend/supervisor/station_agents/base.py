@@ -14,6 +14,22 @@ from typing import Any
 
 from backend.supervisor.agents.finding_schema import REGISTRY_COMMANDS
 
+OPERATOR_NOTES_RULE = (
+    "Write reason (or summary) as a short note for a film operator who is "
+    "not a coder. In running sentences, cover what you thought the problem "
+    "was, what you ignored or left alone, what you changed or kept, and "
+    "where you failed — or that this step did not fail. Do not use those "
+    "phrases as headings or labels. No rule IDs, error codes, or job numbers."
+)
+
+
+def with_operator_notes(prompt: str) -> str:
+    """Append the operator-notes rule once so every station look writes
+    the same four facts without repeating the questions."""
+    if OPERATOR_NOTES_RULE in prompt:
+        return prompt
+    return f"{prompt.rstrip()}\n\n{OPERATOR_NOTES_RULE}"
+
 
 class StationDecisionError(ValueError):
     """Fail loud: a malformed station-agent response never reaches the

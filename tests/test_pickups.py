@@ -1,6 +1,7 @@
 """D-5/D-6 pickups QC: real G0 scores, identity round-trip, cost estimator."""
 
 import json
+import subprocess
 from pathlib import Path
 
 from backend.core.config import get_settings
@@ -80,6 +81,48 @@ def test_flicker_score_on_slate() -> None:
     score = flicker_score(SLATE, settings.ffmpeg_bin)
     assert score["ok"] is True
     assert float(score["flicker_score"]) < 0.18
+    # A clean clip's worst single frame must also read low, or the spike
+    # gate would false-positive on every ordinary render.
+    assert float(score["spike_score"]) < 0.02
+
+
+def _inject_single_frame_defect(src: Path, dest: Path, ffmpeg_bin: str) -> None:
+    """Corrupt exactly one real frame of `src` via ffmpeg's negate filter,
+    windowed to a single 8fps-extracted frame's timestamp — the same real,
+    localized defect confirmed by frame inspection during the 2026-09-09
+    demo investigation (a whole-clip mean reads this as clean; only a
+    worst-frame spike catches it)."""
+    subprocess.run(
+        [
+            ffmpeg_bin,
+            "-v",
+            "error",
+            "-y",
+            "-i",
+            str(src),
+            "-vf",
+            "negate=enable='between(t,0.5,0.625)'",
+            "-c:a",
+            "copy",
+            str(dest),
+        ],
+        check=True,
+        timeout=60,
+    )
+
+
+def test_flicker_score_catches_a_single_frame_defect_the_mean_misses(
+    tmp_path: Path,
+) -> None:
+    settings = get_settings()
+    defective = tmp_path / "defective.mp4"
+    _inject_single_frame_defect(SLATE, defective, settings.ffmpeg_bin)
+    score = flicker_score(defective, settings.ffmpeg_bin)
+    assert score["ok"] is True
+    # The single bad frame is diluted across the whole clip's mean...
+    assert float(score["flicker_score"]) < 0.18
+    # ...but it must stand out as the worst single frame.
+    assert float(score["spike_score"]) >= 0.02
 
 
 def test_prev_frame_note() -> None:
@@ -228,6 +271,47 @@ def test_live_pickups_two_repairs_then_needs_human() -> None:
     assert repairs["n"] == 2
     assert done.status == "needs_human"
     assert done.result["repaired"] is True
+
+
+def test_live_pickups_hard_gate_catches_a_spike_the_judge_accepts(
+    tmp_path: Path,
+) -> None:
+    """2026-09-09 demo: a real single-frame corruption scored ~0.005 mean
+    (well under the 0.18 judge-visible threshold), so vision QC accepted
+    it. The deterministic spike gate must override an "accept" decision,
+    and — if repair never clears the spike — the job must land on
+    needs_human after exhausting retries rather than silently passing."""
+    from backend.jobs.models import Job
+    from backend.stations.pickups.retry import MAX_RETRIES
+    from backend.stations.pickups.run import FLICKER_SPIKE_THRESHOLD, run_pickups
+
+    media = FFmpeg(get_settings().ffmpeg_bin, get_settings().ffprobe_bin)
+    defective = tmp_path / "defective.mp4"
+    _inject_single_frame_defect(SLATE, defective, media.ffmpeg_bin)
+    payload = defective.read_bytes()
+
+    def judge(_settings: object, *, report: dict, images: list) -> tuple[object, int]:
+        del report, images
+        return _decision("accept"), 900
+
+    def repair(_settings: object, **kwargs: object) -> dict:
+        del kwargs
+        # Repair that never actually clears the localized defect —
+        # exercises the retry-exhaustion arm of the hard gate.
+        return {
+            "video_bytes": payload,
+            "model": "gemini-omni-1.1-flash-preview",
+            "omni_fallback": False,
+            "omni_error": "",
+        }
+
+    job = Job(station="pickups", project_id="p-spike", input_refs=["defective.mp4"])
+    done = run_pickups(job, _MemoryGCS(payload), media, judge=judge, repair=repair)
+    assert float(done.result["flicker"]["spike_score"]) >= FLICKER_SPIKE_THRESHOLD
+    assert done.status == "needs_human"
+    assert done.error == "flicker_spike_breach"
+    assert done.result["retries_used"] == MAX_RETRIES
+    assert done.result["agent"]["decision"] == "accept"
 
 
 def test_pickup_repair_uses_veo_when_omni_fails() -> None:
