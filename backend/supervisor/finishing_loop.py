@@ -716,6 +716,33 @@ def dispatch_next(
     return doc
 
 
+RETRYABLE_STALLED = frozenset({"failed", "paused", "needs_human"})
+
+
+def retry_stalled_items(doc: dict[str, Any]) -> dict[str, Any]:
+    """Operator retry: stalled items resume from their exact stall point.
+
+    Failed, budget-paused, AND needs_human items go back to waiting with
+    the same proposal and source clip — a retried step re-runs on whatever
+    its passed upstream steps already produced. A human may have already
+    fixed the thing that raised needs_human (approved a decision, corrected
+    something out of band); retry gives that fix a chance to carry the rest
+    of the run forward instead of leaving the step stuck forever. Only
+    passed work is left alone.
+    """
+    items = list(doc.get("items") or [])
+    for item in items:
+        if str(item.get("status") or "") not in RETRYABLE_STALLED:
+            continue
+        if item.get("job_id"):
+            item["retry_of"] = str(item["job_id"])
+        item["job_id"] = None
+        item["status"] = "waiting"
+        item["retries"] = int(item.get("retries") or 0) + 1
+    doc["items"] = items
+    return doc
+
+
 def apply_draft_qc(
     doc: dict[str, Any],
     job: Job,

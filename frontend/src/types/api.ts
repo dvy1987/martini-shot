@@ -175,6 +175,24 @@ export interface AlternateMedia {
   expires_in_minutes: number;
 }
 
+/** Studio redesign (2026-09-09): the directed_edit agent's stateless
+ * clarify round — combines station/camera-movement picks + chat text into
+ * one bounded edit intent, asking at most `max_questions` rounds. */
+export interface DirectedEditTurn {
+  question: string;
+  answer: string;
+}
+
+export interface DirectedEditClarifyResult {
+  decision: "ask" | "ready";
+  question?: string | null;
+  final_intent?: string | null;
+  questions_asked: number;
+  max_questions: number;
+  agent?: Record<string, unknown>;
+  cost_micros: number;
+}
+
 export type InspectImpact = "none" | "low" | "medium" | "high";
 export type InspectKind = "none" | "defect" | "improvement";
 export type InspectStatus = "empty" | "ok" | "needs_work";

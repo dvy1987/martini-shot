@@ -3,9 +3,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/api/client";
-import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts, renameProject } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts, renameProject, retryWorklist } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
-import type { Job, Project } from "@/types/api";
+import type { Job, Project, Worklist } from "@/types/api";
 
 vi.mock("@/api/endpoints", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/api/endpoints")>();
@@ -23,6 +23,7 @@ vi.mock("@/api/endpoints", async (importOriginal) => {
     startFinish: vi.fn(),
     listDeliberations: vi.fn(),
     patchWorklist: vi.fn(),
+    retryWorklist: vi.fn(),
   };
 });
 
@@ -313,5 +314,117 @@ describe("TimelineRoute investigation flow", () => {
     renderRoute();
     expect(await screen.findByText(/wrap it up/i)).toBeInTheDocument();
     expect(screen.queryByText(/season timeline/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("TimelineRoute stalled-step retry", () => {
+  const stalledWorklist: Worklist = {
+    project_id: "project-1",
+    budget_micros: 50_000_000,
+    spent_micros: 2_000_000,
+    status: "idle",
+    attendance: [],
+    items: [
+      { id: "loudness::shot-1", station: "loudness", status: "passed" },
+      { id: "relight::shot-1", station: "relight", status: "failed", job_id: "job-fail" },
+      { id: "delivery::shot-1", station: "delivery", status: "failed", job_id: "job-deliv" },
+    ],
+    final_refs: [],
+    original_refs: [],
+  };
+
+  it("retries stalled execute and delivery steps from current progress", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue(stalledWorklist);
+    vi.mocked(retryWorklist).mockResolvedValue(stalledWorklist);
+    renderRoute();
+
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(retryWorklist).toHaveBeenCalledWith("project-1"));
+  });
+
+  it("offers retry for a stalled step even while an unrelated step is actively moving", async () => {
+    // relight is queued (already retried, in flight) but delivery is
+    // still failed — retry never touches an active item, so it should
+    // still be offered for the genuinely stalled one.
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      ...stalledWorklist,
+      status: "running",
+      items: [
+        stalledWorklist.items[0]!,
+        { ...stalledWorklist.items[1]!, status: "queued" },
+        stalledWorklist.items[2]!,
+      ],
+    });
+    vi.mocked(retryWorklist).mockResolvedValue(stalledWorklist);
+    renderRoute();
+
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(retryWorklist).toHaveBeenCalledWith("project-1"));
+  });
+
+  it("does not offer retry before the work plan exists yet", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      ...stalledWorklist,
+      status: "inspecting",
+    });
+    renderRoute();
+
+    expect(await screen.findByText(/current progress/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Retry" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers retry when a step needs human review, in case that was already fixed", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      ...stalledWorklist,
+      items: [
+        stalledWorklist.items[0]!,
+        { ...stalledWorklist.items[1]!, status: "needs_human" },
+        stalledWorklist.items[2]!,
+      ],
+    });
+    vi.mocked(retryWorklist).mockResolvedValue(stalledWorklist);
+    renderRoute();
+
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(retryWorklist).toHaveBeenCalledWith("project-1"));
+  });
+
+  it("does not offer retry when nothing is stalled", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue({
+      ...stalledWorklist,
+      items: stalledWorklist.items.map((item) => ({ ...item, status: "passed" })),
+    });
+    renderRoute();
+
+    expect(await screen.findByText(/current progress/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Retry" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a plain-language error when the retry call fails", async () => {
+    mockBoard();
+    vi.mocked(getWorklist).mockResolvedValue(stalledWorklist);
+    vi.mocked(retryWorklist).mockRejectedValue(new Error("boom"));
+    renderRoute();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Retry" }));
+
+    expect(
+      await screen.findByText(/stalled steps could not be restarted/i),
+    ).toBeInTheDocument();
   });
 });

@@ -5,6 +5,8 @@ import type {
   AlternateMedia,
   Approval,
   Deliberation,
+  DirectedEditClarifyResult,
+  DirectedEditTurn,
   Job,
   JobClip,
   MorningReport,
@@ -181,6 +183,34 @@ export function proposeCameraLanguage(
   });
 }
 
+/** Studio redesign (2026-09-09): one stateless clarify round. The caller
+ * resends the full `turns` transcript each call — no server-side state. */
+export function clarifyDirectedEdit(
+  shotId: string,
+  body: {
+    stations: string[];
+    camera_movement?: string | null;
+    chat_text: string;
+    turns: DirectedEditTurn[];
+  },
+): Promise<DirectedEditClarifyResult> {
+  return apiFetch(
+    `/api/v1/shots/${encodeURIComponent(shotId)}/directed-edit/clarify`,
+    { method: "POST", body: JSON.stringify(body) },
+  );
+}
+
+/** Add-to-final-cut: proposes add_to_continuity (approval-tracked, A5). */
+export function promoteAlternate(
+  shotId: string,
+  body: { alternate_id: string; reason?: string },
+): Promise<{ approval_id: string; status: string }> {
+  return apiFetch(`/api/v1/shots/${encodeURIComponent(shotId)}/promote`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export interface ScriptVersion {
   version_id: string;
   project_id: string;
@@ -285,6 +315,13 @@ export function patchWorklist(projectId: string, order: string[]): Promise<Workl
   return apiFetch<Worklist>(
     `/api/v1/projects/${encodeURIComponent(projectId)}/worklist`,
     { method: "PATCH", body: JSON.stringify({ order }) },
+  );
+}
+/** POST /api/v1/projects/{id}/worklist/retry — re-run stalled steps. */
+export function retryWorklist(projectId: string): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/worklist/retry`,
+    { method: "POST" },
   );
 }
 

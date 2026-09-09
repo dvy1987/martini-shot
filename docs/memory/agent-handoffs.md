@@ -1,5 +1,94 @@
 # Agent Handoffs
 
+## 2026-09-09 16:35 - Stalled worklist retry button and DirectedEditStudio integration
+
+### Done
+- **Worklist Retry for Stalled Items:** Added `POST /api/v1/projects/{id}/worklist/retry` in `api/finish.py` and `retry_stalled_items` in `finishing_loop.py`. Resets `failed`, `paused`, and `needs_human` items to `waiting` (stamping `retries` and `retry_of`), while keeping passed work intact. Added "Retry" button in the Current progress box on `TimelineRoute.tsx` that appears whenever any items are stalled (guard relaxed from broad turnoverActive to only pre-worklist checking/waiting_for_ingest). 9 backend tests in `tests/test_worklist_retry.py` and TimelineRoute Vitest suite passing.
+- **Studio Redesign (DirectedEditStudio):** Created `DirectedEditStudio.tsx` + `DirectedEditStudio.test.tsx`, `cameraLanguagePresets.ts` + tests, and `directedEdit.ts` + tests. Combines shot selection, 5 camera movement presets, and station toggles with a single-round clarify agent loop (`clarifyDirectedEdit`) and add-to-final-cut promotion (`promoteAlternate`). Integrated into `ChangesRoute.tsx` (Studio tab).
+- **Frontend Types & Endpoints:** Added `DirectedEditTurn`, `DirectedEditClarifyResult` to `types/api.ts`; added `clarifyDirectedEdit`, `promoteAlternate`, `retryWorklist` to `api/endpoints.ts`.
+
+### Debated
+- Whether retry should require all worklist items to be idle: rejected — most real-world stalls happen while an independent station (e.g. delivery) is still queued.
+
+### Decisions
+- "Retry" covers `failed`, `paused`, and `needs_human` generic across all projects.
+- DirectedEditStudio is stateless across clarify turns by sending full turn history each POST.
+
+### Deferred
+- Cloud Run backend & Replit frontend deployment (ask owner before deploying).
+
+### Next Agent Should Know
+- All pending work across Worklist Retry and DirectedEditStudio is committed locally.
+- ESLint and Vitest for touched files are 100% clean.
+
+### Revisit Triggers
+- Owner wants changes deployed to live Cloud Run / Replit instances.
+
+### Working Tree
+- Staging and committing all uncommitted files.
+
+### Graph
+- Incremental graph build skipped (known hang on build_graph.py --incremental).
+
+## 2026-09-09 16:22 - Fixed the real reason storm-breaking never showed Retry
+
+### Done
+- Owner reported no Retry button on storm-breaking. Read the live worklist doc directly from Firestore (`pc-worklists/show-882c69e3da79`): `status="running"`, items include `relight:failed` (genuinely stalled) AND `delivery:queued` (a different, unrelated item still active). Root cause: the guard treated ANY active item anywhere in the worklist as "the house is moving" and hid the button — even though retrying a failed item never touches a different, already-active one.
+- `dispatch_next` only starts items still marked `waiting`; it never re-touches something already `queued`/`leased`/`running`. So gating retry on "no active item anywhere" was unnecessarily strict — the real invariant only needs to hold before the item list even exists (`inspecting`/`waiting_for_ingest`).
+- Fixed both sides: `api/finish.py` 409 guard now only fires on `inspecting`/`waiting_for_ingest`; `TimelineRoute.tsx` `canRetryStalled` now checks the same two statuses instead of the broad `turnoverActive` flag (which also counts any active worklist item).
+- Tests rewritten: `test_retry_route_retries_a_stalled_item_even_while_another_is_active`, `test_retry_route_refuses_before_the_work_plan_exists` (backend, 34 total green); TimelineRoute now asserts retry shows and works while an unrelated item is queued, and hides only pre-`inspecting`/`waiting_for_ingest` (17 total green). Ruff/eslint clean.
+- Confirmed against real storm-breaking data: `status="running"` + `relight:failed` → `canRetryStalled` now evaluates true.
+
+### Decisions
+- Retry's only real precondition is "the item list exists" (not inspecting/waiting_for_ingest) — never "nothing else in the worklist is moving". Any narrower gate was product-incorrect: most real stalls happen precisely while other steps are still in flight.
+
+## 2026-09-09 16:13 - Retry also covers needs_human (owner ruling)
+
+### Done
+- Owner ruling: retry must also fire on `needs_human` items — a human may have already fixed whatever raised that state out of band (approved a decision, corrected something manually) and wants the rest of the run to continue rather than staying stuck forever.
+- `RETRYABLE_STALLED` in `finishing_loop.py` now `{failed, paused, needs_human}`. Button condition in `TimelineRoute.tsx` matches. Confirmed generic: the button's eligibility is derived purely from the selected project's own worklist item statuses — no project is special-cased, so this applies to every project, not just storm-breaking.
+- Tests updated/added: `test_retry_resets_failed_paused_and_needs_human_items_to_waiting`, `test_retry_route_also_redispatches_needs_human_items` (backend, 34 total across finishing suites), plus a TimelineRoute test asserting the button appears and calls retry when a step is `needs_human` (16 total). All green. Ruff/eslint clean on touched files; mypy adds no new errors.
+
+### Decisions
+- `needs_human` is retryable, not exempt — this reverses the earlier "a decision is not a stall" framing from the same afternoon (see 15:55 entry below). The button stays a single truthful re-dispatch of whatever is not `passed`; it does not distinguish stall causes.
+
+## 2026-09-09 15:55 - Retry stalled steps from the Current progress box
+
+### Done
+- **Backend:** `retry_stalled_items` in `finishing_loop.py` resets worklist items with status `failed`/`paused`/`needs_human` back to `waiting` — same proposal, same `source_uri` (which already carries passed upstream artifacts), stamps `retries` (increment) and `retry_of` (previous job id), clears the stale `job_id`. Only passed items are never touched.
+- **Route:** `POST /api/v1/projects/{id}/worklist/retry` in `api/finish.py` — 404 without a worklist, 409 while the turnover is moving (queued/leased/running items or status inspecting/waiting_for_ingest), otherwise retry → `dispatch_next` → `refresh_final_refs` → save → SSE `worklist.updated`. Downstream items keep waiting on the retried step exactly as in a live run.
+- **Frontend:** `retryWorklist` in `api/endpoints.ts`; "Retry" button in the Current progress box on Timeline (below the "X / Y complete" line), shown for any selected project whose worklist has a failed/paused/needs_human item AND the house is not currently moving. Plain-language error copy; refetches worklist + project on success.
+- **Tests:** `tests/test_worklist_retry.py` + TimelineRoute retry describe. All green; finishing suites green; ruff clean on touched files; mypy adds no new errors (finishing_loop 462/617/621 + other files' errors are pre-existing on HEAD, verified via `git show HEAD` typecheck); integrity + eval-check gates green; frontend vitest tests green. Pre-existing frontend lint error (DirectedEditStudio.test.tsx unused import) and ChangesRoute.test.tsx TS6133 untouched.
+
+### Debated
+- Which statuses count as "stalled": first pass excluded needs_human as "a decision, not a stall"; owner overrode same session (see 16:13 entry above) — needs_human is now retryable too.
+
+### Decisions
+- Retry is refused while the run is actively moving (409) so a live run is never double-dispatched.
+- Paused-by-budget items reset to waiting; if budget still does not fit, dispatch leaves them waiting and the worklist says `waiting_for_budget` (truthful, no silent re-pause).
+- Route-level test harness uses in-memory store/queue fakes (same pattern as test_finishing_flow.py) — no live services billed.
+- Button label is plain "Retry", not "Retry stalled steps" (owner: expecting only stalled/failed steps to retry is the normal default, no need to spell it out).
+
+### Deferred
+- Commit/push of this batch (owner asks explicitly per prior pattern). Deploy Cloud Run + Replit so the button exists in production.
+- No bulk "approve all" retry path elsewhere (e.g. Decisions tab) — this is one button per project, driven by worklist item status only.
+
+### Next Agent Should Know
+- `make` is unavailable on this Windows host; run gate scripts directly (`python scripts/integrity_check.py`, `python backend/evals/check_thresholds.py`).
+- PowerShell `>` redirect writes UTF-16 — use `cmd /c "git show ... > file"` when byte-faithful output is needed.
+- Worklist item statuses now include `retries`/`retry_of` fields on retried rows; frontend does not display them yet.
+
+### Revisit Triggers
+- Owner reports retry button missing on the published site → deploy lag, not a code gap.
+- A retried step fails identically twice → supervisor retry-judgment path (supervisor_retry) is the deeper fix, not more button presses.
+
+### Working Tree
+- This batch (uncommitted, awaiting owner instruction): finishing_loop.py, api/finish.py, endpoints.ts, TimelineRoute.tsx + its test, tests/test_worklist_retry.py (new), SKILL-OUTPUTS.md, memory files.
+- **Concurrent work not ours:** ChangesRoute.tsx/.test.tsx, types/api.ts edits + untracked DirectedEditStudio.*/directedEdit.*/cameraLanguagePresets.* appeared mid-session (tree was clean at session start) — another session's work; do not overwrite or commit them blindly.
+
+### Graph
+- Incremental graph build skipped (known hang on build_graph.py --incremental).
+
 ## 2026-09-09 14:00 - Run pulse briefing, stable clip lineage, and project copy updates
 
 ### Done

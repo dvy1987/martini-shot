@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { listProjectShots } from "@/api/endpoints";
+import { getProject, getWorklist, listProjectShots } from "@/api/endpoints";
 import AlternatesLane from "@/components/AlternatesLane";
+import DirectedEditStudio from "@/components/DirectedEditStudio";
 import EmptyState from "@/components/EmptyState";
 import RevisionRoom from "@/components/RevisionRoom";
+import { isNotFound } from "@/lib/errors";
 import type { BackendReach } from "@/types/api";
 
 interface ChangesRouteProps {
@@ -18,6 +20,26 @@ export default function ChangesRoute({
   const shotsQuery = useQuery({
     queryKey: ["shots", selectedProjectId],
     queryFn: () => listProjectShots(selectedProjectId ?? ""),
+    enabled: backend === "up" && selectedProjectId !== null,
+    retry: false,
+  });
+  // Same query keys App.tsx uses for its SSE-fed caches (job.updated /
+  // worklist.updated), so this screen sees live job status with no polling.
+  const projectQuery = useQuery({
+    queryKey: ["project", selectedProjectId],
+    queryFn: () => getProject(selectedProjectId ?? ""),
+    enabled: backend === "up" && selectedProjectId !== null,
+  });
+  const worklistQuery = useQuery({
+    queryKey: ["worklist", selectedProjectId],
+    queryFn: async () => {
+      try {
+        return await getWorklist(selectedProjectId ?? "");
+      } catch (error) {
+        if (isNotFound(error)) return null;
+        throw error;
+      }
+    },
     enabled: backend === "up" && selectedProjectId !== null,
     retry: false,
   });
@@ -75,6 +97,12 @@ export default function ChangesRoute({
         </p>
       ) : null}
 
+      <DirectedEditStudio
+        projectId={selectedProjectId}
+        shots={shotsQuery.data ?? []}
+        jobs={projectQuery.data?.jobs ?? []}
+        worklist={worklistQuery.data ?? null}
+      />
       <AlternatesLane shots={shotsQuery.data ?? []} />
       <RevisionRoom projectId={selectedProjectId} />
     </section>

@@ -29,6 +29,7 @@ from backend.supervisor.finishing_loop import (
     pin_delivery_last,
     proposal_clip_uri,
     refresh_final_refs,
+    retry_stalled_items,
     stamp_ingest_watch,
     worklist_doc,
 )
@@ -504,6 +505,36 @@ def install_finish_routes(
         save_worklist(store, project_id, updated)
         _publish(hub, project_id, updated)
         return updated
+
+    @app.post("/api/v1/projects/{project_id}/worklist/retry")
+    def retry_worklist(project_id: str) -> dict[str, Any]:
+        """Re-run the stalled Execute/Delivery steps from their stall point.
+
+        Failed, budget-paused, and needs_human items are all eligible — a
+        human may have already fixed what needs_human was waiting on, and
+        this lets the rest of the run continue. Passed work is never
+        re-run. `dispatch_next` only starts items still marked `waiting`,
+        so this is safe to call even while OTHER items in the same
+        worklist are actively queued/leased/running — retrying a stalled
+        relight, say, never touches an unrelated delivery already in
+        flight. Refused only before the item list exists yet
+        (inspecting/waiting_for_ingest), where "stalled" cannot mean
+        anything true yet.
+        """
+        doc = load_worklist(store, project_id)
+        if doc is None:
+            raise HTTPException(status_code=404, detail="no worklist")
+        if str(doc.get("status") or "") in {"inspecting", "waiting_for_ingest"}:
+            raise HTTPException(
+                status_code=409,
+                detail="the finishing turnover has not built its work plan yet",
+            )
+        doc = retry_stalled_items(doc)
+        doc = dispatch_next(doc, queue=queue, project_id=project_id)
+        refresh_final_refs(doc, store)
+        save_worklist(store, project_id, doc)
+        _publish(hub, project_id, doc)
+        return doc
 
     @app.get("/api/v1/projects/{project_id}/run-pulse")
     def get_run_pulse(project_id: str) -> dict[str, Any]:

@@ -1,5 +1,8 @@
 # Project Memory Index
 
+| 2026-09-09 16:35 | handoff | agent-handoffs.md#2026-09-09-16:35 | current | retry, worklist, directed-edit, studio | Retry stalled steps + DirectedEditStudio redesign integrated |
+| 2026-09-09 | state | current-state.md | current | retry, studio, directed-edit, deploy | Worklist retry and DirectedEditStudio; live site unpublished |
+| 2026-09-09 15:55 | handoff | agent-handoffs.md#2026-09-09-15:55 | current | retry, worklist, execute, delivery | Retry stalled steps: worklist/retry route + Current progress button; uncommitted |
 | 2026-09-09 14:00 | handoff | agent-handoffs.md#2026-09-09-14:00 | current | run-pulse, lineage, projects-copy, finishbar | Run pulse briefing, clip lineage, and project/media copy updates |
 | 2026-09-09 | state | current-state.md | current | run-pulse, lineage, projects, deploy | Local batch of 17 files; live site unpublished |
 | 2026-09-09 12:35 | handoff | agent-handoffs.md#2026-09-09-12:35 | current | git, deploy | Commit/push requested; tree already clean on origin/main @ 2ab65be |

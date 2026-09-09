@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, Pencil } from "lucide-react";
 
 import { ApiError } from "@/api/client";
-import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjects, patchWorklist, renameProject } from "@/api/endpoints";
+import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjects, patchWorklist, renameProject, retryWorklist } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
 import FinishBar from "@/components/FinishBar";
 import InvestigationDrawer, {
@@ -176,6 +176,36 @@ export default function TimelineRoute({
     worklistStatus === "running" ||
     worklistStatus === "waiting_for_ingest" ||
     worklistStatus === "inspecting";
+  // needs_human counts as stalled too: a human may have already fixed
+  // whatever raised it out of band, and retry lets that fix carry the
+  // rest of the run forward instead of leaving the step stuck forever.
+  const stalledItems = (worklistQuery.data?.items ?? []).filter((item) =>
+    ["failed", "paused", "needs_human"].includes(item.status),
+  );
+  // Deliberately NOT gated on turnoverActive: retry only re-dispatches
+  // items that are failed/paused/needs_human, never one already
+  // queued/leased/running, so it is safe even while an unrelated step in
+  // the same worklist is still moving. Only refuse before the work plan
+  // exists yet (matches the backend's 409 guard).
+  const worklistPlanNotBuiltYet =
+    worklistStatus === "inspecting" || worklistStatus === "waiting_for_ingest";
+  const canRetryStalled =
+    selectedProjectId !== null && stalledItems.length > 0 && !worklistPlanNotBuiltYet;
+
+  function retryStalledSteps() {
+    if (!selectedProjectId) return;
+    setWorklistMutationError(null);
+    void retryWorklist(selectedProjectId)
+      .then(() => {
+        void worklistQuery.refetch();
+        void projectQuery.refetch();
+      })
+      .catch(() => {
+        setWorklistMutationError(
+          "The stalled steps could not be restarted. Check the connection and try again.",
+        );
+      });
+  }
 
   function beginCreate() {
     setNaming("create");
@@ -523,6 +553,15 @@ export default function TimelineRoute({
             <div className="text-right font-mono text-xs text-ink-muted">
               <p className="uppercase tracking-wider">{phaseName(journey.phase)}</p>
               {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} complete</p> : null}
+              {canRetryStalled ? (
+                <button
+                  type="button"
+                  onClick={retryStalledSteps}
+                  className="mt-3 rounded-sm border border-tungsten bg-tungsten px-4 py-2 font-mono text-xs uppercase tracking-wider text-bg transition-opacity ease-chrome hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                >
+                  Retry
+                </button>
+              ) : null}
             </div>
           </div>
           <ProgressRail

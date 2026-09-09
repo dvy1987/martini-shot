@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { listProjectShots, listScripts } from "@/api/endpoints";
+import { ApiError } from "@/api/client";
+import { getProject, getWorklist, listProjectShots, listScripts } from "@/api/endpoints";
 import ChangesRoute from "@/pages/ChangesRoute";
 
 vi.mock("@/api/endpoints", async (importOriginal) => {
@@ -14,6 +15,8 @@ vi.mock("@/api/endpoints", async (importOriginal) => {
     getAlternateMedia: vi.fn(),
     createScriptVersion: vi.fn(),
     proposeRegenerateSpans: vi.fn(),
+    getProject: vi.fn(),
+    getWorklist: vi.fn(),
   };
 });
 
@@ -49,6 +52,15 @@ describe("ChangesRoute", () => {
 
   it("lists new versions and script edits for the open project", async () => {
     vi.mocked(listScripts).mockResolvedValue([]);
+    vi.mocked(getProject).mockResolvedValue({
+      project_id: "p1",
+      title: "p1",
+      created_at: "2026-09-04T10:00:00Z",
+      station_counts: {},
+      health: "healthy",
+      jobs: [],
+    });
+    vi.mocked(getWorklist).mockRejectedValue(new ApiError("not_found", "no such worklist", 404));
     vi.mocked(listProjectShots).mockResolvedValue([
       {
         shot_id: "shot-1",
