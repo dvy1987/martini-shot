@@ -1,6 +1,6 @@
 # Project Memory Index
 
-| 2026-09-09 06:15 | handoff | agent-handoffs.md#2026-09-09-06:15 | current | projects, ingest, finishbar, ux | Name/rename project; continue-on-fail upload; DTS warning ≠ broken; Call Wrap |
+| 2026-09-09 06:20 | handoff | agent-handoffs.md#2026-09-09-06:20 | current | finishbar, ux | Call Wrap; drop duplicate Upload media heading |
 | 2026-09-09 | state | current-state.md | current | projects, ingest, finishbar, deploy | Named projects; skip failed clips; phone-clip ingest; unpublished Cloud Run/Replit |
 | 2026-09-09 05:15 | handoff | agent-handoffs.md#2026-09-09-05:15 | current | grafana, analytics, ux | Grafana watch on Analytics tab; empty show + FinishBar reorder; commit+push |
 | 2026-09-09 05:10 | handoff | agent-handoffs.md#2026-09-09-05:10 | current | shows, finishbar, ingest, deploy | New show API/UI; accept-on-choose + drag reorder; live lab data wiped; Cloud Run not published yet |

@@ -219,7 +219,6 @@ export default function FinishBar({ projectId, onFinished, compact = false, acti
       {showPrep ? <div className="grid gap-6 px-5 py-5 lg:grid-cols-[1fr_18rem]">
         <div>
           <div className="grid gap-2">
-            <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">Upload media</p>
             <input
               id="turnover-clips"
               ref={fileInputRef}

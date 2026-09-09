@@ -1,5 +1,29 @@
 # Agent Handoffs
 
+## 2026-09-09 06:20 - Call Wrap; drop duplicate Upload media heading
+
+### Done
+- Finish action label is **Call Wrap** (already in `5e34b7e`).
+- Removed the extra **Upload media** heading above the button. Button text stays.
+
+### Debated
+- Owner first said Turn Over, then **Call Wrap**.
+
+### Decisions
+- Brand verb for the walk-away click is Call Wrap, not Start finishing.
+
+### Deferred
+- Cloud Run + Replit still unpublished. Ask before deploy.
+
+### Next Agent Should Know
+- `origin/main` had Call Wrap; this commit is the heading cleanup.
+
+### Working Tree
+- Owner asked commit+push.
+
+### Graph
+- Incremental graph build skipped (known hang).
+
 ## 2026-09-09 06:15 - Name/rename project, keep uploading, phone-clip ingest
 
 ### Done
