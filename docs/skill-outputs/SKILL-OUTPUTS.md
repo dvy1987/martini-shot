@@ -129,6 +129,7 @@
 | 2026-09-09 11:56 | test-driven-development | frontend/src/lib/clipDisplay.test.ts frontend/src/pages/SuggestionsRoute.test.tsx | TDD: Suggestions lists the clip name with each leftover suggestion |
 | 2026-09-09 12:17 | test-driven-development | frontend/src/lib/navigation.test.ts frontend/src/pages/ChangesRoute.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: rename Changes tab to Studio |
 | 2026-09-09 12:23 | test-driven-development | frontend/src/pages/TimelineRoute.test.tsx | TDD: Studio and Suggestions pointers sit below Final cut on Central station |
+| 2026-09-09 12:27 | test-driven-development | frontend/src/pages/TimelineRoute.test.tsx | TDD: Studio pointer heading is Add fine-grained edits to the Final cut |
 | 2026-09-09 11:53 | test-driven-development | frontend/src/pages/SuggestionsRoute.test.tsx tests/test_budget_loop.py | Operator copy: budget, not envelope |
 | 2026-09-09 12:00 | test-driven-development | frontend/src/lib/navigation.ts frontend/src/pages/ApprovalsRoute.test.tsx frontend/src/lib/palette.test.ts | Approvals tab renamed Decisions; /approvals redirects |
 | 2026-09-09 12:14 | memory-handoff | agent-handoffs.md#2026-09-09-12:14 + current-state.md | Operator cockpit + Omni 10s bound; owner commit+push all uncommitted work |
