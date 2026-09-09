@@ -1,7 +1,7 @@
 # Project Knowledge Graph Index
 
-Generated: 2026-09-07T15:14:23.030498+00:00
-Mode: **application** | Nodes: 1030 | Edges: 507
+Generated: 2026-09-09T16:55:24.508965+00:00
+Mode: **application** | Nodes: 1141 | Edges: 605
 
 **Why this mode:** application label: 123 skills in .agents/skills plus source under (root) → indexing entire repository (skills + code + docs + memory).
 
@@ -14,21 +14,21 @@ Mode: **application** | Nodes: 1030 | Edges: 507
 - config (.agents/ROUTING.md, tsconfig, pyproject, etc.)
 - top-level directories
 
-EXTRACTED: 346 | INFERRED: 161
+EXTRACTED: 397 | INFERRED: 208
 
 ## Hub nodes
-- finish.py (module)
+- __init__.py (module)
 - venture-exploration
+- test_supervisor_mcp.py (module)
 - memory
+- app.py (module)
 - models.py (module)
 - memory-capture
 - universal-skill-creator
-- improve-skills
-- test_gcs_keys.py (module)
 
 ## Communities
 
-**agent** (2): agent-launcher, agent-run-retro
+**agent** (5): agent-launcher, agent-observability, agent-run-retro, agent-system-architecture, runtime-learning-loop
 **api** (2): api-and-interface-design, api-deprecation-and-migration
 **app** (1): app-security-hardening
 **browser** (1): browser-testing-with-devtools
@@ -37,14 +37,12 @@ EXTRACTED: 346 | INFERRED: 161
 **context** (1): context-engineering
 **core** (4): inversion, ooda, quickstart, socratic
 **create** (1): create-agent-prompt
+**debug** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deep** (1): deep-thinking
-**dependency** (5): debug-and-fix, dependency-mapping, dynamic-routing, safe-change, structured-planning
 **deploy** (1): deploy-anywhere
 **deprecate** (1): deprecate-skill
 **design** (7): design-direction, design-review, design-system, frontend-design, gsap-animation, motion-animation, svg-creation
 **eval** (3): eval-judge, eval-output, eval-rubric-design
-**experiment** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
-  … +56 more
 **fault** (1): fault-localize
 **first** (1): first-principles
 **git** (1): git-workflow-and-versioning
@@ -55,10 +53,11 @@ EXTRACTED: 346 | INFERRED: 161
 **pr** (1): pr-authoring
 **pre** (1): pre-mortem
 **run** (1): run-trace
-**runtime** (3): agent-observability, agent-system-architecture, runtime-learning-loop
 **second** (1): second-order
 **secure** (4): secure-skill, secure-skill-content-sanitization, secure-skill-repo-ingestion, secure-skill-runtime
 **shipping** (1): shipping-and-launch
+**skill** (66): adversarial-hat, agent-builder, agent-loom-sync, apply-paper-to-project, architectural-decision-log, assumption-mapping, brainstorming, business-modeling, codebase-understanding, compress-skill
+  … +56 more
 **source** (1): source-driven-development
 **spec** (1): spec-crosscheck
 **technical** (1): technical-debt-audit
@@ -67,12 +66,12 @@ EXTRACTED: 346 | INFERRED: 161
 
 ## Node types
 
-- **config**: 417
+- **config**: 420
 - **directory**: 11
-- **doc**: 73
-- **handoff**: 19
+- **doc**: 80
+- **handoff**: 37
 - **memory**: 9
-- **module**: 377
+- **module**: 460
 - **package**: 1
 - **skill**: 123
 

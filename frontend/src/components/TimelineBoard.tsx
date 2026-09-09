@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 import { ApiError, mediaUrl } from "@/api/client";
-import { getJobClip } from "@/api/endpoints";
+import { acceptWorklistItem, getJobClip, retryWorklistItem } from "@/api/endpoints";
 import { AgentNotesModal } from "@/components/AgentNotesModal";
 import ClipReviewModal from "@/components/ClipReviewModal";
 import ClipThumb from "@/components/ClipThumb";
@@ -21,6 +21,7 @@ import {
 import { cost } from "@/lib/formatters";
 import { filterJobsByStatus } from "@/lib/lens";
 import { staggerChild, staggerParent } from "@/lib/motion";
+import { canAcceptRow, canRetryRow } from "@/lib/stalledRow";
 import { STATUS_BOARD_ORDER, statusMetaOrUnknown } from "@/lib/status";
 import { stationName } from "@/lib/stations";
 import { jobsForProject } from "@/lib/timeline";
@@ -74,12 +75,42 @@ function TimelineTable({
   slots,
   onAddToFinalCut,
   worklist,
+  projectId,
 }: TimelineBoardProps & {
   onOpenClip: (clip: JobClip) => void;
   onOpenNotes: (title: string, notes: AgentNotes) => void;
   slots: ReturnType<typeof finalCutSlots>;
   onAddToFinalCut: (row: BoardRow) => void;
 }) {
+  const [pending, setPending] = useState<string | null>(null);
+  const [rowError, setRowError] = useState<string | null>(null);
+
+  async function handleRetry(job: Job) {
+    if (!projectId) return;
+    setRowError(null);
+    setPending(`retry:${job.job_id}`);
+    try {
+      await retryWorklistItem(projectId, job.job_id);
+    } catch {
+      setRowError("This step could not be retried. Check the connection and try again.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function handleAccept(job: Job) {
+    if (!projectId) return;
+    setRowError(null);
+    setPending(`accept:${job.job_id}`);
+    try {
+      await acceptWorklistItem(projectId, job.job_id);
+    } catch {
+      setRowError("This step could not be accepted. Check the connection and try again.");
+    } finally {
+      setPending(null);
+    }
+  }
+
   return (
     <div className="overflow-x-auto rounded-md border border-line bg-surface-1">
       <table aria-label="Season timeline jobs" className="w-full min-w-max border-collapse text-left">
@@ -94,6 +125,7 @@ function TimelineTable({
             <th className="border-b border-line px-4 py-2 font-normal">Status</th>
             <th className="border-b border-line px-4 py-2 font-normal">Attempt</th>
             <th className="border-b border-line px-4 py-2 font-normal">Cost</th>
+            <th className="border-b border-line px-4 py-2 font-normal">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -101,7 +133,7 @@ function TimelineTable({
             <Fragment key={group.origin}>
               <tr>
                 <th
-                  colSpan={9}
+                  colSpan={10}
                   scope="colgroup"
                   className="border-b border-line bg-surface-2 px-4 py-2 text-left font-mono text-xs uppercase tracking-wider text-ink"
                 >
@@ -197,6 +229,36 @@ function TimelineTable({
                   <td className="border-b border-line px-4 py-2 font-mono text-xs text-ink-muted">
                     {job.cost_micros !== undefined ? cost(job.cost_micros) : "—"}
                   </td>
+                  <td className="border-b border-line px-4 py-2">
+                    {canRetryRow(job, worklist) || canAcceptRow(job, worklist) ? (
+                      <div className="flex flex-wrap items-center gap-3">
+                        {canRetryRow(job, worklist) ? (
+                          <button
+                            type="button"
+                            aria-label={`Retry ${name} (${stage})`}
+                            disabled={pending === `retry:${job.job_id}`}
+                            onClick={() => void handleRetry(job)}
+                            className="text-sm text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Retry
+                          </button>
+                        ) : null}
+                        {canAcceptRow(job, worklist) ? (
+                          <button
+                            type="button"
+                            aria-label={`Accept ${name} (${stage})`}
+                            disabled={pending === `accept:${job.job_id}`}
+                            onClick={() => void handleAccept(job)}
+                            className="text-sm text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Accept
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-ink-muted">—</span>
+                    )}
+                  </td>
                 </tr>
               );
             })}
@@ -204,6 +266,9 @@ function TimelineTable({
           ))}
         </tbody>
       </table>
+      {rowError ? (
+        <p className="border-t border-line px-4 py-2 text-sm text-danger">{rowError}</p>
+      ) : null}
     </div>
   );
 }
@@ -550,6 +615,8 @@ export default function TimelineBoard({
           onOpenNotes={(title, notes) => setAgentNotes({ title, notes })}
           slots={slots}
           onAddToFinalCut={handleAddToFinalCut}
+          worklist={worklist}
+          projectId={projectId}
         />
       ) : (
         <motion.div

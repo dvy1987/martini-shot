@@ -22,7 +22,11 @@ from fastapi.testclient import TestClient
 
 from backend.api.events import EventHub
 from backend.api.finish import install_finish_routes
-from backend.supervisor.finishing_loop import retry_stalled_items
+from backend.supervisor.finishing_loop import (
+    accept_stalled_item,
+    retry_stalled_item,
+    retry_stalled_items,
+)
 
 
 def _item(
@@ -140,6 +144,130 @@ def test_retry_counts_repeat_attempts() -> None:
     row = updated["items"][0]
     assert row["retries"] == 2
     assert row["retry_of"] == "job-fail-2"
+
+
+def test_retry_stalled_item_resets_only_the_job_it_names() -> None:
+    """The table view offers Retry per row now, not just for the whole
+    worklist — it must never touch a second stalled item just because it
+    also happens to be failed."""
+    doc = {
+        "project_id": "p",
+        "budget_micros": 50_000_000,
+        "spent_micros": 0,
+        "items": [
+            _item("relight::shot-1", "relight", "failed", job_id="job-fail-1"),
+            _item("pickups::shot-4", "pickups", "needs_human", job_id="job-fail-2"),
+        ],
+    }
+
+    updated = retry_stalled_item(doc, "job-fail-2")
+
+    by_id = {str(row["id"]): row for row in updated["items"]}
+    assert by_id["pickups::shot-4"]["status"] == "waiting"
+    assert by_id["pickups::shot-4"]["retries"] == 1
+    assert by_id["pickups::shot-4"]["retry_of"] == "job-fail-2"
+    assert by_id["pickups::shot-4"].get("job_id") is None
+    # The unrelated failed row is left exactly alone.
+    assert by_id["relight::shot-1"]["status"] == "failed"
+    assert by_id["relight::shot-1"]["job_id"] == "job-fail-1"
+
+
+def test_retry_stalled_item_raises_when_no_item_references_the_job() -> None:
+    doc = {"project_id": "p", "budget_micros": 1, "spent_micros": 0, "items": []}
+
+    try:
+        retry_stalled_item(doc, "job-missing")
+    except LookupError:
+        pass
+    else:
+        raise AssertionError("expected a LookupError")
+
+
+def test_retry_stalled_item_raises_when_the_item_is_not_stalled() -> None:
+    doc = {
+        "project_id": "p",
+        "budget_micros": 1,
+        "spent_micros": 0,
+        "items": [_item("loudness::shot-1", "loudness", "passed", job_id="job-pass")],
+    }
+
+    try:
+        retry_stalled_item(doc, "job-pass")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected a ValueError")
+
+
+def test_accept_stalled_item_marks_it_passed_without_touching_the_job() -> None:
+    """Accept unblocks the run but never rewrites the AI's own verdict —
+    the job doc's needs_human/failed history stays honest; only the
+    worklist item (which governs dispatch) moves to passed."""
+    doc = {
+        "project_id": "p",
+        "budget_micros": 1,
+        "spent_micros": 0,
+        "items": [
+            _item(
+                "pickups::shot-4",
+                "pickups",
+                "needs_human",
+                job_id="job-shaky",
+                shot_id="shot-4",
+            ),
+        ],
+    }
+
+    updated = accept_stalled_item(doc, "job-shaky")
+
+    row = updated["items"][0]
+    assert row["status"] == "passed"
+    assert row["accepted_by_operator"] is True
+    assert isinstance(row["accepted_at"], str) and row["accepted_at"]
+    # Still points at the same (flagged) job — accept never retries.
+    assert row["job_id"] == "job-shaky"
+
+
+def test_accept_stalled_item_also_accepts_a_plain_failure() -> None:
+    doc = {
+        "project_id": "p",
+        "budget_micros": 1,
+        "spent_micros": 0,
+        "items": [_item("relight::shot-1", "relight", "failed", job_id="job-fail")],
+    }
+
+    updated = accept_stalled_item(doc, "job-fail")
+
+    assert updated["items"][0]["status"] == "passed"
+
+
+def test_accept_stalled_item_refuses_a_budget_pause() -> None:
+    """Paused is a budget throttle, not a quality judgment a human can
+    wave through — accepting it would silently hide a spend problem."""
+    doc = {
+        "project_id": "p",
+        "budget_micros": 1,
+        "spent_micros": 0,
+        "items": [_item("pickups::shot-2", "pickups", "paused", job_id="job-paused")],
+    }
+
+    try:
+        accept_stalled_item(doc, "job-paused")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected a ValueError")
+
+
+def test_accept_stalled_item_raises_when_no_item_references_the_job() -> None:
+    doc = {"project_id": "p", "budget_micros": 1, "spent_micros": 0, "items": []}
+
+    try:
+        accept_stalled_item(doc, "job-missing")
+    except LookupError:
+        pass
+    else:
+        raise AssertionError("expected a LookupError")
 
 
 class _Queue:
@@ -313,3 +441,106 @@ def test_retry_route_is_a_truthful_noop_when_nothing_is_stalled() -> None:
     assert response.status_code == 200
     assert queue.jobs == []
     assert response.json()["status"] == "idle"
+
+
+def test_retry_item_route_retries_only_the_row_it_names() -> None:
+    """The table view's per-row Retry button — must not touch a second
+    stalled row just because it is also failed."""
+    worklist = _stalled_worklist()
+    worklist["items"].append(
+        _item(
+            "pickups::shot-4",
+            "pickups",
+            "needs_human",
+            shot_id="shot-4",
+            job_id="job-shaky",
+        )
+    )
+    client, queue, store = _client({"p": worklist}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/retry/job-shaky")
+
+    assert response.status_code == 200
+    doc = response.json()
+    by_id = {str(row["id"]): row for row in doc["items"]}
+    assert by_id["pickups::shot-4"]["status"] == "queued"
+    assert by_id["pickups::shot-4"]["retries"] == 1
+    # The other, unrelated failed row from the fixture is untouched.
+    assert by_id["relight::shot-1"]["status"] == "failed"
+    assert queue.jobs[0].station == "pickups"
+    assert store.docs["p"]["items"][-1]["status"] == "queued"
+
+
+def test_retry_item_route_404s_when_the_job_is_not_in_the_worklist() -> None:
+    client, _queue, _store = _client({"p": _stalled_worklist()}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/retry/no-such-job")
+
+    assert response.status_code == 404
+
+
+def test_retry_item_route_409s_when_the_row_is_not_stalled() -> None:
+    client, _queue, _store = _client({"p": _stalled_worklist()}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/retry/job-pass")
+
+    assert response.status_code == 409
+
+
+def test_retry_item_route_404s_without_a_worklist() -> None:
+    client, _queue, _store = _client({}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/retry/job-fail")
+
+    assert response.status_code == 404
+
+
+def test_accept_item_route_unblocks_a_dependent_row() -> None:
+    """Accepting the flagged relight lets the delivery row waiting on it
+    dispatch — the whole point of Accept is to let the run continue."""
+    worklist = _stalled_worklist()
+    worklist["items"][1]["status"] = "needs_human"  # relight::shot-1
+    worklist["items"][2]["status"] = (
+        "waiting"  # delivery::shot-1, still queued behind it
+    )
+    client, queue, store = _client({"p": worklist}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/accept/job-fail")
+
+    assert response.status_code == 200
+    doc = response.json()
+    by_id = {str(row["id"]): row for row in doc["items"]}
+    assert by_id["relight::shot-1"]["status"] == "passed"
+    assert by_id["relight::shot-1"]["accepted_by_operator"] is True
+    # Accept never retries — the job it points at is still the flagged one.
+    assert by_id["relight::shot-1"]["job_id"] == "job-fail"
+    # Delivery was only blocked on relight; it is now free to dispatch.
+    assert by_id["delivery::shot-1"]["status"] == "queued"
+    assert queue.jobs[0].station == "delivery"
+    assert store.docs["p"]["items"][1]["accepted_by_operator"] is True
+
+
+def test_accept_item_route_404s_when_the_job_is_not_in_the_worklist() -> None:
+    client, _queue, _store = _client({"p": _stalled_worklist()}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/accept/no-such-job")
+
+    assert response.status_code == 404
+
+
+def test_accept_item_route_409s_when_the_row_is_not_acceptable() -> None:
+    """A queued/active row, or a plain budget pause, is not something a
+    human accepts — those aren't quality judgments to wave through."""
+    client, _queue, _store = _client({"p": _stalled_worklist()}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/accept/job-pass")
+
+    assert response.status_code == 409
+
+
+def test_accept_item_route_404s_without_a_worklist() -> None:
+    client, _queue, _store = _client({}, [])
+
+    response = client.post("/api/v1/projects/p/worklist/accept/job-fail")
+
+    assert response.status_code == 404

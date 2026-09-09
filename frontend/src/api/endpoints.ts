@@ -325,6 +325,24 @@ export function retryWorklist(projectId: string): Promise<Worklist> {
   );
 }
 
+/** POST /api/v1/projects/{id}/worklist/retry/{jobId} — re-run one stalled row. */
+export function retryWorklistItem(projectId: string, jobId: string): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/worklist/retry/${encodeURIComponent(jobId)}`,
+    { method: "POST" },
+  );
+}
+
+/** POST /api/v1/projects/{id}/worklist/accept/{jobId} — clear one stalled
+ * row's review flag without re-running it; operator still adds it to
+ * Final cut manually from the table. */
+export function acceptWorklistItem(projectId: string, jobId: string): Promise<Worklist> {
+  return apiFetch<Worklist>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/worklist/accept/${encodeURIComponent(jobId)}`,
+    { method: "POST" },
+  );
+}
+
 export function getRunPulse(projectId: string): Promise<RunPulse> {
   return apiFetch<RunPulse>(
     `/api/v1/projects/${encodeURIComponent(projectId)}/run-pulse`,

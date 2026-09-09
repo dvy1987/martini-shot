@@ -20,6 +20,7 @@ from backend.shots import lifecycle as shots
 from backend.supervisor.finishing_loop import (
     DEFAULT_BUDGET_MICROS,
     PROPOSE_STATIONS,
+    accept_stalled_item,
     assemble_final,
     collect_original_refs,
     dispatch_next,
@@ -29,6 +30,7 @@ from backend.supervisor.finishing_loop import (
     pin_delivery_last,
     proposal_clip_uri,
     refresh_final_refs,
+    retry_stalled_item,
     retry_stalled_items,
     stamp_ingest_watch,
     worklist_doc,
@@ -530,6 +532,60 @@ def install_finish_routes(
                 detail="the finishing turnover has not built its work plan yet",
             )
         doc = retry_stalled_items(doc)
+        doc = dispatch_next(doc, queue=queue, project_id=project_id)
+        refresh_final_refs(doc, store)
+        save_worklist(store, project_id, doc)
+        _publish(hub, project_id, doc)
+        return doc
+
+    @app.post("/api/v1/projects/{project_id}/worklist/retry/{job_id}")
+    def retry_worklist_item(project_id: str, job_id: str) -> dict[str, Any]:
+        """The table view's per-row Retry — re-runs exactly the one stalled
+        step the operator is looking at, never the whole worklist."""
+        doc = load_worklist(store, project_id)
+        if doc is None:
+            raise HTTPException(status_code=404, detail="no worklist")
+        if str(doc.get("status") or "") in {"inspecting", "waiting_for_ingest"}:
+            raise HTTPException(
+                status_code=409,
+                detail="the finishing turnover has not built its work plan yet",
+            )
+        try:
+            doc = retry_stalled_item(doc, job_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        doc = dispatch_next(doc, queue=queue, project_id=project_id)
+        refresh_final_refs(doc, store)
+        save_worklist(store, project_id, doc)
+        _publish(hub, project_id, doc)
+        return doc
+
+    @app.post("/api/v1/projects/{project_id}/worklist/accept/{job_id}")
+    def accept_worklist_item(project_id: str, job_id: str) -> dict[str, Any]:
+        """The table view's per-row Accept: acknowledge a stalled step's
+        current output as good enough and let the run continue past it.
+
+        Never retries and never rewrites the job doc's own needs_human or
+        failed verdict — only the worklist item moves to passed, which is
+        enough to unblock anything waiting on it. The operator still has
+        to manually add this step's output to Final cut from the table.
+        """
+        doc = load_worklist(store, project_id)
+        if doc is None:
+            raise HTTPException(status_code=404, detail="no worklist")
+        if str(doc.get("status") or "") in {"inspecting", "waiting_for_ingest"}:
+            raise HTTPException(
+                status_code=409,
+                detail="the finishing turnover has not built its work plan yet",
+            )
+        try:
+            doc = accept_stalled_item(doc, job_id)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         doc = dispatch_next(doc, queue=queue, project_id=project_id)
         refresh_final_refs(doc, store)
         save_worklist(store, project_id, doc)

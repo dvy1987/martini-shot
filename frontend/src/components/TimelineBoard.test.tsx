@@ -1,12 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getJobClip } from "@/api/endpoints";
+import { acceptWorklistItem, getJobClip, retryWorklistItem } from "@/api/endpoints";
 import TimelineBoard from "@/components/TimelineBoard";
 import type { Job, Worklist } from "@/types/api";
 
 vi.mock("@/api/endpoints", () => ({
   getJobClip: vi.fn(),
+  retryWorklistItem: vi.fn(),
+  acceptWorklistItem: vi.fn(),
 }));
 
 beforeEach(() => {
@@ -358,6 +360,157 @@ describe("TimelineBoard", () => {
         "blob:final-1",
       ),
     );
+  });
+  describe("per-row Retry and Accept in the table view", () => {
+    function stalledJob(jobId = "job-shaky"): Job {
+      return {
+        job_id: jobId,
+        station: "pickups",
+        project_id: "project-1",
+        input_refs: [],
+        status: "needs_human",
+        attempts: 1,
+      };
+    }
+
+    function withItem(status: string, jobId = "job-shaky"): Worklist {
+      return {
+        ...idleWorklist(),
+        status: "running",
+        items: [{ id: "pickups::shot-4", station: "pickups", status, job_id: jobId }],
+      };
+    }
+
+    it("shows Retry and Accept on a stalled row, and neither once the item is fine", () => {
+      const fine: Job = { ...stalledJob("job-fine"), status: "pass" };
+      const worklist: Worklist = {
+        ...idleWorklist(),
+        status: "running",
+        items: [
+          { id: "pickups::shot-4", station: "pickups", status: "needs_human", job_id: "job-shaky" },
+          { id: "loudness::shot-9", station: "loudness", status: "passed", job_id: "job-fine" },
+        ],
+      };
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob(), fine]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={worklist}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      expect(screen.getByRole("button", { name: /^retry clip 1 \(pickups\)$/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^accept clip 1 \(pickups\)$/i })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /^retry clip 2 \(loudness\)$/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /^accept clip 2 \(loudness\)$/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps Retry but hides Accept on a budget-paused row", () => {
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob()]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={withItem("paused")}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      expect(screen.getByRole("button", { name: /^retry clip 1 \(pickups\)$/i })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /^accept clip 1 \(pickups\)$/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("retries only the row the operator clicked", async () => {
+      vi.mocked(retryWorklistItem).mockResolvedValue(withItem("waiting"));
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob()]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={withItem("failed")}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      fireEvent.click(screen.getByRole("button", { name: /^retry clip 1 \(pickups\)$/i }));
+
+      await waitFor(() =>
+        expect(retryWorklistItem).toHaveBeenCalledWith("project-1", "job-shaky"),
+      );
+    });
+
+    it("accepts only the row the operator clicked", async () => {
+      vi.mocked(acceptWorklistItem).mockResolvedValue(withItem("passed"));
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob()]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={withItem("needs_human")}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      fireEvent.click(screen.getByRole("button", { name: /^accept clip 1 \(pickups\)$/i }));
+
+      await waitFor(() =>
+        expect(acceptWorklistItem).toHaveBeenCalledWith("project-1", "job-shaky"),
+      );
+    });
+
+    it("tells the operator plainly when a per-row retry fails", async () => {
+      vi.mocked(retryWorklistItem).mockRejectedValue(new Error("network"));
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob()]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={withItem("failed")}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      fireEvent.click(screen.getByRole("button", { name: /^retry clip 1 \(pickups\)$/i }));
+
+      expect(
+        await screen.findByText(/could not be retried/i),
+      ).toBeInTheDocument();
+    });
+
+    it("tells the operator plainly when a per-row accept fails", async () => {
+      vi.mocked(acceptWorklistItem).mockRejectedValue(new Error("network"));
+      render(
+        <TimelineBoard
+          projectId="project-1"
+          jobs={[stalledJob()]}
+          selectedJobId={null}
+          onSelectJob={vi.fn()}
+          worklist={withItem("needs_human")}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+
+      fireEvent.click(screen.getByRole("button", { name: /^accept clip 1 \(pickups\)$/i }));
+
+      expect(
+        await screen.findByText(/could not be accepted/i),
+      ).toBeInTheDocument();
+    });
   });
 });
 

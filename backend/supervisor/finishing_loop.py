@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from backend.jobs.models import Job
+from backend.jobs.models import Job, utc_now_iso
 from backend.supervisor.inspect import (
     DEFAULT_COST_MICROS,
     InspectNote,
@@ -750,6 +750,59 @@ def retry_stalled_items(doc: dict[str, Any]) -> dict[str, Any]:
         item["status"] = "waiting"
         item["retries"] = int(item.get("retries") or 0) + 1
     doc["items"] = items
+    return doc
+
+
+def _item_by_job_id(doc: dict[str, Any], job_id: str) -> dict[str, Any]:
+    for item in doc.get("items") or []:
+        if str(item.get("job_id") or "") == job_id:
+            return item
+    raise LookupError(f"no worklist item references job {job_id!r}")
+
+
+def retry_stalled_item(doc: dict[str, Any], job_id: str) -> dict[str, Any]:
+    """Operator retry for exactly one stalled row (the table view's
+    per-row Retry button) — same rules as `retry_stalled_items`, scoped to
+    the single item whose current job_id matches."""
+    item = _item_by_job_id(doc, job_id)
+    if str(item.get("status") or "") not in RETRYABLE_STALLED:
+        raise ValueError(
+            f"item {item.get('id')!r} is {item.get('status')!r}; retry "
+            f"allowed only from {sorted(RETRYABLE_STALLED)}"
+        )
+    item["retry_of"] = job_id
+    item["job_id"] = None
+    item["status"] = "waiting"
+    item["retries"] = int(item.get("retries") or 0) + 1
+    return doc
+
+
+ACCEPTABLE_STALLED = frozenset({"failed", "needs_human"})
+
+
+def accept_stalled_item(doc: dict[str, Any], job_id: str) -> dict[str, Any]:
+    """Operator accept (the table view's per-row Accept button): acknowledge
+    one stalled row's current output as good enough and let the rest of the
+    run continue past it.
+
+    Unlike retry, accept never re-runs anything and never rewrites the
+    job's own record of what happened — the AI's needs_human/failed verdict
+    stays the honest history on the job doc. Only the worklist item's own
+    status flips to passed, so dependents waiting on this shot's step treat
+    it as resolved. The operator still has to manually add this step's
+    output to Final cut from the table; accept never does that for them
+    (owner ruling 2026-09-09). Budget pauses are excluded — a throttle is a
+    spend problem, not a quality call a human can wave through.
+    """
+    item = _item_by_job_id(doc, job_id)
+    if str(item.get("status") or "") not in ACCEPTABLE_STALLED:
+        raise ValueError(
+            f"item {item.get('id')!r} is {item.get('status')!r}; accept "
+            f"allowed only from {sorted(ACCEPTABLE_STALLED)}"
+        )
+    item["status"] = "passed"
+    item["accepted_by_operator"] = True
+    item["accepted_at"] = utc_now_iso()
     return doc
 
 

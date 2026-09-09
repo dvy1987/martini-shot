@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 22:15 | handoff | agent-handoffs.md#2026-09-09-22:15 | current | retry, accept, table-view, worklist | Per-row Retry/Accept in Table view for stalled items (any station); backend routes + frontend buttons; uncommitted |
+| 2026-09-09 | state | current-state.md | current | retry, accept, table-view, deploy | Per-row Retry/Accept uncommitted on top of synced origin/main; unpublished Cloud Run/Replit |
 | 2026-09-09 16:52 | handoff | agent-handoffs.md#2026-09-09-16:52 | current | final-cut, play, timeline | Final cut live slots and Play button unblocked |
 | 2026-09-09 | state | current-state.md | current | final-cut, play, deploy | Live Final cut slots and unblocked Play button; unpublished Cloud Run/Replit |
 | 2026-09-09 16:35 | handoff | agent-handoffs.md#2026-09-09-16:35 | current | retry, worklist, directed-edit, studio | Retry stalled steps + DirectedEditStudio redesign integrated |
