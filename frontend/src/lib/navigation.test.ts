@@ -7,7 +7,15 @@ describe("primary navigation", () => {
     expect(ROUTES.find((entry) => entry.id === "timeline")?.label).toBe("Central station");
   });
 
-  it("names the shot-edit tab Studio", () => {
-    expect(ROUTES.find((entry) => entry.id === "changes")?.label).toBe("Studio");
+  it("offers exactly the finished tabs, in order", () => {
+    // Unfinished screens (Studio on /changes, Reports on /reports) are not
+    // offered as navigation — owner demo ruling 2026-09-09. Their routes
+    // stay registered in App.tsx, so deep links keep working.
+    expect(ROUTES.map((entry) => entry.id)).toEqual([
+      "timeline",
+      "suggestions",
+      "decisions",
+      "analytics",
+    ]);
   });
 });

@@ -38,17 +38,18 @@ describe("command palette matching", () => {
     const ids = allCommands(jobs).map(({ id }) => id);
     expect(ids).toContain("job:job-real");
     expect(ids).toContain("route:timeline");
-    expect(ids).toContain("route:changes");
     expect(ids).toContain("route:suggestions");
     expect(ids).toContain("route:decisions");
     expect(ids).toContain("route:analytics");
+    // Unfinished screens are hidden from navigation (demo ruling).
+    expect(ids).not.toContain("route:changes");
+    expect(ids).not.toContain("route:reports");
     expect(ids).toContain("lens");
     expect(ids.some((id) => id.startsWith("job:") && id !== "job:job-real")).toBe(false);
   });
 
   it("maps route commands onto real app paths", () => {
     expect(pathForRouteCommand("route:timeline")).toBe("/");
-    expect(pathForRouteCommand("route:changes")).toBe("/changes");
     expect(pathForRouteCommand("route:suggestions")).toBe("/suggestions");
     expect(pathForRouteCommand("route:decisions")).toBe("/decisions");
     expect(pathForRouteCommand("route:analytics")).toBe("/analytics");
