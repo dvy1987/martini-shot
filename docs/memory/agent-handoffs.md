@@ -1,5 +1,36 @@
 # Agent Handoffs
 
+## 2026-09-09 12:35 - Commit/push requested; tree already on origin
+
+### Done
+- Owner asked to commit and push **all** uncommitted work, with a handoff.
+- Working tree is clean. `main` matches `origin/main` at `2ab65be`.
+- That tip already includes the 12:14 cockpit batch: Agent Notes, Decisions tab, Studio, budget copy, Analytics cards, Final cut, Omni 10s bounded edit, plus Studio/Suggestions pointers below Final cut (`5cba62f`).
+
+### Debated
+- None this turn.
+
+### Decisions
+- No empty feature commit. Memory files below only record that this request found nothing left to ship.
+
+### Deferred
+- Publish Cloud Run + Replit so the live site matches `2ab65be`. Ask before deploy.
+- `make check` coverage still below 90%.
+
+### Next Agent Should Know
+- Do not look for leftover dirty files from Agent Notes / Decisions / Studio / Omni 10s — they are already on origin.
+- Live Replit/Cloud Run still lag this tree until the owner asks to deploy.
+- Do not restore “Fits the envelope” or an Approvals tab.
+
+### Revisit Triggers
+- New dirty files appear, or the owner still sees Approvals / envelope / packed Analytics / 14s relight fail on the **published** site (needs deploy, not another commit).
+
+### Working Tree
+- Clean at inspect; this handoff + current-state refresh are the only new files.
+
+### Graph
+- Incremental graph build skipped (known hang on `build_graph.py --incremental`).
+
 ## 2026-09-09 12:14 - Operator cockpit: Agent Notes, Decisions, Changes, Omni 10s bound
 
 ### Done

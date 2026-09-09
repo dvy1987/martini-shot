@@ -135,5 +135,7 @@
 | 2026-09-09 12:14 | memory-handoff | agent-handoffs.md#2026-09-09-12:14 + current-state.md | Operator cockpit + Omni 10s bound; owner commit+push all uncommitted work |
 | 2026-09-09 12:25 | git-workflow-and-versioning | main | feat: operator notes, Decisions tab, and Omni 10s bounded edits |
 | 2026-09-09 12:24 | test-driven-development | frontend/src/lib/finalCut.test.ts | TDD: Final cut fills when orchestrator stops for any reason; last successful After, leftover steps not required |
+| 2026-09-09 12:35 | memory-handoff | agent-handoffs.md#2026-09-09-12:35 + current-state.md | Owner asked commit+push all uncommitted work; tree already clean on origin |
+| 2026-09-09 12:35 | git-workflow-and-versioning | main | docs: record that origin already has the cockpit batch |
 
 

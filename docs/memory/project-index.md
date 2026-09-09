@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 12:35 | handoff | agent-handoffs.md#2026-09-09-12:35 | current | git, deploy | Commit/push requested; tree already clean on origin/main @ 2ab65be |
+| 2026-09-09 | state | current-state.md | current | agent-notes, decisions, studio, deploy | origin/main 2ab65be; live site unpublished |
 | 2026-09-09 12:14 | handoff | agent-handoffs.md#2026-09-09-12:14 | current | agent-notes, decisions, changes, omni-10s, budget-copy | Operator cockpit + Omni bounded edit; commit+push all uncommitted work |
 | 2026-09-09 | state | current-state.md | current | agent-notes, decisions, deploy | Local tree ahead of live site; ask before deploy |
 | 2026-09-09 10:02 | handoff | agent-handoffs.md#2026-09-09-10:02 | current | git, deploy | Commit/push requested; tree already clean on origin/main @ 4571ffa |
