@@ -1,5 +1,6 @@
 /** Ranked finishing work. Passed ticks green. Waiting rows can be reordered. */
 import { cost } from "@/lib/formatters";
+import { stationName } from "@/lib/stations";
 import type { Worklist, WorklistItem } from "@/types/api";
 
 interface WorklistPanelProps {
@@ -44,27 +45,15 @@ function itemTone(status: string): string {
 }
 
 function stationLabel(station: string): string {
-  const labels: Record<string, string> = {
-    ingest: "File check",
-    loudness: "Audio check",
-    pickups: "Picture repair",
-    extend: "Extend a shot",
-    corrections: "Fix an image",
-    relight: "Improve lighting",
-    coverage: "Add coverage",
-    camera_language: "Camera movement",
-    dub: "Create a dubbed version",
-    delivery: "Delivery check",
-    spend: "Budget check",
-  };
-  return labels[station] ?? station.replaceAll("_", " ");
+  return stationName(station);
 }
 
 function statusLabel(status: string): string {
   const labels: Record<string, string> = {
     inspecting: "Reviewing clips",
-    planning: "Choosing improvements",
-    executing: "Running selected work",
+    planning: "Plan work",
+    executing: "Execute",
+    delivering: "Delivery",
     running: "Running",
     queued: "Queued",
     waiting: "Waiting for budget",
@@ -136,7 +125,7 @@ export default function WorklistPanel({ worklist, onReorder }: WorklistPanelProp
                     {item.summary ?? ""}
                     {item.blocked_by && item.blocked_by.length > 0 ? (
                       <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-                        Waiting for: {item.blocked_by.map((id) => stationLabel(id.split("::")[0])).join(", ")}
+                        Waiting for: {item.blocked_by.map((id) => stationLabel(id.split("::")[0] ?? id)).join(", ")}
                       </span>
                     ) : null}
                   </td>

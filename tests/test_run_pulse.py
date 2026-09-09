@@ -142,6 +142,36 @@ def test_grafana_down_keeps_firestore_burn_and_eta_without_inventing_factory() -
     assert pulse["wheel"]["items"] == []
 
 
+def test_pulse_lists_key_jobs_even_when_ingest_cost_is_zero() -> None:
+    reset_run_pulse_cache()
+    store = _Store()
+    ingest = _job(
+        id="job-in-1",
+        station="ingest",
+        cost_micros=0,
+        input_refs=["gs://b/test-clip01.mp4"],
+    )
+    loud = _job(
+        id="job-loud-1",
+        station="loudness",
+        cost_micros=80_000,
+        input_refs=["gs://b/test-clip01.mp4"],
+    )
+    store.set_doc("pc-jobs", ingest.id, ingest.to_dict())
+    store.set_doc("pc-jobs", loud.id, loud.to_dict())
+    pulse = assemble_run_pulse(
+        store,  # type: ignore[arg-type]
+        "proj-pulse",
+        grafana=None,
+        worklist={"status": "idle", "items": []},
+    )
+    ids = [row["job_id"] for row in pulse["jobs"]]
+    assert ids == ["job-in-1", "job-loud-1"]
+    assert pulse["jobs"][0]["clip"] == "test-clip01.mp4"
+    assert pulse["jobs"][0]["status"] == "pass"
+    assert pulse["jobs"][0]["cost_micros"] == 0
+
+
 def test_factory_degraded_when_global_fail_rate_is_high() -> None:
     reset_run_pulse_cache()
 

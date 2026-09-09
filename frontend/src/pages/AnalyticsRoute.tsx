@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getRunPulse, getWorklist } from "@/api/endpoints";
+import { getRunPulse, getWorklist, listProjects } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
 import RunPulseStrip from "@/components/RunPulse";
 import type { BackendReach } from "@/types/api";
@@ -16,6 +16,18 @@ export default function AnalyticsRoute({
   selectedProjectId,
   onJumpToJob,
 }: AnalyticsRouteProps) {
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: listProjects,
+    enabled: backend === "up",
+  });
+  const openProject = (projectsQuery.data ?? []).find(
+    (project) => project.project_id === selectedProjectId,
+  );
+  const waitingForTimelineProject =
+    selectedProjectId === null &&
+    (projectsQuery.isPending || (projectsQuery.data?.length ?? 0) > 0);
+
   const worklistQuery = useQuery({
     queryKey: ["worklist", selectedProjectId],
     queryFn: () => getWorklist(selectedProjectId ?? ""),
@@ -62,6 +74,14 @@ export default function AnalyticsRoute({
     );
   }
 
+  if (waitingForTimelineProject) {
+    return (
+      <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
+        Opening the same project as Timeline…
+      </p>
+    );
+  }
+
   if (!selectedProjectId) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-10">
@@ -69,7 +89,7 @@ export default function AnalyticsRoute({
         <EmptyState
           glyph="▣"
           title="No project selected"
-          body="Select a project on the timeline first. Analytics are shown for one project at a time."
+          body="Start a project on the timeline. Grafana watch uses the same show as Timeline."
         />
       </section>
     );
@@ -82,8 +102,12 @@ export default function AnalyticsRoute({
         <h1 id="analytics-heading" className="mt-1 text-2xl text-ink">
           Grafana watch
         </h1>
+        {openProject ? (
+          <p className="mt-1 font-mono text-xs uppercase tracking-widest text-agent">{openProject.title}</p>
+        ) : null}
         <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Factory health, cost, finish time, and automatic actions for this run — sourced from Grafana.
+          Same project as Timeline. Factory health, cost, finish time, and automatic actions for this
+          run — sourced from Grafana.
         </p>
       </header>
       <RunPulseStrip

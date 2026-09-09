@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import { getProject, listApprovals, projectEventsUrl } from "@/api/endpoints";
+import { getProject, listApprovals, listProjects, projectEventsUrl } from "@/api/endpoints";
 import CommandPalette from "@/components/CommandPalette";
 import SlateDeck from "@/components/SlateDeck";
 import TopBar from "@/components/TopBar";
@@ -12,9 +12,11 @@ import { allCommands, pathForRouteCommand, type PaletteCommand } from "@/lib/pal
 import { slateForRoute } from "@/lib/slates";
 import { deliberationFromSseEvent, upsertDeliberation } from "@/lib/deliberations";
 import { jobFromSseEvent, jobsForProject, upsertJob } from "@/lib/timeline";
+import { pickProjectId } from "@/lib/projectSelection";
 import AnalyticsRoute from "@/pages/AnalyticsRoute";
 import ApprovalsRoute from "@/pages/ApprovalsRoute";
 import ReportsRoute from "@/pages/ReportsRoute";
+import SuggestionsRoute from "@/pages/SuggestionsRoute";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Approval, BackendReach, Deliberation, Project, SseEvent, Worklist } from "@/types/api";
 
@@ -43,6 +45,11 @@ export default function App() {
   const paletteTriggerRef = useRef<HTMLButtonElement>(null);
   const paletteReturnRef = useRef<HTMLElement | null>(null);
 
+  const projectsQuery = useQuery({
+    queryKey: ["projects"],
+    queryFn: listProjects,
+    enabled: backend === "up",
+  });
   const projectQuery = useQuery({
     queryKey: ["project", selectedProjectId],
     queryFn: () => getProject(selectedProjectId ?? ""),
@@ -53,6 +60,11 @@ export default function App() {
     queryFn: listApprovals,
     enabled: backend === "up",
   });
+
+  useEffect(() => {
+    const next = pickProjectId(selectedProjectId, projectsQuery.data ?? []);
+    if (next !== selectedProjectId) setSelectedProjectId(next);
+  }, [projectsQuery.data, selectedProjectId]);
 
   const jobs = jobsForProject(projectQuery.data?.jobs ?? [], selectedProjectId);
   const proposedCount = (approvalsQuery.data ?? []).filter(
@@ -182,6 +194,12 @@ export default function App() {
       <main className="min-h-0 flex-1 overflow-y-auto">
         <Routes>
           <Route path="/" element={timeline} />
+          <Route
+            path="/suggestions"
+            element={
+              <SuggestionsRoute backend={backend} selectedProjectId={selectedProjectId} />
+            }
+          />
           <Route path="/approvals" element={<ApprovalsRoute backend={backend} />} />
           <Route
             path="/analytics"

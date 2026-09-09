@@ -30,6 +30,16 @@ export interface Job {
   cost_micros?: number;
   error?: { code: string; message: string } | null;
   checksum_sha256?: string | null;
+  result?: Record<string, unknown>;
+}
+
+export interface JobClip {
+  job_id: string;
+  side: "before" | "after";
+  clip_name: string;
+  url: string;
+  expires_in_minutes: number;
+  metadata: Record<string, unknown>;
 }
 
 export type SseEvent =
@@ -190,6 +200,9 @@ export interface WorklistItem {
   job_id?: string;
   shot_id?: string;
   blocked_by?: string[];
+  cost_estimate_micros?: number;
+  cost_actual_micros?: number;
+  phase?: string;
 }
 
 export interface Worklist {
@@ -224,6 +237,14 @@ export interface RunPulseWheelItem {
   evidence_url?: string;
 }
 
+export interface RunPulseJob {
+  job_id: string;
+  station: string;
+  status: string;
+  cost_micros: number;
+  clip: string;
+}
+
 export interface RunPulse {
   project_id: string;
   grafana: GrafanaReach;
@@ -237,4 +258,5 @@ export interface RunPulse {
   };
   wheel: { items: RunPulseWheelItem[] };
   dashboards?: { title: string; url: string }[];
+  jobs?: RunPulseJob[];
 }

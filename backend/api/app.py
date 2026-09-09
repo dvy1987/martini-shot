@@ -36,11 +36,15 @@ def _provided_api_key(scope: Scope) -> str:
     if header_key:
         return header_key
     path = scope.get("path") or ""
-    if path.endswith("/events"):
+    if path.endswith("/events") or _is_clip_media_path(path):
         query = parse_qs(scope.get("query_string", b"").decode("latin-1"))
         values = query.get("api_key") or []
         return values[0] if values else ""
     return ""
+
+
+def _is_clip_media_path(path: str) -> bool:
+    return "/clip/" in path and path.endswith("/media")
 
 
 class APIKeyMiddleware:
@@ -114,7 +118,8 @@ def create_app(
         CORSMiddleware,
         allow_origins=cfg.cors_allowed_origins,
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["X-API-Key", "Authorization", "Content-Type"],
+        allow_headers=["X-API-Key", "Authorization", "Content-Type", "Range", "Accept"],
+        expose_headers=["Content-Range", "Accept-Ranges", "Content-Length"],
     )
 
     install_error_handlers(app)

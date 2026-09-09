@@ -1,7 +1,7 @@
 /** API client auth-header tests (owner sign-in gate plumbing). */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiFetch, setGoogleIdToken } from "./client";
+import { apiFetch, mediaUrl, setGoogleIdToken } from "./client";
 
 describe("apiFetch auth headers", () => {
   afterEach(() => {
@@ -38,6 +38,15 @@ describe("apiFetch auth headers", () => {
 
     const headers = new Headers(fetchMock.mock.calls[0]![1]!.headers);
     expect(headers.get("X-Google-ID-Token")).toBeNull();
+  });
+
+  it("keeps hosted bucket URLs and appends the key only on lab media paths", () => {
+    expect(mediaUrl("https://storage.googleapis.com/bucket/clip.mp4")).toBe(
+      "https://storage.googleapis.com/bucket/clip.mp4",
+    );
+    expect(mediaUrl("/api/v1/jobs/job-1/clip/before/media")).toContain(
+      "/api/v1/jobs/job-1/clip/before/media",
+    );
   });
 });
 

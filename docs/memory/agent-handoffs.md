@@ -1,5 +1,39 @@
 # Agent Handoffs
 
+## 2026-09-09 09:37 - Suggestions tab, playable clips, house-order finishing
+
+### Done
+- **Suggestions** tab (`/suggestions`): leftover-station notes fill in after ingest/mix/pickups; after rank+budget, stack rank plus a live cutoff. Overrun (`cost_actual_micros`) moves the cutoff up.
+- Clips play through the lab API (`GET /api/v1/jobs/{id}/clip/{side}` + `/media`). Browser never fetches GCS directly. Range requests so thumbs/seek work.
+- Timeline/table show clip file names, Before/After, Ingest as its own lane. Click a thumb → `ClipReviewModal` (scene + spoken-word overlay).
+- Progress rail: Upload → Ingest → Fix audio → Pickups → Review clips → Plan work → Execute → Delivery last.
+- Analytics watches the same open project as Timeline. Timeline points at Suggestions instead of burying the plan strip.
+- Watch notes stamped onto ingest file-check jobs so Ingest does not stay in progress after mix. FinishBar hydrates from project ingest jobs.
+
+### Debated
+- Suggestions vs Timeline plan strip: owner wanted a separate tab that populates as stations report, then shows cutoff.
+
+### Decisions
+- Product still Omni-first / Veo fallback. Eval Veo-finished rows are not Omni passes.
+- Do not deploy Cloud Run or Replit unless the owner asks.
+
+### Deferred
+- Publish backend + frontend so live Replit/Cloud Run match this tree.
+- `make check` coverage still below 90%.
+- Graph incremental build skipped (known hang).
+
+### Next Agent Should Know
+- Local tree is the source of truth. Published site lags: no Suggestions tab, no clip-media proxy as built here.
+- Leftover suggestions exclude loudness/pickups. Delivery is pinned last after leftover work.
+- SSE `worklist.updated` already refreshes the Suggestions list.
+
+### Revisit Triggers
+- Owner cannot find suggestions on the published app, or clips fail to play (`Failed to fetch` / missing Range).
+- A planned step overruns and the cutoff does not move.
+
+### Working Tree
+- Owner asked commit+push of **all** uncommitted work (not this thread only).
+
 ## 2026-09-09 06:20 - Call Wrap; drop duplicate Upload media heading
 
 ### Done

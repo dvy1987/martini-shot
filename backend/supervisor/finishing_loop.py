@@ -27,13 +27,15 @@ INSPECT_ESTIMATE_MICROS = 200_000  # per station billed look, printed (C-7.2)
 
 
 def predecessor_station(to_station: str) -> str:
-    """Locked house order: ingest → loudness → pickups → leftover work."""
+    """Locked house order: ingest → loudness → pickups → leftover work → delivery."""
     if to_station == "loudness":
         return "ingest"
     if to_station == "pickups":
         return "loudness"
     if to_station == "ingest":
         return "ingest"
+    if to_station == "delivery":
+        return "pickups"
     return "pickups"
 
 
@@ -251,9 +253,7 @@ def collect_original_refs(
     if ingest_job_ids:
         if len(set(ingest_job_ids)) != len(ingest_job_ids):
             raise ValueError("ingest_job_ids must be unique")
-        by_id = {
-            str(row.get("id") or row.get("job_id") or ""): row for row in ingest
-        }
+        by_id = {str(row.get("id") or row.get("job_id") or ""): row for row in ingest}
         missing = [job_id for job_id in ingest_job_ids if job_id not in by_id]
         if missing:
             raise ValueError("every ingest_job_id must identify a passed ingest job")
@@ -396,6 +396,94 @@ def _cleanup_row(
         "scene": bag.get("scene"),
     }
     return row
+
+
+def _delivery_row(
+    *,
+    shot_id: str,
+    source_uri: str,
+    bag: dict[str, Any],
+    blocked_by: list[str],
+) -> dict[str, Any]:
+    return {
+        "id": f"delivery::{shot_id}",
+        "station": "delivery",
+        "status": "waiting",
+        "impact": "high",
+        "kind": "defect",
+        "summary": "Mandatory delivery check",
+        "shot_id": shot_id,
+        "source_uri": source_uri,
+        "cost_estimate_micros": int(DEFAULT_COST_MICROS.get("delivery", 0)),
+        "proposal": {"kind": "station_job", "station": "delivery", "args": {}},
+        "blocked_by": list(blocked_by),
+        "phase": "delivery",
+        "scene_understanding": dict(bag),
+        "ingested": bag.get("ingested"),
+        "spoken_words": bag.get("spoken_words"),
+        "scene": bag.get("scene"),
+    }
+
+
+def pin_delivery_last(
+    items: list[dict[str, Any]],
+    *,
+    source_by_shot: dict[str, str] | None = None,
+    scene_by_shot: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Delivery is the last house step. Ranked leftover cannot drop it."""
+    source_by_shot = dict(source_by_shot or {})
+    scene_by_shot = scene_by_shot or {}
+    non_delivery = [dict(row) for row in items if row.get("station") != "delivery"]
+    existing = {
+        str(row.get("shot_id") or ""): dict(row)
+        for row in items
+        if row.get("station") == "delivery"
+    }
+    shot_ids: list[str] = []
+    seen: set[str] = set()
+    for row in items:
+        shot_id = str(row.get("shot_id") or "")
+        if shot_id and shot_id not in seen:
+            seen.add(shot_id)
+            shot_ids.append(shot_id)
+    for shot_id in source_by_shot:
+        if shot_id not in seen:
+            seen.add(shot_id)
+            shot_ids.append(shot_id)
+    leftover_blockers = [
+        str(row.get("id") or "") for row in non_delivery if row.get("id")
+    ]
+    deliveries: list[dict[str, Any]] = []
+    for shot_id in shot_ids:
+        others = [
+            row for row in non_delivery if str(row.get("shot_id") or "") == shot_id
+        ]
+        row = existing.get(shot_id)
+        if row is None:
+            bag = (
+                scene_by_shot.get(shot_id) if isinstance(scene_by_shot, dict) else None
+            )
+            if not isinstance(bag, dict):
+                bag = {}
+            uri = source_by_shot.get(shot_id) or next(
+                (str(item.get("source_uri") or "") for item in others),
+                "",
+            )
+            row = _delivery_row(
+                shot_id=shot_id,
+                source_uri=uri,
+                bag=bag,
+                blocked_by=leftover_blockers,
+            )
+        else:
+            deps = [str(dep) for dep in (row.get("blocked_by") or []) if dep]
+            for blocker_id in leftover_blockers:
+                if blocker_id and blocker_id not in deps:
+                    deps.append(blocker_id)
+            row["blocked_by"] = deps
+        deliveries.append(row)
+    return non_delivery + deliveries
 
 
 def mandatory_cleanup_items(
@@ -774,6 +862,7 @@ def on_finishing_terminal(
             worklist_item and str(item.get("id") or "") == worklist_item
         ):
             item["status"] = new_status
+            item["cost_actual_micros"] = int(job.cost_micros or 0)
             matched = True
     doc["items"] = items
     if not matched:
@@ -834,7 +923,11 @@ def items_from_rank(
             row["spoken_words"] = bag.get("spoken_words")
             row["scene"] = bag.get("scene")
         items.append(row)
-    return apply_cleanup_sequence(items)
+    return pin_delivery_last(
+        apply_cleanup_sequence(items),
+        source_by_shot=source_by_shot,
+        scene_by_shot=scene_by_shot,
+    )
 
 
 def refresh_final_refs(doc: dict[str, Any], store: Any) -> dict[str, Any]:
@@ -847,3 +940,30 @@ def refresh_final_refs(doc: dict[str, Any], store: Any) -> dict[str, Any]:
         log.exception("refresh_final_refs failed")
     doc["final_refs"] = assemble_final(original_refs=originals, jobs=jobs)
     return doc
+
+
+def stamp_ingest_watch(store: Any, job_id: str, bag: dict[str, Any]) -> None:
+    """Write Gemini watch notes onto the ingest file-check job.
+
+    Mix and pickups already carry the bag; the ingest row must too, or the
+    board keeps Ingest in progress after later stages have finished.
+    """
+    if not job_id or not hasattr(store, "transactional_update"):
+        return
+
+    notes = {
+        "ingested": bool(bag.get("ingested")),
+        "spoken_words": bag.get("spoken_words"),
+        "scene": bag.get("scene"),
+    }
+
+    def mutate(doc: dict[str, Any]) -> dict[str, Any]:
+        result = dict(doc.get("result") or {})
+        result["ingested"] = notes["ingested"]
+        if notes["spoken_words"] is not None:
+            result["spoken_words"] = notes["spoken_words"]
+        if notes["scene"] is not None:
+            result["scene"] = notes["scene"]
+        return {**doc, "result": result}
+
+    store.transactional_update("pc-jobs", job_id, mutate)

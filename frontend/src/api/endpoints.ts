@@ -6,6 +6,7 @@ import type {
   Approval,
   Deliberation,
   Job,
+  JobClip,
   MorningReport,
   Project,
   Settings,
@@ -51,6 +52,12 @@ export function ingestClip(projectId: string, file: File): Promise<Job> {
 
 export function getJob(jobId: string): Promise<Job> {
   return apiFetch<Job>(`/api/v1/jobs/${encodeURIComponent(jobId)}`);
+}
+
+export function getJobClip(jobId: string, side: "before" | "after"): Promise<JobClip> {
+  return apiFetch<JobClip>(
+    `/api/v1/jobs/${encodeURIComponent(jobId)}/clip/${encodeURIComponent(side)}`,
+  );
 }
 
 export function listDeliberations(projectId: string, jobId?: string): Promise<Deliberation[]> {

@@ -141,4 +141,42 @@ describe("FinishBar", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/highest-priority improvements/i)).not.toBeInTheDocument();
   });
+
+  it("keeps Call Wrap visibly disabled until clips are checked", () => {
+    render(<FinishBar projectId="p1" />);
+    const wrap = screen.getByRole("button", { name: /call wrap/i });
+    expect(wrap).toBeDisabled();
+    expect(wrap).toHaveAttribute("title", expect.stringMatching(/checked/i));
+    expect(screen.getByText(/call wrap after every chosen clip has been checked/i)).toBeInTheDocument();
+  });
+
+  it("shows clips already on the project so the list matches progress after a refresh", () => {
+    render(
+      <FinishBar
+        projectId="p1"
+        existingJobs={[
+          passed("job-1", "projects/p1/ingest/job-1/test-clip01.mp4"),
+          passed("job-2", "projects/p1/ingest/job-2/test-clip02.mp4"),
+          passed("job-3", "projects/p1/ingest/job-3/test-clip03.mp4"),
+        ]}
+      />,
+    );
+    expect(screen.queryByText(/no clips added yet/i)).not.toBeInTheDocument();
+    expect(screen.getByText("test-clip01.mp4")).toBeInTheDocument();
+    expect(screen.getByText("test-clip02.mp4")).toBeInTheDocument();
+    expect(screen.getByText("test-clip03.mp4")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /call wrap/i })).toBeEnabled();
+  });
+
+  it("keeps those project clips after Start over instead of pretending the bin is empty", () => {
+    render(
+      <FinishBar
+        projectId="p1"
+        existingJobs={[passed("job-1", "projects/p1/ingest/job-1/test-clip01.mp4")]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /start over/i }));
+    expect(screen.getByText("test-clip01.mp4")).toBeInTheDocument();
+    expect(screen.queryByText(/no clips added yet/i)).not.toBeInTheDocument();
+  });
 });

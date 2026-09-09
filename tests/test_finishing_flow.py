@@ -18,6 +18,7 @@ from backend.supervisor.finishing_loop import (
     mandatory_cleanup_items,
     on_finishing_terminal,
     picture_mix_uri,
+    stamp_ingest_watch,
 )
 from backend.supervisor.inspect import DEFAULT_COST_MICROS
 
@@ -338,3 +339,27 @@ def test_on_finishing_terminal_does_not_start_extend_during_cleanup() -> None:
     assert out["items"][1]["status"] == "queued"
     assert queue.jobs[0].station == "pickups"
     assert cleanup_finished(out["items"]) is False
+
+
+def test_stamp_ingest_watch_writes_notes_onto_the_file_check_job() -> None:
+    class Store:
+        def __init__(self) -> None:
+            self.doc = {"result": {"probe": {"duration_s": 4}}}
+
+        def transactional_update(
+            self, collection: str, doc_id: str, mutate: object
+        ) -> None:
+            assert collection == "pc-jobs"
+            assert doc_id == "job-1"
+            self.doc = mutate(self.doc)  # type: ignore[operator]
+
+    store = Store()
+    stamp_ingest_watch(
+        store,
+        "job-1",
+        {"ingested": True, "spoken_words": "", "scene": "A doorway."},
+    )
+    assert store.doc["result"]["ingested"] is True
+    assert store.doc["result"]["spoken_words"] == ""
+    assert store.doc["result"]["scene"] == "A doorway."
+    assert store.doc["result"]["probe"]["duration_s"] == 4

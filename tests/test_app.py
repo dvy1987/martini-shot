@@ -60,6 +60,17 @@ def test_sse_path_accepts_api_key_query_parameter() -> None:
     assert _provided_api_key(scope) == "test-key-123"
 
 
+def test_clip_media_path_accepts_api_key_query_parameter() -> None:
+    from backend.api.app import _provided_api_key
+
+    scope = {
+        "headers": [],
+        "path": "/api/v1/jobs/job-1/clip/before/media",
+        "query_string": b"api_key=test-key-123",
+    }
+    assert _provided_api_key(scope) == "test-key-123"
+
+
 def test_non_sse_path_ignores_api_key_query_parameter() -> None:
     from backend.api.app import _provided_api_key
 

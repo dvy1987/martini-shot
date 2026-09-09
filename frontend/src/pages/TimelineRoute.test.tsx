@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { ApiError } from "@/api/client";
 import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, listScripts, renameProject } from "@/api/endpoints";
 import TimelineRoute from "@/pages/TimelineRoute";
 import type { Job, Project } from "@/types/api";
@@ -68,7 +69,7 @@ function mockBoard() {
   vi.mocked(getJob).mockResolvedValue(observedJob);
   vi.mocked(listProjectShots).mockResolvedValue([]);
   vi.mocked(listScripts).mockResolvedValue([]);
-  vi.mocked(getWorklist).mockRejectedValue(new Error("no worklist"));
+  vi.mocked(getWorklist).mockRejectedValue(new ApiError("not_found", "no worklist", 404));
   vi.mocked(listDeliberations).mockResolvedValue([]);
 }
 
@@ -116,6 +117,23 @@ describe("TimelineRoute investigation flow", () => {
     expect(await screen.findByText(/Scene 12 — chaser/)).toBeInTheDocument();
     expect(await screen.findByText(/draft/i)).toBeInTheDocument();
     expect(listProjectShots).toHaveBeenCalledWith("project-1");
+  });
+
+  it("names house-order stages on current progress and hides a missing work plan", async () => {
+    mockBoard();
+    renderRoute();
+    expect((await screen.findAllByText("Upload")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Ingest").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Fix audio").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pickups").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Review clips").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Plan work").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Execute").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Delivery").length).toBeGreaterThan(0);
+    expect(screen.getByRole("list", { name: /finishing stages/i })).toBeInTheDocument();
+    expect(screen.getByLabelText("Stage in progress")).toBeInTheDocument();
+    expect(screen.queryByText(/check files/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/the current work plan could not be loaded/i)).not.toBeInTheDocument();
   });
 
   it("lets the operator start a new project when none exist", async () => {
@@ -182,11 +200,33 @@ describe("TimelineRoute investigation flow", () => {
     vi.mocked(renameProject).mockResolvedValue(renamed);
     renderRoute();
     fireEvent.click(await screen.findByRole("button", { name: /rename project/i }));
+    expect(screen.queryByRole("button", { name: /^rename project$/i })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/project name/i), {
       target: { value: "Night exteriors" },
     });
     fireEvent.click(screen.getByRole("button", { name: /save name/i }));
     await waitFor(() => expect(renameProject).toHaveBeenCalledWith("project-1", "Night exteriors"));
+  });
+
+  it("does not mark upload complete from another project's clips", async () => {
+    mockBoard();
+    vi.mocked(getProject).mockResolvedValue({
+      ...observedProject,
+      station_counts: {},
+      jobs: [
+        {
+          ...observedJob,
+          job_id: "job-foreign",
+          project_id: "other-project",
+          status: "pass",
+          input_refs: ["projects/other-project/ingest/job-foreign/test-clip01.mp4"],
+        },
+      ],
+    });
+    renderRoute();
+    expect(await screen.findByText("Get started")).toBeInTheDocument();
+    expect(screen.queryByText("Upload complete")).not.toBeInTheDocument();
+    expect(screen.getByText(/no clips added yet/i)).toBeInTheDocument();
   });
 
   it("does not put another project's jobs on the timeline", async () => {

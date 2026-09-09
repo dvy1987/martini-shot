@@ -1,5 +1,7 @@
 /** Four finishing-run answers from Grafana MCP (English, not a Grafana clone). */
 import { cost } from "@/lib/formatters";
+import { stationName } from "@/lib/stations";
+import { statusMetaOrUnknown } from "@/lib/status";
 import type { RunPulse } from "@/types/api";
 
 interface RunPulseProps {
@@ -106,6 +108,53 @@ export default function RunPulseStrip({
           ))}
         </p>
       ) : null}
+      <div className="border-b border-line px-4 py-3">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Jobs this run</p>
+        {(pulse.jobs ?? []).length === 0 ? (
+          <p className="mt-2 text-sm text-ink-muted">No jobs on this project yet.</p>
+        ) : (
+          <ul className="mt-2 space-y-1">
+            {(pulse.jobs ?? []).map((row) => {
+              const meta = statusMetaOrUnknown(row.status);
+              const stage = stationName(row.station);
+              return (
+                <li key={row.job_id}>
+                  {onJumpToJob ? (
+                    <button
+                      type="button"
+                      aria-label={`${stage} · ${row.clip}`}
+                      onClick={() => onJumpToJob(row.job_id)}
+                      className="flex w-full items-baseline justify-between gap-3 text-left text-sm text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                    >
+                      <span className="min-w-0 truncate">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+                          {stage}
+                        </span>{" "}
+                        {row.clip}
+                      </span>
+                      <span className={`shrink-0 font-mono text-[10px] uppercase ${meta.textClass}`}>
+                        {meta.term}
+                      </span>
+                    </button>
+                  ) : (
+                    <p className="flex items-baseline justify-between gap-3 text-sm text-ink">
+                      <span className="min-w-0 truncate">
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
+                          {stage}
+                        </span>{" "}
+                        {row.clip}
+                      </span>
+                      <span className={`shrink-0 font-mono text-[10px] uppercase ${meta.textClass}`}>
+                        {meta.term}
+                      </span>
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
       <dl className="grid gap-0 sm:grid-cols-2">
         <div className="border-b border-line px-4 py-3 sm:border-r">
           <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">

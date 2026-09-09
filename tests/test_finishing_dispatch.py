@@ -78,6 +78,7 @@ def test_after_green_tick_next_waiting_job_starts() -> None:
     )
     out = on_finishing_terminal(doc, finished, queue=queue, project_id="p")
     assert out["items"][0]["status"] == "passed"
+    assert out["items"][0]["cost_actual_micros"] == 80_000
     assert out["spent_micros"] == 80_000
     assert out["items"][1]["status"] == "queued"
     assert queue.jobs[0].station == "extend"
@@ -167,6 +168,73 @@ def test_items_from_rank_keep_waiting_until_dispatch() -> None:
     assert items[0]["status"] == "waiting"
     assert items[0]["source_uri"] == "gs://b/c.mp4"
     assert items[0]["proposal"]["station"] == "loudness"
+    assert items[-1]["station"] == "delivery"
+    assert items[-1]["id"] == "delivery::shot-a"
+
+
+def test_items_from_rank_always_end_with_delivery_blocked_by_leftover() -> None:
+    from backend.supervisor.finishing_loop import items_from_rank
+    from backend.supervisor.inspect import validate_inspect_note
+    from backend.supervisor.rank import rank_notes
+
+    extend = validate_inspect_note(
+        {
+            "station": "extend",
+            "agent": "extend_strategy",
+            "status": "needs_work",
+            "impact": "high",
+            "kind": "improvement",
+            "summary": "keep rolling",
+            "cost_estimate_micros": 80_000,
+            "proposal": {"kind": "station_job", "station": "extend", "args": {}},
+            "shot_id": "shot-a",
+        }
+    )
+    ranked = rank_notes([extend], shot_order={"shot-a": 0})
+    items = items_from_rank(ranked, source_by_shot={"shot-a": "gs://b/c.mp4"})
+    assert [row["station"] for row in items][-1] == "delivery"
+    assert sum(1 for row in items if row["station"] == "delivery") == 1
+    assert "extend::shot-a" in items[-1]["blocked_by"]
+
+
+def test_items_from_rank_does_not_duplicate_an_existing_delivery_row() -> None:
+    from backend.supervisor.finishing_loop import items_from_rank
+    from backend.supervisor.inspect import validate_inspect_note
+    from backend.supervisor.rank import rank_notes
+
+    extend = validate_inspect_note(
+        {
+            "station": "extend",
+            "agent": "extend_strategy",
+            "status": "needs_work",
+            "impact": "high",
+            "kind": "improvement",
+            "summary": "keep rolling",
+            "cost_estimate_micros": 80_000,
+            "proposal": {"kind": "station_job", "station": "extend", "args": {}},
+            "shot_id": "shot-a",
+        }
+    )
+    delivery = validate_inspect_note(
+        {
+            "station": "delivery",
+            "agent": "delivery_strategy",
+            "status": "needs_work",
+            "impact": "medium",
+            "kind": "defect",
+            "summary": "check the master",
+            "cost_estimate_micros": 50_000,
+            "proposal": {"kind": "station_job", "station": "delivery", "args": {}},
+            "shot_id": "shot-a",
+        }
+    )
+    ranked = rank_notes([extend, delivery], shot_order={"shot-a": 0})
+    items = items_from_rank(ranked, source_by_shot={"shot-a": "gs://b/c.mp4"})
+    assert [row["station"] for row in items if row["station"] == "delivery"] == [
+        "delivery"
+    ]
+    assert items[-1]["station"] == "delivery"
+    assert "extend::shot-a" in items[-1]["blocked_by"]
 
 
 def test_cleanup_runs_before_creative_and_pickups_waits_on_loudness() -> None:

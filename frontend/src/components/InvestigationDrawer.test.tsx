@@ -131,7 +131,7 @@ describe("InvestigationDrawer", () => {
     );
     expect(screen.getByText("JOB_NOT_FOUND")).toBeInTheDocument();
     expect(screen.getByText("Job record is unavailable.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /retry case file/i }));
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
@@ -183,7 +183,9 @@ describe("InvestigationDrawer", () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.getByText(/Agent deliberation/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/How Martini Shot reached this result/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/retry_job/)).toBeInTheDocument();
 
     rerender(
@@ -197,6 +199,8 @@ describe("InvestigationDrawer", () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.queryByText(/Agent deliberation/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/How Martini Shot reached this result/i),
+    ).not.toBeInTheDocument();
   });
 });

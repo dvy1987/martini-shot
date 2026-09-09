@@ -8,7 +8,7 @@ import logging
 from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field, PositiveInt
 
 from backend.api.events import EventHub
@@ -219,6 +219,57 @@ def install_spine_routes(
         if job is None:
             raise HTTPException(status_code=404, detail="no such job")
         return job_to_api(job)
+
+    @app.get("/api/v1/jobs/{job_id}/clip/{side}")
+    def get_job_clip(job_id: str, side: Literal["before", "after"]) -> dict[str, Any]:
+        from backend.jobs.clip import clip_body, project_watch_notes, resolve_clip_ref
+
+        job = queue.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="no such job")
+        ref = resolve_clip_ref(job, side)
+        if not ref:
+            raise HTTPException(status_code=404, detail="no clip for that side")
+        try:
+            return clip_body(job, side, extra=project_watch_notes(job, store), gcs=gcs)
+        except Exception as exc:
+            log.exception("clip signed url failed job_id=%s side=%s", job_id, side)
+            raise HTTPException(
+                status_code=502, detail="clip could not be signed"
+            ) from exc
+
+    @app.get("/api/v1/jobs/{job_id}/clip/{side}/media")
+    def get_job_clip_media(job_id: str, side: Literal["before", "after"]) -> Response:
+        import mimetypes
+
+        from backend.core.gcs import object_key
+        from backend.jobs.clip import clip_name, resolve_clip_ref
+
+        job = queue.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="no such job")
+        ref = resolve_clip_ref(job, side)
+        if not ref:
+            raise HTTPException(status_code=404, detail="no clip for that side")
+        try:
+            payload = gcs.download_bytes(object_key(ref))
+        except Exception as exc:
+            log.exception("clip media read failed job_id=%s side=%s", job_id, side)
+            raise HTTPException(
+                status_code=502, detail="clip could not be read"
+            ) from exc
+        name = clip_name(ref)
+        media_type = mimetypes.guess_type(name)[0] or "video/mp4"
+        safe_name = name.replace('"', "")
+        return Response(
+            content=payload,
+            media_type=media_type,
+            headers={
+                "Accept-Ranges": "bytes",
+                "Cache-Control": "private, max-age=60",
+                "Content-Disposition": f'inline; filename="{safe_name}"',
+            },
+        )
 
     @app.post("/api/v1/projects/{project_id}/ingest")
     async def ingest_clip(

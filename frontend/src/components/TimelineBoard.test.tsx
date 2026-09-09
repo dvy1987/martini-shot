@@ -1,10 +1,18 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { getJobClip } from "@/api/endpoints";
 import TimelineBoard from "@/components/TimelineBoard";
 import type { Job } from "@/types/api";
 
-afterEach(cleanup);
+vi.mock("@/api/endpoints", () => ({
+  getJobClip: vi.fn(),
+}));
+
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
 
 function job(index: number): Job {
   return {
@@ -29,10 +37,10 @@ describe("TimelineBoard", () => {
 
     expect(screen.queryByRole("button", { name: /in progress: job-9/i })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /show 1 more job in ingest/i }));
+    fireEvent.click(screen.getByRole("button", { name: /show 1 more job in upload/i }));
     expect(screen.getByRole("button", { name: /in progress: job-9/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /collapse ingest lane/i }));
+    fireEvent.click(screen.getByRole("button", { name: /collapse upload lane/i }));
     expect(screen.queryByRole("button", { name: /in progress: job-9/i })).not.toBeInTheDocument();
   });
 
@@ -65,13 +73,17 @@ describe("TimelineBoard", () => {
     fireEvent.click(screen.getByRole("button", { name: /table view/i }));
 
     expect(screen.getByRole("table", { name: /season timeline jobs/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /select job job-1/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /select clip job-1 \(upload\)/i })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /select job job-2/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select clip job-2 \(upload\)/i }));
     expect(onSelectJob).toHaveBeenCalledWith("job-2", expect.any(HTMLButtonElement));
+    expect(screen.getAllByText("Upload").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Ingest").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/file opens/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/spoken words/i).length).toBeGreaterThan(0);
   });
 
   it("hides jobs from other projects in timeline and table views", () => {
@@ -94,7 +106,63 @@ describe("TimelineBoard", () => {
     expect(screen.queryByRole("button", { name: /complete: job-foreign/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /table view/i }));
-    expect(screen.getByRole("button", { name: /select job job-1/i })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /select job job-foreign/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /select clip job-1 \(upload\)/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /select clip job-foreign \(upload\)/i })).not.toBeInTheDocument();
+  });
+
+  it("names the clip and shows before/after in the table", async () => {
+    vi.mocked(getJobClip).mockImplementation(async (jobId, side) => ({
+      job_id: jobId,
+      side,
+      clip_name: "cafe.mp4",
+      url: "https://example.test/cafe.mp4",
+      expires_in_minutes: 15,
+      metadata: { duration_s: 4, spoken_words: "two coffees", scene: "A quiet cafe." },
+    }));
+    const withClip: Job = {
+      ...job(1),
+      input_refs: ["projects/project-1/ingest/job-1/cafe.mp4"],
+      status: "pass",
+      result: { probe: { duration_s: 4 } },
+    };
+    const unchanged: Job = {
+      ...job(2),
+      station: "loudness",
+      input_refs: ["projects/project-1/ingest/job-2/cafe.mp4"],
+      status: "pass",
+      result: {},
+    };
+    render(
+      <TimelineBoard jobs={[withClip, unchanged]} selectedJobId={null} onSelectJob={vi.fn()} />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Upload" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ingest" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /complete: cafe.mp4 · upload/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /complete: job-1/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+    expect(screen.getByRole("columnheader", { name: /^clip$/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /^before$/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /^after$/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/no clip before this step/i)).toBeInTheDocument();
+    expect(screen.getByText("No change")).toBeInTheDocument();
+    expect(screen.getAllByText("Still working").length).toBeGreaterThan(0);
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /open cafe.mp4 after/i })).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: /open cafe.mp4 after/i }).querySelector("video")).toHaveAttribute(
+      "preload",
+      "none",
+    );
+    expect(getJobClip).toHaveBeenCalledWith("job-1", "before");
+    expect(getJobClip).not.toHaveBeenCalledWith("job-1", "after");
+    fireEvent.click(screen.getByRole("button", { name: /open cafe.mp4 after/i }));
+    expect(screen.getByRole("dialog", { name: /cafe.mp4/i })).toBeInTheDocument();
+    expect(screen.getByText("After this step")).toBeInTheDocument();
+    expect(screen.getByLabelText("Subtitles")).toHaveTextContent("two coffees");
+    expect(screen.getByText("Scene")).toBeInTheDocument();
+    expect(screen.getByText("A quiet cafe.")).toBeInTheDocument();
   });
 });

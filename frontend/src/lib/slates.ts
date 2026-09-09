@@ -21,6 +21,7 @@ export function clearSlateSeen(id: SlateId, storage: Pick<Storage, "removeItem">
 
 export function slateForRoute(path: string): SlateId {
   if (path.startsWith("/approvals")) return "accounting";
+  if (path.startsWith("/suggestions")) return "accounting";
   if (path.startsWith("/reports")) return "dailies";
   if (path.startsWith("/analytics")) return "investigation";
   return "welcome";

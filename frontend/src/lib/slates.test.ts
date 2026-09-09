@@ -40,6 +40,7 @@ describe("slate memory", () => {
   it("maps routes to the charter slate for that surface", () => {
     expect(slateForRoute("/")).toBe("welcome");
     expect(slateForRoute("/approvals")).toBe("accounting");
+    expect(slateForRoute("/suggestions")).toBe("accounting");
     expect(slateForRoute("/reports")).toBe("dailies");
     expect(slateForRoute("/analytics")).toBe("investigation");
   });

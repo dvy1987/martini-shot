@@ -12,6 +12,12 @@ export function eventsUrl(path: string): string {
   return `${base}${join}api_key=${encodeURIComponent(apiKey)}`;
 }
 
+/** Playback URL for <video>: lab media paths need the API key in the query. */
+export function mediaUrl(pathOrUrl: string): string {
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  return eventsUrl(pathOrUrl);
+}
+
 export class ApiError extends Error {
   constructor(
     readonly code: string,

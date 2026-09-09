@@ -147,6 +147,7 @@ def assemble_run_pulse(
         "eta": eta,
         "wheel": wheel,
         "dashboards": dashboards,
+        "jobs": _job_rows(parsed_jobs),
     }
     _cache[project_id] = (clock, snapshot)
     return snapshot
@@ -362,6 +363,28 @@ def _burn_why(job: Job) -> str:
     if int(job.attempts or 0) > 1:
         return f"retried {job.attempts} times"
     return f"{job.station} work"
+
+
+def _job_rows(jobs: list[Job]) -> list[dict[str, Any]]:
+    """This-run jobs for the Analytics tab, including $0 ingest checks."""
+    from backend.api.present import job_to_api
+
+    rows: list[dict[str, Any]] = []
+    ordered = sorted(jobs, key=lambda job: (job.station, job.created_at, job.id))
+    for job in ordered:
+        api = job_to_api(job)
+        ref = str((job.input_refs or [""])[0] or "")
+        clip = ref.replace("\\", "/").rsplit("/", 1)[-1] or job.id
+        rows.append(
+            {
+                "job_id": str(api["job_id"]),
+                "station": str(api["station"]),
+                "status": str(api["status"]),
+                "cost_micros": int(api.get("cost_micros") or 0),
+                "clip": clip,
+            }
+        )
+    return rows
 
 
 def _eta(

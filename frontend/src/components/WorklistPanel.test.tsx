@@ -48,7 +48,7 @@ describe("WorklistPanel", () => {
   it("ticks passed work green and lets the operator reorder waiting rows", () => {
     const onReorder = vi.fn();
     render(<WorklistPanel worklist={worklist} onReorder={onReorder} />);
-    expect(screen.getByText(/locked/i).closest("td")?.className).toMatch(/text-signal/);
+    expect(screen.getByText("Complete").closest("td")?.className).toMatch(/text-signal/);
     fireEvent.click(screen.getByRole("button", { name: /move relight up/i }));
     expect(onReorder).toHaveBeenCalledWith(["loud", "rel", "ext"]);
   });

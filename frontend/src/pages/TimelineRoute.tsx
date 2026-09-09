@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 
 import { ApiError } from "@/api/client";
 import { createProject, getJob, getProject, getWorklist, listDeliberations, listProjectShots, listProjects, patchWorklist, renameProject } from "@/api/endpoints";
@@ -9,61 +10,36 @@ import FinishBar from "@/components/FinishBar";
 import InvestigationDrawer, {
   type InvestigationDrawerError,
 } from "@/components/InvestigationDrawer";
+import ProgressRail from "@/components/ProgressRail";
 import RevisionRoom from "@/components/RevisionRoom";
 import TimelineBoard from "@/components/TimelineBoard";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUS_BOARD_ORDER, STATUS_META } from "@/lib/status";
 import { toggleStatus } from "@/lib/lens";
 import { deriveJourney } from "@/lib/journey";
+import { isNotFound } from "@/lib/errors";
+import { clipName } from "@/lib/clipDisplay";
 import { jobsForProject } from "@/lib/timeline";
-import { cost } from "@/lib/formatters";
 import type { Job, JobStatus } from "@/types/api";
 
 const EMPTY_JOBS: Job[] = [];
 
-function stationName(station: string): string {
-  const labels: Record<string, string> = {
-    ingest: "File check",
-    loudness: "Audio check",
-    pickups: "Picture repair",
-    extend: "Extend a shot",
-    corrections: "Fix an image",
-    relight: "Improve lighting",
-    coverage: "Add coverage",
-    camera_language: "Camera movement",
-    dub: "Create a dubbed version",
-    delivery: "Delivery check",
-    spend: "Budget check",
-  };
-  return labels[station] ?? station.replaceAll("_", " ");
-}
-
 function phaseName(phase: string): string {
   const labels: Record<string, string> = {
     prepare: "Ready to start",
-    ingesting: "Checking files",
-    mixing: "Fixing audio",
-    repairing: "Checking picture",
+    uploading: "Upload",
+    uploaded: "Upload complete",
+    watching: "Ingest",
+    mixing: "Fix audio",
+    repairing: "Pickups",
     consulting: "Reviewing clips",
-    planning: "Choosing improvements",
-    executing: "Running selected work",
+    planning: "Plan work",
+    executing: "Execute",
+    delivering: "Delivery",
     complete: "Complete",
     attention: "Action needed",
   };
   return labels[phase] ?? phase.replaceAll("_", " ");
-}
-
-function taskStatus(status: string): string {
-  const labels: Record<string, string> = {
-    waiting: "Waiting for budget",
-    queued: "Queued",
-    running: "Running",
-    passed: "Complete",
-    failed: "Failed",
-    needs_human: "Needs review",
-    paused: "Paused",
-  };
-  return labels[status] ?? status.replaceAll("_", " ");
 }
 
 interface TimelineRouteProps {
@@ -185,13 +161,20 @@ export default function TimelineRoute({
   });
   const worklistQuery = useQuery({
     queryKey: ["worklist", selectedProjectId],
-    queryFn: () => getWorklist(selectedProjectId ?? ""),
+    queryFn: async () => {
+      try {
+        return await getWorklist(selectedProjectId ?? "");
+      } catch (error) {
+        if (isNotFound(error)) return null;
+        throw error;
+      }
+    },
     enabled: selectedProjectId !== null,
     retry: false,
   });
   const worklistStatus = worklistQuery.data?.status ?? "";
   const worklistHasActiveItems = Boolean(
-    worklistQuery.data?.items.some((item) =>
+    worklistQuery.data?.items?.some((item) =>
       ["queued", "leased", "running"].includes(item.status),
     ),
   );
@@ -394,9 +377,64 @@ export default function TimelineRoute({
           <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">
             Season timeline
           </p>
-          <h1 id="timeline-heading" className="mt-1 text-2xl text-ink">
-            {projectQuery.data?.title ?? selectedProject?.title ?? "Loading project"}
-          </h1>
+          {naming === "rename" ? (
+            <form
+              className="mt-1 flex flex-wrap items-end gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitDraftName();
+              }}
+            >
+              <h1 id="timeline-heading" className="sr-only">
+                Rename project
+              </h1>
+              <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
+                Project name
+                <input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  autoFocus
+                  maxLength={80}
+                  className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={!draftName.trim() || renameShow.isPending}
+                className="rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg disabled:opacity-50"
+              >
+                {renameShow.isPending ? "Saving…" : "Save name"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNaming(null);
+                  setDraftName("");
+                }}
+                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted hover:text-ink"
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <div className="mt-1 flex items-center gap-2">
+              <h1 id="timeline-heading" className="text-2xl text-ink">
+                {projectQuery.data?.title ?? selectedProject?.title ?? "Loading project"}
+              </h1>
+              <button
+                type="button"
+                aria-label="Rename project"
+                disabled={!selectedProjectId || renameShow.isPending}
+                onClick={beginRename}
+                className="rounded-sm p-1 text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                <Pencil className="size-3.5" strokeWidth={1.5} aria-hidden />
+              </button>
+            </div>
+          )}
+          {renameShow.isError ? (
+            <p className="mt-2 max-w-md text-sm text-danger">The project could not be renamed.</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-end gap-3">
           <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
@@ -449,67 +487,18 @@ export default function TimelineRoute({
                 Cancel
               </button>
             </form>
-          ) : naming === "rename" ? (
-            <form
-              className="flex flex-wrap items-end gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                submitDraftName();
-              }}
-            >
-              <label className="grid gap-1 font-mono text-xs uppercase tracking-wider text-ink-muted">
-                Project name
-                <input
-                  value={draftName}
-                  onChange={(event) => setDraftName(event.target.value)}
-                  autoFocus
-                  maxLength={80}
-                  className="min-w-48 rounded-sm border border-line bg-surface-2 px-3 py-2 font-sans text-sm normal-case tracking-normal text-ink focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={!draftName.trim() || renameShow.isPending}
-                className="rounded-sm border border-tungsten bg-tungsten px-3 py-2 font-mono text-xs uppercase tracking-wider text-bg disabled:opacity-50"
-              >
-                {renameShow.isPending ? "Saving…" : "Save name"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNaming(null);
-                  setDraftName("");
-                }}
-                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted hover:text-ink"
-              >
-                Cancel
-              </button>
-            </form>
           ) : (
-            <>
-              <button
-                type="button"
-                disabled={createShow.isPending}
-                onClick={beginCreate}
-                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-              >
-                New project
-              </button>
-              <button
-                type="button"
-                disabled={!selectedProjectId || renameShow.isPending}
-                onClick={beginRename}
-                className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-              >
-                Rename project
-              </button>
-            </>
+            <button
+              type="button"
+              disabled={createShow.isPending}
+              onClick={beginCreate}
+              className="rounded-sm border border-line bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-muted transition-colors ease-chrome hover:text-ink disabled:opacity-50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+            >
+              New project
+            </button>
           )}
           {createShow.isError ? (
             <p className="max-w-48 text-sm text-danger">A new project could not be opened.</p>
-          ) : null}
-          {renameShow.isError ? (
-            <p className="max-w-48 text-sm text-danger">The project could not be renamed.</p>
           ) : null}
         </div>
       </div>
@@ -518,6 +507,7 @@ export default function TimelineRoute({
         <FinishBar
           key={selectedProjectId}
           projectId={selectedProjectId}
+          existingJobs={jobs.filter((job) => job.station === "ingest")}
           onFinished={() => {
             void projectQuery.refetch();
             void worklistQuery.refetch();
@@ -528,27 +518,21 @@ export default function TimelineRoute({
       ) : null}
 
       {selectedProjectId && worklistQuery.data ? (
-        <section className="mb-6 border border-line bg-surface-1" aria-labelledby="plan-heading">
-          <header className="border-b border-line px-5 py-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Plan for this run</p>
-                <h2 id="plan-heading" className="mt-1 text-lg text-ink">What Martini Shot found</h2>
-              </div>
-              <p className="font-mono text-xs tabular-nums text-ink-muted">{cost(worklistQuery.data.spent_micros)} spent / {cost(worklistQuery.data.budget_micros)} budget</p>
-            </div>
-            {worklistQuery.data.rank_reason ? <p className="mt-3 max-w-3xl border-l-2 border-agent px-3 text-sm text-ink">{worklistQuery.data.rank_reason}</p> : null}
-          </header>
-          <div className="grid gap-0 lg:grid-cols-2">
-            <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
-              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Agent reviews</h3>
-              {worklistQuery.data.attendance.length === 0 ? <p className="mt-3 text-sm text-ink-muted">No agent reviews yet.</p> : <ul className="mt-3 space-y-3">{worklistQuery.data.attendance.slice(0, 5).map((row, index) => <li key={`${row.station}-${row.shot_id ?? "project"}-${index}`}><div className="flex items-baseline justify-between gap-3"><span className="font-mono text-xs uppercase text-ink">{stationName(row.station)}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{taskStatus(row.status)}</span></div>{row.status !== "empty" ? <p className="mt-1 text-sm text-ink-muted">{row.summary}{row.impact !== "none" ? ` · ${row.impact} impact` : ""}</p> : null}</li>)}</ul>}
-            </div>
-            <div className="p-5">
-              <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Selected work</h3>
-              {worklistQuery.data.items.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Martini Shot is still deciding what to run.</p> : <ol className="mt-3 space-y-2">{worklistQuery.data.items.slice(0, 6).map((item, index) => <li key={item.id} className="border-b border-line pb-2 last:border-0"><div className="flex gap-3"><span className="font-mono text-xs text-tungsten">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap justify-between gap-2"><span className="font-mono text-xs uppercase text-ink">{stationName(item.station)}</span><span className="font-mono text-[10px] uppercase text-ink-muted">{taskStatus(item.status)}</span></div>{item.summary ? <p className="mt-1 text-sm text-ink-muted">{item.summary}</p> : null}{item.blocked_by?.length ? <p className="mt-1 font-mono text-[10px] uppercase text-tungsten">Waiting for: {item.blocked_by.map((id) => stationName(id.split("::")[0])).join(", ")}</p> : null}</div></div></li>)}</ol>}
-            </div>
-          </div>
+        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="suggestions-pointer-heading">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Suggestions</p>
+          <h2 id="suggestions-pointer-heading" className="mt-1 text-lg text-ink">
+            Leftover station suggestions live on their own tab
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
+            After ingest, mix, and pickups, specialist stations look at the updated clips and send suggestions.
+            Open Suggestions to watch that list fill in, then see the ranked plan and the budget cutoff.
+          </p>
+          <a
+            href="/suggestions"
+            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            Open Suggestions
+          </a>
         </section>
       ) : null}
 
@@ -565,27 +549,7 @@ export default function TimelineRoute({
               {journey.total > 0 ? <p className="mt-1 tabular-nums text-ink">{journey.completed} / {journey.total} complete</p> : null}
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-            {([
-              ["ingesting", "Check files"],
-              ["mixing", "Fix audio"],
-              ["repairing", "Check picture"],
-              ["consulting", "Review clips"],
-              ["planning", "Choose work"],
-              ["executing", "Run selected work"],
-            ] as const).map(([phase, label]) => {
-              const phaseOrder = ["ingesting", "mixing", "repairing", "consulting", "planning", "executing"];
-              const currentIndex = journey.phase === "complete" ? phaseOrder.length : phaseOrder.indexOf(journey.phase);
-              const phaseIndex = phaseOrder.indexOf(phase);
-              const active = journey.phase === phase;
-              const complete = currentIndex > phaseIndex;
-              return (
-              <div key={phase} className={`border-t-2 pt-2 font-mono text-[10px] uppercase tracking-wider ${active ? "border-tungsten text-ink" : complete ? "border-signal text-ink-muted" : "border-line text-ink-muted"}`}>
-                {label}
-              </div>
-              );
-            })}
-          </div>
+          <ProgressRail phase={journey.phase} />
           {worklistQuery.isError ? (
             <div className="mt-4 border-l-2 border-danger pl-3 text-sm text-danger">
               The current work plan could not be loaded.
@@ -648,7 +612,10 @@ export default function TimelineRoute({
 
       {selectedJobId ? (
         <p className="mt-3 font-mono text-xs text-ink-muted">
-          Selected file <span className="text-ink">{selectedJobId}</span>
+          Selected file{" "}
+          <span className="text-ink">
+            {clipName(jobs.find((job) => job.job_id === selectedJobId) ?? { job_id: selectedJobId, input_refs: [] })}
+          </span>
         </p>
       ) : null}
 

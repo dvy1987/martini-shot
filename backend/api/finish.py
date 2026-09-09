@@ -26,8 +26,10 @@ from backend.supervisor.finishing_loop import (
     inspect_estimate_micros,
     items_from_rank,
     mandatory_cleanup_items,
+    pin_delivery_last,
     proposal_clip_uri,
     refresh_final_refs,
+    stamp_ingest_watch,
     worklist_doc,
 )
 from backend.supervisor.inspect import attendance_rows
@@ -189,6 +191,8 @@ def _finish_once(
         }
         scene_by_shot[shot_id] = bag
         shots_for_cleanup.append((shot_id, source_uri, index))
+        if ingest_job_ids and index < len(ingest_job_ids):
+            stamp_ingest_watch(store, ingest_job_ids[index], bag)
 
     items = mandatory_cleanup_items(
         shots=shots_for_cleanup, scene_by_shot=scene_by_shot
@@ -381,7 +385,11 @@ def run_proposal_phase(
         if str(row.get("phase") or "") == "cleanup"
         or str(row.get("station") or "") in {"loudness", "pickups"}
     ]
-    doc["items"] = cleanup + proposed
+    doc["items"] = pin_delivery_last(
+        cleanup + proposed,
+        source_by_shot=source_by_shot,
+        scene_by_shot=scene_by_shot,
+    )
     doc["attendance"] = [n.to_doc() for n in all_notes]
     doc["ranked"] = list(proposed)
     doc["rank_reason"] = plan.reason

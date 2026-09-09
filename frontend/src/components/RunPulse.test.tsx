@@ -63,6 +63,29 @@ describe("RunPulseStrip", () => {
     expect(onJumpToJob).toHaveBeenCalledWith("job-ext-9");
   });
 
+  it("lists this run's jobs even when they cost nothing", () => {
+    const onJumpToJob = vi.fn();
+    render(
+      <RunPulseStrip
+        pulse={{
+          ...pulse,
+          jobs: [
+            {
+              job_id: "job-in-1",
+              station: "ingest",
+              status: "pass",
+              cost_micros: 0,
+              clip: "test-clip01.mp4",
+            },
+          ],
+        }}
+        onJumpToJob={onJumpToJob}
+      />,
+    );
+    expect(screen.getByText("test-clip01.mp4")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ingest · test-clip01\.mp4/i })).toBeInTheDocument();
+  });
+
   it("says Grafana is unreachable without inventing answers", () => {
     render(
       <RunPulseStrip

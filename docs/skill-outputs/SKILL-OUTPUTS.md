@@ -99,5 +99,14 @@
 | 2026-09-09 06:15 | memory-handoff | agent-handoffs.md#2026-09-09-06:15 + current-state.md | Name/rename, ingest DTS, continue-on-fail; owner commit+push |
 | 2026-09-09 06:15 | git-workflow-and-versioning | main | feat: name projects and keep uploading past one failed clip |
 | 2026-09-09 06:20 | memory-handoff | agent-handoffs.md#2026-09-09-06:20 | Call Wrap; remove duplicate Upload media heading; owner commit+push |
+| 2026-09-09 06:40 | test-driven-development | frontend/src/lib/stations.test.ts frontend/src/lib/journey.test.ts frontend/src/components/TimelineBoard.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: Upload → Ingest → Fix audio → Pickups labels + descriptions |
+| 2026-09-09 07:45 | test-driven-development | tests/test_job_clip.py frontend/src/components/ClipReviewModal.test.tsx | After-ingest modal: scene notes + transcript overlay on the clip |
+| 2026-09-09 07:03 | debug-and-fix | frontend/src/components/FinishBar.tsx frontend/src/pages/TimelineRoute.tsx | Ghost Upload complete: leftover ingest jobs on storm-breaking + clip list was browser-only; wiped 3 test-clip jobs; hydrate FinishBar from project ingest jobs |
+| 2026-09-09 07:42 | debug-and-fix | frontend/src/lib/clipDisplay.ts frontend/src/lib/journey.ts backend/supervisor/finishing_loop.py | Ingest stayed in progress after mix: watch notes lived on loudness jobs, not ingest file-check jobs |
+| 2026-09-09 08:57 | test-driven-development | frontend/src/lib/suggestionPlan.test.ts frontend/src/pages/SuggestionsRoute.test.tsx tests/test_finishing_dispatch.py | TDD: Suggestions tab, stack rank, live budget cutoff |
+| 2026-09-09 09:10 | test-driven-development | frontend/src/pages/AnalyticsRoute.test.tsx frontend/src/lib/projectSelection.test.ts | TDD: Grafana tab watches the same open project as Timeline |
+| 2026-09-09 09:50 | test-driven-development | frontend/src/lib/journey.test.ts frontend/src/pages/TimelineRoute.test.tsx tests/test_finishing_dispatch.py | TDD: Plan work → Execute → Delivery last; delivery always pinned after leftover |
+| 2026-09-09 09:25 | debug-and-fix | backend/jobs/clip.py backend/api/spine.py frontend/src/components/ClipThumb.tsx | Before/After clips: Cloud Run proxy ignored Range and downloaded every full file; signed GCS URLs + no thumb preload |
+| 2026-09-09 09:37 | memory-handoff | agent-handoffs.md#2026-09-09-09:37 + current-state.md | Suggestions tab, playable clips, house-order finishing; owner commit+push all uncommitted work |
 
 
