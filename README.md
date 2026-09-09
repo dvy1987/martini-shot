@@ -35,7 +35,9 @@ The user chooses the clips in order and sets a budget. Martini Shot then follows
 
 This is not a chatbot that merely recommends edits. The specialist proposals become validated worklist items, the orchestrator selects and orders them, and the queue dispatches real station jobs. The important safety boundary is that generated media is attached as an alternate and never silently overwrites a locked cut.[2] [3] [4]
 
-The user-facing product includes the Timeline, Suggestions, Approvals, Analytics/Run Pulse, Reports, Decisions, Changes, and Studio surfaces. Operator notes and decision history make the reasoning legible without turning the application into an unbounded chat interface. Studio supports approval-tracked, bounded Omni edits for corrections and other controlled finishing operations; the production path records the actual render model and fallback status so a Veo result is never mislabeled as an Omni pass.
+The user-facing product includes the Timeline, Suggestions, Approvals, Analytics/Run Pulse, Reports, Decisions, Changes, and Studio surfaces. Operator notes and decision history make the reasoning legible without turning the application into an unbounded chat interface. Real uploaded production clips are the primary input; the core ingest, cleanup, dubbing, delivery, governance, and observability paths do not require generated media. Studio supports approval-tracked, bounded Omni edits for corrections and other controlled finishing operations; the production path records the actual render model and fallback status so a Veo result is never mislabeled as an Omni pass.
+
+Generative finishing is optional rather than a prerequisite for the product to be useful. Omni’s refusal to process some public-domain or public-commons source media is a limitation of that optional edit request, not of Martini Shot’s ability to ingest, measure, clean up, dub, deliver, or supervise real clips. The original remains valid input, and the configured fallback or no-change path remains explicit in job state.
 
 ## The solution in one workflow
 
@@ -47,7 +49,7 @@ Martini Shot follows a controlled production order:
 4. **Specialist attendance:** have delivery, dubbing, extending, corrections, relighting, coverage, and camera-language specialists inspect the updated clips. Each can propose a necessary fix, a useful improvement, or no action.
 5. **Price and rank:** estimate the cost of each candidate and have a Google ADK orchestrator rank the complete proposal set using impact, cost, dependencies, upload order, scene context, and handoff notes.
 6. **Governed dispatch:** queue only work that clears its dependencies, obeys per-shot constraints, and fits the remaining budget. Work that does not fit waits or pauses instead of being silently dropped.
-7. **Safe finishing:** treat generated media as an alternate. Apply draft-first and visual-quality gates where required, preserve the approved cut, and refresh final references only with original media and artifacts that actually passed.
+7. **Safe finishing:** treat generated media as an alternate. Apply draft-first and visual-quality gates where required, preserve the approved cut, and refresh final references only with original media and artifacts that actually passed. If no transformation passes, the original remains the playable reference.
 8. **Operational explanation:** use Run Pulse and Grafana MCP to show whether a problem is in the footage or the factory, which work is consuming budget, when the run is likely to wrap, and what automation already changed.
 
 The separate Post Supervisor path investigates failed, quarantined, and human-review jobs. It queries the evidence, verifies proposed interventions, applies bounded autonomy and budget controls, and records the resulting action through Grafana annotations or incidents when the configured mode permits writes.
@@ -85,7 +87,9 @@ The current connector supports two modes:
 
 The supervisor has MCP tools for Prometheus queries, Loki queries, Tempo trace search, dashboard search, annotations, and incidents. Query tools are available in all modes. Write tools such as annotations and incidents check the current autonomy mode before dispatch. In `propose_only`, the system returns a structured proposal instead of writing to Grafana.[8] [9]
 
-The Run Pulse surface calls Grafana MCP and Firestore to answer four practical questions:
+The Run Pulse surface calls Grafana MCP and Firestore to answer four practical questions. Firestore remains the source of truth for job and worklist state; Grafana contributes factory health, duration, annotations, and trace evidence.
+
+The Run Pulse surface answers:
 
 | Run Pulse answer | Evidence behind it |
 |---|---|
@@ -140,7 +144,7 @@ The repository is beyond a scaffold and the latest branch contains the productio
 | Budget and autonomy | Finishing uses the user-selected project budget. The Post Supervisor uses the separate night envelope and daily cap. App boot writes the current ranking-quality receipt and defaults the supervisor to `act`; `propose_only` remains the kill switch. |
 | Evaluations | Live evidence exists for spend pricing, finishing rank, supervisor retry-once, ingest understanding, Stage 1a lookers, and Omni quality suites. The finishing rank suite clears the mean threshold but includes a known failing `fr-05` case where Extend was ordered before Loudness. |
 | Test gate | `make check` coverage is still below the project’s 90% target. Run the repository checks before treating the branch as a final release artifact. |
-| Final playback | The backend maintains `final_refs` correctly. The current frontend plays individual alternates and shows the worklist. A dedicated single-player assembled-final surface is not the primary documented UI path, so the demo should show the final references and one real artifact rather than claiming a polished final-cut player that is not present. |
+| Final playback | The backend maintains `final_refs` correctly. The current frontend’s Final cut strip selects the latest successful After for each original clip in upload order and can play the resulting playlist. If no successful After exists, the original remains the playable reference. |
 | Failure signals | The Post Supervisor’s production trigger currently fires for failed, quarantined, and needs-human terminal states. Other signal taxonomy entries remain intentionally deferred. |
 | Media generation | Product behavior is Omni first with Veo fallback when needed. Evaluation evidence must not label a Veo-finished row as an Omni pass. |
 
