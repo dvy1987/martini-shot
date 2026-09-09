@@ -108,8 +108,9 @@ describe("AnalyticsRoute", () => {
       ],
     });
     renderAnalytics("up", "p1");
-    expect(await screen.findByText(/the house is running normally/i)).toBeInTheDocument();
+    expect(await screen.findByText(/this show is clear/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^this run$/i, level: 1 })).toBeInTheDocument();
+    expect(screen.getByText(/why execute or delivery stopped/i)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /station health/i })).not.toBeInTheDocument();
     expect(getRunPulse).toHaveBeenCalledWith("p1");
   });

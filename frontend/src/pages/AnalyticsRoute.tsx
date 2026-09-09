@@ -3,17 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { getRunPulse, getWorklist, listProjects } from "@/api/endpoints";
 import EmptyState from "@/components/EmptyState";
 import RunPulseStrip from "@/components/RunPulse";
-import type { BackendReach } from "@/types/api";
+import type { BackendReach, Job } from "@/types/api";
 
 interface AnalyticsRouteProps {
   backend: BackendReach;
   selectedProjectId: string | null;
+  jobs?: readonly Job[];
   onJumpToJob?: (jobId: string) => void;
 }
 
 export default function AnalyticsRoute({
   backend,
   selectedProjectId,
+  jobs,
   onJumpToJob,
 }: AnalyticsRouteProps) {
   const projectsQuery = useQuery({
@@ -106,12 +108,14 @@ export default function AnalyticsRoute({
           <p className="mt-1 font-mono text-xs uppercase tracking-widest text-agent">{openProject.title}</p>
         ) : null}
         <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Health, spend, time left, and what already ran on its own — explained here for this show.
+          Why Execute or Delivery stopped, and what to do next — explained here for this show.
         </p>
       </header>
       <RunPulseStrip
         pulse={pulseQuery.data ?? null}
         isLoading={pulseQuery.isPending}
+        liveJobs={jobs}
+        worklist={worklistQuery.data ?? null}
         errorMessage={
           pulseQuery.isError
             ? "This run could not be loaded. Check the connection and try again."

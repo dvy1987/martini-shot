@@ -382,9 +382,24 @@ def _job_rows(jobs: list[Job]) -> list[dict[str, Any]]:
                 "status": str(api["status"]),
                 "cost_micros": int(api.get("cost_micros") or 0),
                 "clip": clip,
+                "error": api.get("error"),
+                "result": _attention_result(job.result),
             }
         )
     return rows
+
+
+def _attention_result(result: dict[str, Any] | None) -> dict[str, Any]:
+    if not result:
+        return {}
+    keep: dict[str, Any] = {}
+    agent = result.get("agent")
+    if agent:
+        keep["agent"] = agent
+    delivery = result.get("delivery")
+    if delivery:
+        keep["delivery"] = delivery
+    return keep
 
 
 def _eta(

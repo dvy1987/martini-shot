@@ -172,6 +172,57 @@ def test_pulse_lists_key_jobs_even_when_ingest_cost_is_zero() -> None:
     assert pulse["jobs"][0]["cost_micros"] == 0
 
 
+def test_pulse_jobs_carry_why_blocked_work_failed() -> None:
+    reset_run_pulse_cache()
+    store = _Store()
+    relight = _job(
+        id="job-relight-1",
+        station="relight",
+        status="failed",
+        cost_micros=0,
+        input_refs=["gs://b/test-clip03.mp4"],
+        error=(
+            "Error code: 400 - {'error': {'message': "
+            "'Editing duration 14 exceeds maximum duration 10.'}}"
+        ),
+        result={"agent": {"reason": "Faces are lost in deep shadows."}},
+    )
+    delivery = _job(
+        id="job-del-1",
+        station="delivery",
+        status="needs_human",
+        cost_micros=0,
+        input_refs=["gs://b/test-clip01.mp4"],
+        error="delivery_fail",
+        result={
+            "delivery": {
+                "verdict": "fail",
+                "violations": [
+                    {
+                        "message": "fps 30.273897743450156 outside profile range",
+                        "rule_id": "DEL-004",
+                    }
+                ],
+            }
+        },
+    )
+    store.set_doc("pc-jobs", relight.id, relight.to_dict())
+    store.set_doc("pc-jobs", delivery.id, delivery.to_dict())
+    pulse = assemble_run_pulse(
+        store,  # type: ignore[arg-type]
+        "proj-pulse",
+        grafana=None,
+        worklist={"status": "idle", "items": []},
+    )
+    by_id = {row["job_id"]: row for row in pulse["jobs"]}
+    lighting = by_id["job-relight-1"]
+    assert lighting["error"]["message"].startswith("Error code: 400")
+    assert lighting["result"]["agent"]["reason"] == "Faces are lost in deep shadows."
+    ship = by_id["job-del-1"]
+    assert ship["status"] == "needs_human"
+    assert ship["result"]["delivery"]["violations"][0]["rule_id"] == "DEL-004"
+
+
 def test_factory_degraded_when_global_fail_rate_is_high() -> None:
     reset_run_pulse_cache()
 

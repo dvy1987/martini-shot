@@ -35,8 +35,22 @@ const BUSY_STATUS = new Set([
   "waiting_for_ingest",
 ]);
 
-function originOf(job: Job): string {
+function originOf(job: Pick<Job, "input_refs">): string {
   return job.input_refs[0] ?? "";
+}
+function shotIdOf(job: Pick<Job, "result">): string {
+  return typeof job.result?.shot_id === "string" ? job.result.shot_id : "";
+}
+
+function originByShot(jobs: readonly Job[]): Map<string, string> {
+  const origins = new Map<string, string>();
+  for (const job of jobs) {
+    if (job.station !== "ingest") continue;
+    const shotId = shotIdOf(job);
+    const origin = originOf(job);
+    if (shotId && origin) origins.set(shotId, origin);
+  }
+  return origins;
 }
 
 function uploadIndex(job: Job): number {
@@ -66,8 +80,70 @@ export function sequenceOrigins(jobs: readonly Job[]): string[] {
   return origins;
 }
 
+function ingestFolder(ref: string): string {
+  const parts = ref.replaceAll("\\", "/").split("/");
+  const at = parts.indexOf("ingest");
+  if (at >= 0 && parts[at + 1]) {
+    return parts.slice(0, at + 2).join("/");
+  }
+  return ref.replaceAll("\\", "/");
+}
+
+export function originKey(
+  job: Pick<Job, "job_id" | "station" | "input_refs" | "result">,
+  jobs: readonly Job[],
+): string {
+  const ref = originOf(job);
+  const shotOrigin = originByShot(jobs).get(shotIdOf(job));
+  if (shotOrigin) return shotOrigin;
+  const origins = sequenceOrigins(jobs);
+  if (ref && origins.includes(ref)) return ref;
+  if (ref) {
+    const folder = ingestFolder(ref);
+    const match = origins.find((origin) => ingestFolder(origin) === folder);
+    if (match) return match;
+  }
+  if (job.station === "ingest") return ref || `job:${job.job_id}`;
+  const ingest = jobs.filter((row) => row.station === "ingest");
+  const onlyIngest = ingest[0];
+  if (ingest.length === 1 && onlyIngest) return originKey(onlyIngest, jobs);
+  return ref || `job:${job.job_id}`;
+}
+
+export interface ClipJourney {
+  origin: string;
+  label: string;
+  rows: BoardRow[];
+}
+
+export function groupBoardByClip(jobs: readonly Job[]): ClipJourney[] {
+  const origins = sequenceOrigins(jobs);
+  const buckets = new Map<string, BoardRow[]>();
+  const order: string[] = [...origins];
+  for (const row of boardRows(jobs)) {
+    const key = originKey(row.job, jobs);
+    const existing = buckets.get(key);
+    if (existing) existing.push(row);
+    else {
+      buckets.set(key, [row]);
+      if (!order.includes(key)) order.push(key);
+    }
+  }
+  return order
+    .filter((origin) => buckets.has(origin))
+    .map((origin, index) => ({
+      origin,
+      label: `Clip ${index + 1}`,
+      rows: [...(buckets.get(origin) ?? [])].sort(
+        (left, right) =>
+          stationRank(left.displayStation) - stationRank(right.displayStation) ||
+          left.job.job_id.localeCompare(right.job.job_id),
+      ),
+    }));
+}
+
 function jobsForOrigin(jobs: readonly Job[], origin: string): Job[] {
-  return jobs.filter((job) => originOf(job) === origin);
+  return jobs.filter((job) => originKey(job, jobs) === origin);
 }
 
 export function defaultFinalCutPick(
@@ -138,7 +214,7 @@ export function finalCutPlaylist(slots: readonly FinalCutSlot[]): FinalCutSource
 }
 
 export async function downloadFinalCutBlobs(
-  playlist: readonly FinalCutPick[],
+  playlist: readonly FinalCutSource[],
   load: FinalCutDownload,
 ): Promise<string[]> {
   const urls: string[] = [];

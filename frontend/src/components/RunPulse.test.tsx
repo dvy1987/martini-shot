@@ -49,7 +49,7 @@ describe("RunPulseStrip", () => {
   it("explains this run in English and does not send the operator to Grafana", () => {
     render(<RunPulseStrip pulse={pulse} />);
     expect(screen.getByRole("heading", { name: /^this run$/i, level: 2 })).toBeInTheDocument();
-    expect(screen.getByText(/failures are showing up across shows/i)).toBeInTheDocument();
+    expect(screen.getByText(/this show is clear/i)).toBeInTheDocument();
     expect(screen.getByText(/burning the budget/i)).toBeInTheDocument();
     expect(screen.getByText(/about 1 min left/i)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /station health/i })).not.toBeInTheDocument();
@@ -70,6 +70,7 @@ describe("RunPulseStrip", () => {
   it("jumps to the expensive job when asked", () => {
     const onJumpToJob = vi.fn();
     render(<RunPulseStrip pulse={pulse} onJumpToJob={onJumpToJob} />);
+    fireEvent.click(screen.getByRole("button", { name: /what already ran/i }));
     fireEvent.click(screen.getByRole("button", { name: /open on timeline/i }));
     expect(onJumpToJob).toHaveBeenCalledWith("job-runaway");
   });
@@ -106,5 +107,96 @@ describe("RunPulseStrip", () => {
     );
     expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
     expect(screen.queryByText(/across shows/i)).not.toBeInTheDocument();
+  });
+
+  it("opens what needs you in a modal when House health is clicked", () => {
+    const onJumpToJob = vi.fn();
+    render(
+      <RunPulseStrip
+        pulse={{
+          ...pulse,
+          factory: { verdict: "healthy", headline: "Factory looks healthy." },
+          jobs: [
+            {
+              job_id: "job-relight-1",
+              station: "relight",
+              status: "fail",
+              cost_micros: 0,
+              clip: "test-clip03.mp4",
+              error: {
+                code: "job_failed",
+                message:
+                  "Error code: 400 - {'error': {'message': 'Editing duration 14 exceeds maximum duration 10.'}}",
+              },
+              result: { agent: { reason: "Faces are lost in deep shadows." } },
+            },
+            {
+              job_id: "job-del-1",
+              station: "delivery",
+              status: "needs_human",
+              cost_micros: 0,
+              clip: "test-clip01.mp4",
+              error: { code: "job_failed", message: "delivery_fail" },
+              result: {
+                delivery: {
+                  verdict: "fail",
+                  violations: [
+                    {
+                      message: "fps 30.273897743450156 outside profile range",
+                      rule_id: "DEL-004",
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        }}
+        onJumpToJob={onJumpToJob}
+      />,
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText(/14 seconds/i)).not.toBeInTheDocument();
+    const house = screen.getByRole("button", { name: /house health/i });
+    expect(house.className).toMatch(/text-danger/);
+    fireEvent.click(house);
+    expect(screen.getByRole("dialog", { name: /what needs you/i })).toBeInTheDocument();
+    expect(screen.getByText(/14 seconds/i)).toBeInTheDocument();
+    expect(screen.getByText(/frame rate/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /open execute · test-clip03\.mp4/i }));
+    expect(onJumpToJob).toHaveBeenCalledWith("job-relight-1");
+  });
+
+  it("colors each heading from the run and opens that box in a modal", () => {
+    render(
+      <RunPulseStrip
+        pulse={{
+          ...pulse,
+          factory: { verdict: "healthy", headline: "Factory looks healthy." },
+          eta: { headline: "Nothing left in the worklist.", eta_seconds: 0, remaining_items: 0 },
+          wheel: { items: [] },
+          jobs: [
+            {
+              job_id: "job-in-1",
+              station: "ingest",
+              status: "pass",
+              cost_micros: 80_000,
+              clip: "test-clip01.mp4",
+            },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /house health/i }).className).toMatch(/text-signal/);
+    expect(screen.getByRole("button", { name: /^spend$/i }).className).toMatch(/text-signal/);
+    expect(screen.getByRole("button", { name: /time left/i }).className).toMatch(/text-signal/);
+    expect(screen.getByRole("button", { name: /what already ran/i }).className).toMatch(/text-signal/);
+    fireEvent.click(screen.getByRole("button", { name: /^spend$/i }));
+    expect(screen.getByRole("dialog", { name: /^spend$/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /close/i }));
+    fireEvent.click(screen.getByRole("button", { name: /time left/i }));
+    expect(screen.getByRole("dialog", { name: /time left/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /close/i }));
+    fireEvent.click(screen.getByRole("button", { name: /what already ran/i }));
+    expect(screen.getByRole("dialog", { name: /what already ran/i })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,37 @@
 # Agent Handoffs
 
+## 2026-09-09 14:00 - Run pulse briefing, stable clip lineage, and project copy updates
+
+### Done
+- **Frontend Copy:** Changed "No shows yet" to "No projects yet", updated "Start a new show" / "New show" / "Show" dropdown label to "Start a new project" / "New project" / "Project". Changed "Choose files" button, aria-label, and helper hint in FinishBar to "Upload media". Updated vitest assertions in `TimelineRoute.test.tsx` and `FinishBar.test.tsx`.
+- **Analytics & Run Pulse:** Sourced run briefing diagnostics into `run_pulse.py` and `frontend/src/lib/runBriefing.ts` explaining why Execute/Delivery stopped and next steps. Color-coded run state headers and modal stories for each pulse card in `AnalyticsRoute.tsx`.
+- **Clip Lineage & Final Cut:** Stamped ingest lineage and stable `shot_id` across chained station edits (`finishing_loop.py`, `finish.py`). Table view groups each clip's station journey with human "Clip 1 / Clip 2" labels (`TimelineBoard.tsx`). `finalCut.ts` tracks latest valid After for each original slot.
+- **Skill Outputs Log:** Logged TDD milestones in `docs/skill-outputs/SKILL-OUTPUTS.md`.
+
+### Debated
+- "Upload clips" vs "Upload media" for FinishBar: user specifically requested "Upload media" to be generic across audio/video turnover inputs.
+
+### Decisions
+- Display copy uses "projects" and not "shows" across empty states, creation buttons, and dropdown pickers.
+- Stamped `shot_id` lineage survives across chained station transforms so final cut assembly can map any station output back to the original uploaded cut slot.
+
+### Deferred
+- Deploying Cloud Run backend and Replit frontend with these changes (requires owner go-ahead).
+
+### Next Agent Should Know
+- Working tree contains these 17 files; committing locally as requested.
+- "No shows yet" and "Choose files" are now replaced by "No projects yet" and "Upload media".
+- If the user asks to push or deploy, verify with owner before any remote deployment actions.
+
+### Revisit Triggers
+- Cloud Run / Replit deployment needed to reflect the new copy and lineage in production.
+
+### Working Tree
+- Staging and committing all uncommitted changes across backend, frontend, tests, and memory.
+
+### Graph
+- Incremental graph build skipped (known hang on build_graph.py --incremental).
+
 ## 2026-09-09 12:35 - Commit/push requested; tree already on origin
 
 ### Done

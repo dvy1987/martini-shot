@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 import { ApiError, mediaUrl } from "@/api/client";
@@ -14,6 +14,8 @@ import {
   finalCutAction,
   finalCutPlaylist,
   finalCutSlots,
+  groupBoardByClip,
+  originKey,
   orchestratorHasStopped,
   type FinalCutPick,
 } from "@/lib/finalCut";
@@ -95,28 +97,43 @@ function TimelineTable({
           </tr>
         </thead>
         <tbody>
-          {groupBoardLanes(jobs).flatMap((lane) =>
-            lane.rows.map((row) => {
+          {groupBoardByClip(jobs).map((group) => (
+            <Fragment key={group.origin}>
+              <tr>
+                <th
+                  colSpan={9}
+                  scope="colgroup"
+                  className="border-b border-line bg-surface-2 px-4 py-2 text-left font-mono text-xs uppercase tracking-wider text-ink"
+                >
+                  {group.label}
+                </th>
+              </tr>
+              {group.rows.map((row) => {
               const { job } = row;
               const meta = statusMetaOrUnknown(row.displayStatus);
               const selected = selectedJobId === job.job_id;
-              const name = clipName(job);
+              const name = group.label;
               const stage = stationLabel(row.displayStation);
               const notes = readAgentNotes(job, row.displayStation);
-              const origin = job.input_refs[0] ?? "";
+              const origin = originKey(job, jobs);
               const action = finalCutAction(
                 row,
                 slots.find((slot) => slot.origin === origin)?.pick ?? null,
               );
               return (
-                <tr key={row.id} className={selected ? "bg-surface-2" : "bg-surface-1"}>
+                <tr
+                  key={row.id}
+                  data-clip={name}
+                  data-stage={row.displayStation}
+                  className={selected ? "bg-surface-2" : "bg-surface-1"}
+                >
                   <td className="border-b border-line px-4 py-2">
                     <p className="font-mono text-xs uppercase tracking-wider text-ink">{stage}</p>
                   </td>
                   <td className="border-b border-line px-4 py-2">
                     <button
                       type="button"
-                      aria-label={`Select clip ${name} (${stage})`}
+                      aria-label={`Select ${name} (${stage})`}
                       aria-pressed={selected}
                       onClick={(event) => onSelectJob(job.job_id, event.currentTarget)}
                       className="text-sm text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
@@ -182,8 +199,9 @@ function TimelineTable({
                   </td>
                 </tr>
               );
-            }),
-          )}
+            })}
+            </Fragment>
+          ))}
         </tbody>
       </table>
     </div>

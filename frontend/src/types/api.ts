@@ -243,6 +243,8 @@ export interface RunPulseJob {
   status: string;
   cost_micros: number;
   clip: string;
+  error?: { code: string; message: string } | null;
+  result?: Record<string, unknown>;
 }
 
 export interface RunPulse {

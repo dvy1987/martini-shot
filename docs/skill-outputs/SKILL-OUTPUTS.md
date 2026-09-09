@@ -137,5 +137,9 @@
 | 2026-09-09 12:24 | test-driven-development | frontend/src/lib/finalCut.test.ts | TDD: Final cut fills when orchestrator stops for any reason; last successful After, leftover steps not required |
 | 2026-09-09 12:35 | memory-handoff | agent-handoffs.md#2026-09-09-12:35 + current-state.md | Owner asked commit+push all uncommitted work; tree already clean on origin |
 | 2026-09-09 12:35 | git-workflow-and-versioning | main | docs: record that origin already has the cockpit batch |
+| 2026-09-09 12:44 | test-driven-development | frontend/src/lib/runBriefing.test.ts frontend/src/components/RunPulse.test.tsx frontend/src/pages/AnalyticsRoute.test.tsx tests/test_run_pulse.py | TDD: Analytics leads with why Execute/Delivery stopped and what to do next |
+| 2026-09-09 13:09 | test-driven-development | frontend/src/lib/runBriefing.test.ts frontend/src/components/RunPulse.test.tsx frontend/src/pages/AnalyticsRoute.test.tsx | TDD: Analytics headings green/red from the run; each box opens its story in a modal |
+| 2026-09-09 13:13 | test-driven-development | frontend/src/lib/finalCut.test.ts frontend/src/components/TimelineBoard.test.tsx | TDD: table view groups each clip's station journey and labels Clip 1 / Clip 2, not changing file names |
+| 2026-09-09 13:50 | test-driven-development | frontend/src/lib/finalCut.test.ts frontend/src/lib/finalCut.ts backend/supervisor/finishing_loop.py backend/api/finish.py | TDD: group chained station edits by stable shot_id; stamp ingest lineage and reuse it for final-cut selection |
 
 

@@ -215,6 +215,7 @@ export default function App() {
               <AnalyticsRoute
                 backend={backend}
                 selectedProjectId={selectedProjectId}
+                jobs={jobs}
                 onJumpToJob={(jobId) => {
                   navigate("/");
                   setPendingJobId(jobId);

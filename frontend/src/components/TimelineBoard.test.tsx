@@ -75,12 +75,12 @@ describe("TimelineBoard", () => {
     fireEvent.click(screen.getByRole("button", { name: /table view/i }));
 
     expect(screen.getByRole("table", { name: /season timeline jobs/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /select clip job-1 \(upload\)/i })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /select clip 1 \(upload\)/i })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /select clip job-2 \(upload\)/i }));
+    fireEvent.click(screen.getByRole("button", { name: /select clip 2 \(upload\)/i }));
     expect(onSelectJob).toHaveBeenCalledWith("job-2", expect.any(HTMLButtonElement));
     expect(screen.getAllByText("Upload").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Ingest").length).toBeGreaterThan(0);
@@ -113,8 +113,8 @@ describe("TimelineBoard", () => {
     expect(screen.getByText("Mixed the soundtrack")).toBeInTheDocument();
     expect(screen.queryByText(/file opens/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /agent notes for job-loud \(fix audio\)/i }));
-    expect(screen.getByRole("dialog", { name: /job-loud · fix audio/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /agent notes for clip 1 \(fix audio\)/i }));
+    expect(screen.getByRole("dialog", { name: /clip 1 · fix audio/i })).toBeInTheDocument();
     expect(screen.getByText(/stormy lighthouse/i)).toBeInTheDocument();
     expect(screen.getByText(/weather as louder than the voices/i)).toBeInTheDocument();
     expect(screen.getByText(/toward the streaming target/i)).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe("TimelineBoard", () => {
     expect(screen.queryByRole("button", { name: /complete: job-foreign/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /table view/i }));
-    expect(screen.getByRole("button", { name: /select clip job-1 \(upload\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /select clip 1 \(upload\)/i })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /select clip job-foreign \(upload\)/i })).not.toBeInTheDocument();
   });
 
@@ -182,17 +182,19 @@ describe("TimelineBoard", () => {
     expect(screen.getByLabelText(/no clip before this step/i)).toBeInTheDocument();
     expect(screen.getByText("No change")).toBeInTheDocument();
     expect(screen.getAllByText("Still working").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Clip 1").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: /select clip cafe\.mp4/i })).not.toBeInTheDocument();
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /open cafe.mp4 after/i })).toBeInTheDocument(),
+      expect(screen.getByRole("button", { name: /open clip 1 after/i })).toBeInTheDocument(),
     );
-    expect(screen.getByRole("button", { name: /open cafe.mp4 after/i }).querySelector("video")).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /open clip 1 after/i }).querySelector("video")).toHaveAttribute(
       "preload",
       "none",
     );
     expect(getJobClip).toHaveBeenCalledWith("job-1", "before");
     expect(getJobClip).not.toHaveBeenCalledWith("job-1", "after");
-    fireEvent.click(screen.getByRole("button", { name: /open cafe.mp4 after/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open clip 1 after/i }));
     expect(screen.getByRole("dialog", { name: /cafe.mp4/i })).toBeInTheDocument();
     expect(screen.getByText("After this step")).toBeInTheDocument();
     expect(screen.getByLabelText("Subtitles")).toHaveTextContent("two coffees");
@@ -217,6 +219,32 @@ describe("TimelineBoard", () => {
     expect(strip).toHaveTextContent(/fills when the orchestrator has stopped/i);
     expect(screen.queryByRole("button", { name: /add to final cut/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Final Cut")).not.toBeInTheDocument();
+  });
+
+  it("groups table rows by clip journey in upload order", () => {
+    const cafe = "projects/project-1/ingest/job-1/cafe.mp4";
+    const street = "projects/project-1/ingest/job-2/street.mp4";
+    render(
+      <TimelineBoard
+        jobs={[
+          finishedIngest("job-2", street, 1),
+          finishedMix("job-loud", cafe),
+          finishedIngest("job-1", cafe, 0),
+        ]}
+        selectedJobId={null}
+        onSelectJob={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /table view/i }));
+    const table = screen.getByRole("table", { name: /season timeline jobs/i });
+    const stages = [...table.querySelectorAll("[data-stage]")].map((node) =>
+      node.getAttribute("data-stage"),
+    );
+    expect(stages).toEqual(["upload", "ingest", "loudness", "upload", "ingest"]);
+    const clips = [...table.querySelectorAll("[data-clip]")].map((node) =>
+      node.getAttribute("data-clip"),
+    );
+    expect(clips).toEqual(["Clip 1", "Clip 1", "Clip 1", "Clip 2", "Clip 2"]);
   });
 
   it("fills Final cut with the latest After and lets the operator swap it from the table", async () => {

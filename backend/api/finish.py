@@ -192,7 +192,7 @@ def _finish_once(
         scene_by_shot[shot_id] = bag
         shots_for_cleanup.append((shot_id, source_uri, index))
         if ingest_job_ids and index < len(ingest_job_ids):
-            stamp_ingest_watch(store, ingest_job_ids[index], bag)
+            stamp_ingest_watch(store, ingest_job_ids[index], bag, shot_id=shot_id)
 
     items = mandatory_cleanup_items(
         shots=shots_for_cleanup, scene_by_shot=scene_by_shot

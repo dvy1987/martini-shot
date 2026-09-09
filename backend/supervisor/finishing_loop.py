@@ -942,7 +942,9 @@ def refresh_final_refs(doc: dict[str, Any], store: Any) -> dict[str, Any]:
     return doc
 
 
-def stamp_ingest_watch(store: Any, job_id: str, bag: dict[str, Any]) -> None:
+def stamp_ingest_watch(
+    store: Any, job_id: str, bag: dict[str, Any], *, shot_id: str = ""
+) -> None:
     """Write Gemini watch notes onto the ingest file-check job.
 
     Mix and pickups already carry the bag; the ingest row must too, or the
@@ -960,6 +962,8 @@ def stamp_ingest_watch(store: Any, job_id: str, bag: dict[str, Any]) -> None:
     def mutate(doc: dict[str, Any]) -> dict[str, Any]:
         result = dict(doc.get("result") or {})
         result["ingested"] = notes["ingested"]
+        if shot_id:
+            result["shot_id"] = shot_id
         if notes["spoken_words"] is not None:
             result["spoken_words"] = notes["spoken_words"]
         if notes["scene"] is not None:

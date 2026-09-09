@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 14:00 | handoff | agent-handoffs.md#2026-09-09-14:00 | current | run-pulse, lineage, projects-copy, finishbar | Run pulse briefing, clip lineage, and project/media copy updates |
+| 2026-09-09 | state | current-state.md | current | run-pulse, lineage, projects, deploy | Local batch of 17 files; live site unpublished |
 | 2026-09-09 12:35 | handoff | agent-handoffs.md#2026-09-09-12:35 | current | git, deploy | Commit/push requested; tree already clean on origin/main @ 2ab65be |
 | 2026-09-09 | state | current-state.md | current | agent-notes, decisions, studio, deploy | origin/main 2ab65be; live site unpublished |
 | 2026-09-09 12:14 | handoff | agent-handoffs.md#2026-09-09-12:14 | current | agent-notes, decisions, changes, omni-10s, budget-copy | Operator cockpit + Omni bounded edit; commit+push all uncommitted work |

@@ -8,6 +8,7 @@ import {
   finalCutAction,
   finalCutPlaylist,
   finalCutSlots,
+  groupBoardByClip,
   orchestratorHasStopped,
   type FinalCutPick,
 } from "@/lib/finalCut";
@@ -275,5 +276,72 @@ describe("finalCut", () => {
       "blob:/media/job-b.mp4",
     ]);
     expect(urls).toEqual(["blob:4", "blob:4"]);
+  });
+});
+
+describe("groupBoardByClip", () => {
+  it("keeps each original clip's station journey together and numbers them Clip 1, Clip 2", () => {
+    const cafe = "projects/p1/ingest/in-1/cafe.mp4";
+    const street = "projects/p1/ingest/in-2/street.mp4";
+    const ingestStreet = job({
+      job_id: "in-2",
+      station: "ingest",
+      input_refs: [street],
+      result: { upload_index: 1, ingested: true },
+    });
+    const ingestCafe = job({
+      job_id: "in-1",
+      station: "ingest",
+      input_refs: [cafe],
+      result: { upload_index: 0, ingested: true },
+    });
+    const mixCafe = job({
+      job_id: "loud-1",
+      station: "loudness",
+      input_refs: ["projects/p1/ingest/in-1/cafe-loud.mp4"],
+      result: { artifact_ref: "projects/p1/ingest/in-1/cafe-loud.mp4" },
+    });
+    const grouped = groupBoardByClip([ingestStreet, mixCafe, ingestCafe]);
+    expect(grouped.map((group) => group.label)).toEqual(["Clip 1", "Clip 2"]);
+    expect(grouped[0]?.rows.map((row) => row.displayStation)).toEqual([
+      "upload",
+      "ingest",
+      "loudness",
+    ]);
+    expect(grouped[1]?.rows.map((row) => row.displayStation)).toEqual(["upload", "ingest"]);
+  });
+
+  it("keeps re-edits that consume generated artifacts in the original shot group", () => {
+    const origin = "projects/p1/ingest/in-1/cafe.mp4";
+    const ingest = job({
+      job_id: "in-1",
+      station: "ingest",
+      input_refs: [origin],
+      result: { upload_index: 0, shot_id: "shot-1", probe: { duration_s: 4 } },
+    });
+    const mix = job({
+      job_id: "loud-1",
+      station: "loudness",
+      input_refs: [origin],
+      result: { shot_id: "shot-1", artifact_ref: "projects/p1/loudness/loud-1.mp4" },
+    });
+    const relight = job({
+      job_id: "relight-1",
+      station: "relight",
+      input_refs: ["projects/p1/loudness/loud-1.mp4"],
+      result: {
+        shot_id: "shot-1",
+        artifact_ref: "projects/p1/relight/relight-1.mp4",
+      },
+    });
+    const grouped = groupBoardByClip([ingest, mix, relight]);
+
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]?.rows.map((row) => row.displayStation)).toEqual([
+      "upload",
+      "ingest",
+      "loudness",
+      "relight",
+    ]);
   });
 });
