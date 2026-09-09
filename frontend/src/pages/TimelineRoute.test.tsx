@@ -118,6 +118,9 @@ describe("TimelineRoute investigation flow", () => {
       "href",
       "/changes",
     );
+    expect(
+      screen.getByRole("heading", { name: /add fine-grained edits to the final cut/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Scene 12 — chaser/)).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /new versions/i })).not.toBeInTheDocument();
     expect(listProjectShots).not.toHaveBeenCalled();

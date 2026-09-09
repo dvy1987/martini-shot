@@ -128,9 +128,11 @@
 | 2026-09-09 11:38 | test-driven-development | frontend/src/lib/navigation.test.ts frontend/src/components/CommandPalette.test.tsx | TDD: primary nav home tab is Central station |
 | 2026-09-09 11:56 | test-driven-development | frontend/src/lib/clipDisplay.test.ts frontend/src/pages/SuggestionsRoute.test.tsx | TDD: Suggestions lists the clip name with each leftover suggestion |
 | 2026-09-09 12:17 | test-driven-development | frontend/src/lib/navigation.test.ts frontend/src/pages/ChangesRoute.test.tsx frontend/src/pages/TimelineRoute.test.tsx | TDD: rename Changes tab to Studio |
+| 2026-09-09 12:23 | test-driven-development | frontend/src/pages/TimelineRoute.test.tsx | TDD: Studio and Suggestions pointers sit below Final cut on Central station |
 | 2026-09-09 11:53 | test-driven-development | frontend/src/pages/SuggestionsRoute.test.tsx tests/test_budget_loop.py | Operator copy: budget, not envelope |
 | 2026-09-09 12:00 | test-driven-development | frontend/src/lib/navigation.ts frontend/src/pages/ApprovalsRoute.test.tsx frontend/src/lib/palette.test.ts | Approvals tab renamed Decisions; /approvals redirects |
 | 2026-09-09 12:14 | memory-handoff | agent-handoffs.md#2026-09-09-12:14 + current-state.md | Operator cockpit + Omni 10s bound; owner commit+push all uncommitted work |
+| 2026-09-09 12:25 | git-workflow-and-versioning | main | feat: operator notes, Decisions tab, and Omni 10s bounded edits |
 | 2026-09-09 12:24 | test-driven-development | frontend/src/lib/finalCut.test.ts | TDD: Final cut fills when orchestrator stops for any reason; last successful After, leftover steps not required |
 
 

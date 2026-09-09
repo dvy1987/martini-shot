@@ -513,44 +513,6 @@ export default function TimelineRoute({
       ) : null}
 
       {selectedProjectId ? (
-        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="changes-pointer-heading">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Studio</p>
-          <h2 id="changes-pointer-heading" className="mt-1 text-lg text-ink">
-            Bespoke shot edits live on their own tab
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
-            Ask for a longer take, a picture fix, lighting, coverage, or a camera move. New versions stay attached
-            to the shot. Script updates are there too.
-          </p>
-          <a
-            href="/changes"
-            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-          >
-            Open Studio
-          </a>
-        </section>
-      ) : null}
-
-      {selectedProjectId && worklistQuery.data ? (
-        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="suggestions-pointer-heading">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Suggestions</p>
-          <h2 id="suggestions-pointer-heading" className="mt-1 text-lg text-ink">
-            Leftover station suggestions live on their own tab
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
-            After ingest, mix, and pickups, specialist stations look at the updated clips and send suggestions.
-            Open Suggestions to watch that list fill in, then see the ranked plan and the budget cutoff.
-          </p>
-          <a
-            href="/suggestions"
-            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-          >
-            Open Suggestions
-          </a>
-        </section>
-      ) : null}
-
-      {selectedProjectId ? (
         <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-live="polite">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -664,6 +626,44 @@ export default function TimelineRoute({
           worklist={worklistQuery.data ?? null}
           showJobsBoard={expertOpen}
         />
+      ) : null}
+
+      {selectedProjectId ? (
+        <section className="mb-6 mt-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="changes-pointer-heading">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Studio</p>
+          <h2 id="changes-pointer-heading" className="mt-1 text-lg text-ink">
+            Add fine-grained edits to the Final cut
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
+            Ask for a longer take, a picture fix, lighting, coverage, or a camera move. New versions stay attached
+            to the shot. Script updates are there too.
+          </p>
+          <a
+            href="/changes"
+            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            Open Studio
+          </a>
+        </section>
+      ) : null}
+
+      {selectedProjectId && worklistQuery.data ? (
+        <section className="mb-6 border border-line bg-surface-1 px-5 py-4" aria-labelledby="suggestions-pointer-heading">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">Suggestions</p>
+          <h2 id="suggestions-pointer-heading" className="mt-1 text-lg text-ink">
+            Leftover station suggestions live on their own tab
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm text-ink-muted">
+            After ingest, mix, and pickups, specialist stations look at the updated clips and send suggestions.
+            Open Suggestions to watch that list fill in, then see the ranked plan and the budget cutoff.
+          </p>
+          <a
+            href="/suggestions"
+            className="mt-3 inline-block font-mono text-[10px] uppercase tracking-wider text-tungsten underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+          >
+            Open Suggestions
+          </a>
+        </section>
       ) : null}
 
       {selectedJobId ? (
