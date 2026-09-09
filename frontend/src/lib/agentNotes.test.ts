@@ -116,7 +116,7 @@ describe("readAgentNotes", () => {
     expect(body).toMatch(/stormy lighthouse/i);
     expect(body).toMatch(/weather as louder than the voices/i);
     expect(body).toMatch(/streaming/i);
-    expect(body).toMatch(/did not fail/i);
+    expect(body).toMatch(/succeeded/i);
     expect(body).not.toMatch(/what they thought the problem was/i);
     expect(body).not.toMatch(/what they ignored/i);
     expect(body).not.toMatch(/what they fixed/i);

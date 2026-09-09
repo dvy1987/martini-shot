@@ -34,10 +34,15 @@ function ingestJobsOf(jobs: readonly Job[]): Job[] {
 }
 
 function rowsFromJobs(jobs: readonly Job[]): ClipRow[] {
-  return ingestJobsOf(jobs).map((job) => ({
-    name: clipName(job),
-    job,
-  }));
+  return ingestJobsOf(jobs)
+    .slice()
+    .sort((a, b) =>
+      clipName(a).localeCompare(clipName(b), undefined, { numeric: true, sensitivity: "base" }),
+    )
+    .map((job) => ({
+      name: clipName(job),
+      job,
+    }));
 }
 
 function ingestLabel(status: Job["status"]): string {
@@ -101,7 +106,9 @@ export default function FinishBar({
 
   function onFiles(files: FileList | null) {
     if (!files?.length) return;
-    const incoming = Array.from(files);
+    const incoming = Array.from(files).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
+    );
     setRows((current) => [...current, ...incoming.map((file) => ({ name: file.name, file }))]);
     setError(null);
     if (fileInputRef.current) fileInputRef.current.value = "";

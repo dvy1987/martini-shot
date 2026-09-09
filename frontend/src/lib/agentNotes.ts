@@ -25,9 +25,9 @@ export function composeAgentNotes(notes: AgentNotes): string {
   };
   add(notes.problem || "This step has not written notes yet.");
   if (pending) return paragraphs.join("\n\n");
-  add(notes.ignored || "They did not set anything aside.");
-  add(notes.fixed || "They did not keep a change.");
-  add(notes.failed || "This step did not fail.");
+  add(notes.ignored || "The agent did not set anything aside.");
+  add(notes.fixed || "The agent did not keep a change.");
+  add(notes.failed || "This step succeeded.");
   return paragraphs.join("\n\n");
 }
 
@@ -73,8 +73,8 @@ function uploadNotes(job: Job): AgentNotes {
   if (job.status === "pass") {
     return {
       changed: "File opened",
-      problem: "They only needed to know the file would open.",
-      ignored: "They did not judge the mix, the picture, or the lighting. That comes later.",
+      problem: "The agent only needed to know the file would open.",
+      ignored: "The agent did not judge the mix, the picture, or the lighting. That comes later.",
       fixed: "The file opened and passed the check.",
       failed: "",
     };
@@ -82,7 +82,7 @@ function uploadNotes(job: Job): AgentNotes {
   if (FAILED.has(job.status)) {
     return {
       changed: "File did not open",
-      problem: "They tried to open the file.",
+      problem: "The agent tried to open the file.",
       ignored: "",
       fixed: "",
       failed: plainError(job) || "The file would not open. A broken file stops here.",
@@ -90,7 +90,7 @@ function uploadNotes(job: Job): AgentNotes {
   }
   return {
     changed: "Still checking the file",
-    problem: "They are confirming the file opens.",
+    problem: "The agent is confirming the file opens.",
     ignored: "",
     fixed: "",
     failed: "",
@@ -104,7 +104,7 @@ function ingestNotes(job: Job, reason: string): AgentNotes {
   if (FAILED.has(job.status)) {
     return {
       changed: "Watch did not finish",
-      problem: reason || "They tried to watch the clip and write what happens.",
+      problem: reason || "The agent tried to watch the clip and write what happens.",
       ignored: "",
       fixed: "",
       failed: plainError(job) || "The watch did not finish.",
@@ -112,11 +112,11 @@ function ingestNotes(job: Job, reason: string): AgentNotes {
   }
   return {
     changed: wrote ? "Wrote the spoken words and scene" : "Watched the clip",
-    problem: reason || "They needed the spoken words and a short scene so future steps are not guessing.",
-    ignored: "They did not mix, repair flicker, or change the lighting.",
+    problem: reason || "The agent needed the spoken words and a short scene so future steps are not guessing.",
+    ignored: "The agent did not mix, repair flicker, or change the lighting.",
     fixed: wrote
       ? [spoken ? `Spoken words: ${spoken}` : "", scene ? `Scene: ${scene}` : ""].filter(Boolean).join(" ")
-      : "They watched the clip. Notes have not been written yet.",
+      : "The agent watched the clip. Notes have not been written yet.",
     failed: "",
   };
 }
@@ -128,10 +128,10 @@ function loudnessNotes(job: Job, reason: string): AgentNotes {
   const verdict = text(result.verdict);
   const ignored =
     stems === "balanced"
-      ? "They did not treat the weather as louder than the voices. The meter called speech and the rest of the soundtrack balanced."
+      ? "The agent did not treat the weather as louder than the voices. The meter called speech and the rest of the soundtrack balanced."
       : stems === "music_hot"
         ? ""
-        : "They judged overall loudness, not a full creative remix.";
+        : "The agent judged overall loudness, not a full creative remix.";
   let failed = "";
   if (FAILED.has(job.status)) {
     failed = plainError(job) || "The mix did not finish.";
@@ -140,10 +140,10 @@ function loudnessNotes(job: Job, reason: string): AgentNotes {
   }
   return {
     changed: mixed ? "Mixed the soundtrack" : FAILED.has(job.status) ? "Mix did not finish" : "Listened to the soundtrack",
-    problem: reason || "They checked whether the soundtrack sits at a comfortable streaming level.",
+    problem: reason || "The agent checked whether the soundtrack sits at a comfortable streaming level.",
     ignored,
     fixed: mixed
-      ? "They mixed the soundtrack toward the streaming target and kept speech in the same family as the last clip."
+      ? "The agent mixed the soundtrack toward the streaming target and kept speech in the same family as the last clip."
       : "",
     failed,
   };
@@ -156,12 +156,12 @@ function pickupsNotes(job: Job, reason: string): AgentNotes {
   const repaired = result.repaired === true;
   const ignored =
     flicker?.ok === true || (score != null && score < 0.18)
-      ? "They did not call this flicker. The flicker number stayed under the house limit."
+      ? "The agent did not call this flicker. The flicker number stayed under the house limit."
       : "";
   if (FAILED.has(job.status)) {
     return {
       changed: "Picture repair failed",
-      problem: reason || "They looked for flicker or damaged frames.",
+      problem: reason || "The agent looked for flicker or damaged frames.",
       ignored,
       fixed: "",
       failed: plainError(job) || "The picture repair did not finish.",
@@ -169,11 +169,11 @@ function pickupsNotes(job: Job, reason: string): AgentNotes {
   }
   return {
     changed: repaired ? "Repaired the picture" : "Left the picture",
-    problem: reason || "They looked for flicker or damaged frames.",
+    problem: reason || "The agent looked for flicker or damaged frames.",
     ignored,
     fixed: repaired
-      ? "They re-rendered the picture and kept the new take."
-      : "They left the original picture. No repair was kept.",
+      ? "The agent re-rendered the picture and kept the new take."
+      : "The agent left the original picture. No repair was kept.",
     failed: "",
   };
 }
@@ -190,16 +190,16 @@ function deliveryNotes(job: Job, reason: string): AgentNotes {
   if (FAILED.has(job.status) || lines.length > 0) {
     return {
       changed: "Delivery check did not pass",
-      problem: reason || "They checked the finished clip against the delivery rules.",
-      ignored: "They were not judging the story. This is a shipment check.",
-      fixed: job.result?.caption_ref ? "They wrote captions." : "",
+      problem: reason || "The agent checked the finished clip against the delivery rules.",
+      ignored: "The agent was not judging the story. This is a shipment check.",
+      fixed: job.result?.caption_ref ? "The agent wrote captions." : "",
       failed: lines.join(" ") || plainError(job) || "The delivery check did not pass.",
     };
   }
   return {
     changed: "Passed the delivery check",
-    problem: reason || "They checked the finished clip against the delivery rules.",
-    ignored: "They were not judging the story. This is a shipment check.",
+    problem: reason || "The agent checked the finished clip against the delivery rules.",
+    ignored: "The agent was not judging the story. This is a shipment check.",
     fixed: "The clip met the delivery rules.",
     failed: "",
   };
@@ -212,7 +212,7 @@ function generativeNotes(job: Job, reason: string, stage: string): AgentNotes {
   if (FAILED.has(job.status)) {
     return {
       changed: `Could not finish ${name.toLowerCase()}`,
-      problem: intent || `They tried to run ${name.toLowerCase()}.`,
+      problem: intent || `The agent tried to run ${name.toLowerCase()}.`,
       ignored: "",
       fixed: "",
       failed: plainError(job) || `${name} did not finish.`,
@@ -221,16 +221,16 @@ function generativeNotes(job: Job, reason: string, stage: string): AgentNotes {
   if (job.status === "pass" && text(result.artifact_ref)) {
     return {
       changed: `Finished ${name.toLowerCase()}`,
-      problem: intent || `They ran ${name.toLowerCase()} on this clip.`,
+      problem: intent || `The agent ran ${name.toLowerCase()} on this clip.`,
       ignored: "",
-      fixed: `They kept a new take from ${name.toLowerCase()}. The original file stays.`,
+      fixed: `The agent kept a new take from ${name.toLowerCase()}. The original file stays.`,
       failed: "",
     };
   }
   if (PENDING.has(job.status)) {
     return {
       changed: "Still working",
-      problem: intent || `They are still on ${name.toLowerCase()}.`,
+      problem: intent || `The agent is still on ${name.toLowerCase()}.`,
       ignored: "",
       fixed: "",
       failed: "",
@@ -238,8 +238,8 @@ function generativeNotes(job: Job, reason: string, stage: string): AgentNotes {
   }
   return {
     changed: "No new take",
-    problem: intent || `They looked at whether ${name.toLowerCase()} was needed.`,
-    ignored: reason ? "" : `They did not keep a new ${name.toLowerCase()} take.`,
+    problem: intent || `The agent looked at whether ${name.toLowerCase()} was needed.`,
+    ignored: reason ? "" : `The agent did not keep a new ${name.toLowerCase()} take.`,
     fixed: "",
     failed: "",
   };

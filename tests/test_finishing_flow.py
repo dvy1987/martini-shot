@@ -215,6 +215,9 @@ def test_loudness_pass_points_pickups_at_picture_mix_and_stamps_continuation() -
             "worklist_item": "loudness::shot-a",
             "artifact_ref": "gs://b/a-mix.mp4",
             "target_lufs": -16.0,
+            "dialogue_band_lufs": -20.5,
+            "room_band_lufs": -24.0,
+            "scene_class": "normal-with-dialogue",
             "shot_id": "shot-a",
         },
     )
@@ -223,6 +226,11 @@ def test_loudness_pass_points_pickups_at_picture_mix_and_stamps_continuation() -
     loud_b = next(row for row in doc["items"] if row["id"] == "loudness::shot-b")
     assert pick_a["source_uri"] == "gs://b/a-mix.mp4"
     assert loud_b["proposal"]["args"].get("previous_target_lufs") == -16.0
+    assert loud_b["proposal"]["args"].get("previous_dialogue_band_lufs") == -20.5
+    assert loud_b["proposal"]["args"].get("previous_room_band_lufs") == -24.0
+    assert (
+        loud_b["proposal"]["args"].get("previous_scene_class") == "normal-with-dialogue"
+    )
     assert loud_b["proposal"]["args"].get("continuation") is True
 
 

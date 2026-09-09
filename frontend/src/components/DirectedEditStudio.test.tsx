@@ -2,7 +2,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import DirectedEditStudio from "@/components/DirectedEditStudio";
-import type { Approval, DirectedEditClarifyResult, Job, ShotRow, Worklist } from "@/types/api";
+import type {
+  Approval,
+  DirectedEditClarifyResult,
+  DirectedEditTurn,
+  Job,
+  ShotRow,
+  Worklist,
+} from "@/types/api";
 
 vi.mock("@/api/endpoints", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/api/endpoints")>();
@@ -109,7 +116,7 @@ describe("DirectedEditStudio", () => {
       .fn<
         (
           shotId: string,
-          body: { stations: string[]; camera_movement: string | null; chat_text: string; turns: unknown[] },
+          body: { stations: string[]; camera_movement?: string | null; chat_text: string; turns: DirectedEditTurn[] },
         ) => Promise<DirectedEditClarifyResult>
       >()
       .mockResolvedValueOnce({

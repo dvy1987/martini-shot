@@ -72,11 +72,30 @@ export function orchestratorHasStopped(worklist: Worklist | null | undefined): b
   return !BUSY_STATUS.has(worklist.status);
 }
 
-export function sequenceOrigins(jobs: readonly Job[]): string[] {
+export function sequenceOrigins(
+  jobs: readonly Job[],
+  worklist?: Worklist | null,
+): string[] {
+  if (worklist?.original_refs && worklist.original_refs.length > 0) {
+    const fromWorklist = worklist.original_refs.filter(Boolean);
+    const seen = new Set<string>(fromWorklist);
+    const rest = jobs
+      .filter((job) => job.station === "ingest" && originOf(job) && !seen.has(originOf(job)))
+      .map(originOf);
+    return [...fromWorklist, ...rest];
+  }
   const ingest = jobs.filter((job) => job.station === "ingest" && originOf(job));
   ingest.sort((left, right) => {
-    const order = uploadIndex(left) - uploadIndex(right);
-    return order || left.job_id.localeCompare(right.job_id);
+    const leftIdx = uploadIndex(left);
+    const rightIdx = uploadIndex(right);
+    if (Number.isFinite(leftIdx) && Number.isFinite(rightIdx) && leftIdx !== rightIdx) {
+      return leftIdx - rightIdx;
+    }
+    const nameLeft = clipName(left);
+    const nameRight = clipName(right);
+    const natural = nameLeft.localeCompare(nameRight, undefined, { numeric: true, sensitivity: "base" });
+    if (natural !== 0) return natural;
+    return left.job_id.localeCompare(right.job_id);
   });
   const seen = new Set<string>();
   const origins: string[] = [];
@@ -106,7 +125,7 @@ export function originKey(
   const ref = originOf(job);
   const shotOrigin = originByShot(jobs, worklist).get(shotIdOf(job, worklist));
   if (shotOrigin) return shotOrigin;
-  const origins = sequenceOrigins(jobs);
+  const origins = sequenceOrigins(jobs, worklist);
   if (ref && origins.includes(ref)) return ref;
   if (ref) {
     const folder = ingestFolder(ref);
@@ -130,7 +149,7 @@ export function groupBoardByClip(
   jobs: readonly Job[],
   worklist?: Worklist | null,
 ): ClipJourney[] {
-  const origins = sequenceOrigins(jobs);
+  const origins = sequenceOrigins(jobs, worklist);
   const buckets = new Map<string, BoardRow[]>();
   const order: string[] = [...origins];
   for (const row of boardRows(jobs)) {
@@ -216,7 +235,7 @@ export function finalCutSlots(
   overrides: Readonly<Record<string, FinalCutPick>>,
   worklist: Worklist | null | undefined = null,
 ): FinalCutSlot[] {
-  return sequenceOrigins(jobs).map((origin) => {
+  return sequenceOrigins(jobs, worklist).map((origin) => {
     const ingest = jobsForOrigin(jobs, origin, worklist).find(
       (job) => job.station === "ingest",
     );

@@ -12,8 +12,8 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   server: {
-    host: "127.0.0.1",
-    port: 3000,
+    host: "localhost",
+    port: 5000,
     allowedHosts: [".replit.dev", ".replit.app"],
     proxy: apiTarget
       ? { "/api": { target: apiTarget, changeOrigin: true } }

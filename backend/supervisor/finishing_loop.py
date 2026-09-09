@@ -628,6 +628,16 @@ def apply_cleanup_artifacts(doc: dict[str, Any], job: Job) -> dict[str, Any]:
                     proposal = dict(item.get("proposal") or {})
                     args = dict(proposal.get("args") or {})
                     args["previous_target_lufs"] = float(result["target_lufs"])
+                    if result.get("dialogue_band_lufs") is not None:
+                        args["previous_dialogue_band_lufs"] = float(
+                            result["dialogue_band_lufs"]
+                        )
+                    if result.get("room_band_lufs") is not None:
+                        args["previous_room_band_lufs"] = float(
+                            result["room_band_lufs"]
+                        )
+                    if result.get("scene_class"):
+                        args["previous_scene_class"] = str(result["scene_class"])
                     args["continuation"] = True
                     proposal["args"] = args
                     item["proposal"] = proposal

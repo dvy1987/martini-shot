@@ -137,6 +137,10 @@ def run_loudness(
                     "previous_loudness": {
                         "scene_class": job.result.get("previous_scene_class"),
                         "target_lufs": job.result.get("previous_target_lufs"),
+                        "dialogue_band_lufs": job.result.get(
+                            "previous_dialogue_band_lufs"
+                        ),
+                        "room_band_lufs": job.result.get("previous_room_band_lufs"),
                         "continuation": bool(job.result.get("continuation")),
                     },
                 }

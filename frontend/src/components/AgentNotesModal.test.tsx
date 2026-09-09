@@ -30,7 +30,7 @@ describe("AgentNotesModal", () => {
     expect(screen.getByText("They thought the clip was too quiet.")).toBeInTheDocument();
     expect(screen.getByText(/weather as louder than the voices/i)).toBeInTheDocument();
     expect(screen.getByText(/streaming target/i)).toBeInTheDocument();
-    expect(screen.getByText("This step did not fail.")).toBeInTheDocument();
+    expect(screen.getByText("This step succeeded.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /close/i }));
     expect(onClose).toHaveBeenCalled();

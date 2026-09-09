@@ -5,6 +5,8 @@
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+env
+*env.local
 *.pem
 *.key
 *.p12
@@ -48,8 +50,9 @@ Thumbs.db
 # Large raw media (evidence packs keep screenshots/JSONL; raw video takes stay local)
 docs/evidence/video/raw/
 docs/evidence/finish-loop/clips/
-fixtures/tmp/
-fixtures/pickups/derived/
+fixtures/
+scripts/
+scratch*.mp4
 
 # Owner-captured console screenshots (local reference only)
 docs/screenshots/

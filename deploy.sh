@@ -25,7 +25,7 @@ python -c "
 import yaml
 from pathlib import Path
 
-dotenv = Path('.env')
+dotenv = Path('env') if Path('env').exists() else Path('.env')
 out = Path('${ENV_YAML}')
 
 allowlist = [

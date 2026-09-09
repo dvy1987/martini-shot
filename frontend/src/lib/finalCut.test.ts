@@ -406,4 +406,56 @@ describe("groupBoardByClip", () => {
       "relight",
     ]);
   });
+
+  it("sequences clips using worklist original_refs when available", () => {
+    const jobA = job({
+      job_id: "job-zzz",
+      station: "ingest",
+      input_refs: ["projects/p1/ingest/job-zzz/shot_02_elena.mp4"],
+    });
+    const jobB = job({
+      job_id: "job-aaa",
+      station: "ingest",
+      input_refs: ["projects/p1/ingest/job-aaa/shot_01_miller.mp4"],
+    });
+    const wl = worklist({
+      original_refs: [
+        "projects/p1/ingest/job-aaa/shot_01_miller.mp4",
+        "projects/p1/ingest/job-zzz/shot_02_elena.mp4",
+      ],
+    });
+    const grouped = groupBoardByClip([jobA, jobB], wl);
+    expect(grouped.map((g) => g.origin)).toEqual([
+      "projects/p1/ingest/job-aaa/shot_01_miller.mp4",
+      "projects/p1/ingest/job-zzz/shot_02_elena.mp4",
+    ]);
+    expect(grouped[0]?.label).toBe("Clip 1");
+    expect(grouped[1]?.label).toBe("Clip 2");
+  });
+
+  it("falls back to natural numeric filename ordering when upload_index is missing", () => {
+    const job2 = job({
+      job_id: "job-2458",
+      station: "ingest",
+      input_refs: ["projects/p1/ingest/job-2458/shot_02_elena.mp4"],
+    });
+    const job6 = job({
+      job_id: "job-32ac",
+      station: "ingest",
+      input_refs: ["projects/p1/ingest/job-32ac/shot_06_elena.mp4"],
+    });
+    const job1 = job({
+      job_id: "job-3b67",
+      station: "ingest",
+      input_refs: ["projects/p1/ingest/job-3b67/shot_01_miller.mp4"],
+    });
+    // Even without worklist and without upload_index, shot_01 should precede shot_02 then shot_06
+    const grouped = groupBoardByClip([job2, job6, job1]);
+    expect(grouped.map((g) => g.origin)).toEqual([
+      "projects/p1/ingest/job-3b67/shot_01_miller.mp4",
+      "projects/p1/ingest/job-2458/shot_02_elena.mp4",
+      "projects/p1/ingest/job-32ac/shot_06_elena.mp4",
+    ]);
+  });
 });
+
