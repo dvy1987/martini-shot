@@ -129,6 +129,27 @@ def test_clip_body_uses_a_hosted_signed_url_when_gcs_can_sign() -> None:
     assert "/clip/" not in body["url"]
 
 
+def test_clip_body_uses_lab_media_when_gcs_cannot_sign() -> None:
+    """Cloud Run metadata credentials have no private key. The table must
+    still play the clip through the lab media path instead of 502."""
+    job = Job(
+        station="ingest",
+        project_id="p1",
+        input_refs=["projects/p1/a.mp4"],
+        id="job-abc",
+    )
+
+    class _GCS:
+        def signed_download_url(self, key: str, *, expires_minutes: int = 60) -> str:
+            raise RuntimeError("you need a private key to sign credentials")
+
+    from backend.jobs.clip import clip_body
+
+    body = clip_body(job, "before", gcs=_GCS())
+    assert body["url"] == "/api/v1/jobs/job-abc/clip/before/media"
+    assert body["clip_name"] == "a.mp4"
+
+
 def test_same_artifact_without_new_metadata_is_no_change() -> None:
     job = Job(
         station="pickups",

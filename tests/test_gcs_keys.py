@@ -27,6 +27,23 @@ def test_object_key_rejects_bucket_mismatch() -> None:
         )
 
 
+def test_credentials_without_a_private_key_need_iam_signing() -> None:
+    """Cloud Run / user ADC cannot sign V4 URLs locally."""
+    from backend.core.gcs import _needs_remote_signer
+
+    class _Compute:
+        service_account_email = "run@developer.gserviceaccount.com"
+        token = "ya29.token"
+        valid = True
+
+    class _ServiceAccountKey:
+        signer = object()
+        signer_email = "key@project.iam.gserviceaccount.com"
+
+    assert _needs_remote_signer(_Compute()) is True
+    assert _needs_remote_signer(_ServiceAccountKey()) is False
+
+
 def test_object_key_rejects_empty_and_bucket_only() -> None:
     with pytest.raises(ValueError):
         object_key("")

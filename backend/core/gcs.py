@@ -5,6 +5,7 @@ hits the real bucket — there is no in-memory fallback anywhere (C-1.1).
 from __future__ import annotations
 
 from datetime import timedelta, timezone
+from typing import Any
 
 from google.cloud import storage  # namespace pkg — suppressed in mypy.ini
 
@@ -82,7 +83,17 @@ class GCSMedia:
         """
         blob = self._bucket.blob(object_key(key, bucket=self._bucket.name))
         credentials = self._client._credentials
-        if _needs_remote_signer(credentials):
+        expiration = datetime_now() + timedelta(minutes=expires_minutes)
+        if not _needs_remote_signer(credentials):
+            return blob.generate_signed_url(
+                version="v4",
+                expiration=expiration,
+                method="GET",
+                credentials=credentials,
+            )
+        from google.oauth2.credentials import Credentials as UserCredentials
+
+        if isinstance(credentials, UserCredentials):
             if not self._signing_sa:
                 raise RuntimeError(
                     "GCS_SIGNING_SA must be set to sign URLs with user-account ADC"
@@ -97,23 +108,58 @@ class GCSMedia:
             )
             return blob.generate_signed_url(
                 version="v4",
-                expiration=datetime_now() + timedelta(minutes=expires_minutes),
+                expiration=expiration,
                 method="GET",
                 credentials=signing_credentials,
             )
-        return blob.generate_signed_url(
-            version="v4",
-            expiration=datetime_now() + timedelta(minutes=expires_minutes),
-            method="GET",
-            credentials=credentials,
+        return _sign_with_access_token(
+            blob, credentials, signing_sa=self._signing_sa, expiration=expiration
         )
 
 
 def _needs_remote_signer(credentials: object) -> bool:
-    """User-account OAuth tokens have no private key and cannot sign locally."""
-    from google.oauth2.credentials import Credentials as UserCredentials
+    """User ADC and Cloud Run metadata credentials have no private key."""
+    signer = getattr(credentials, "signer", None)
+    signer_email = getattr(credentials, "signer_email", None)
+    return signer is None or not signer_email
 
-    return isinstance(credentials, UserCredentials)
+
+def _sign_with_access_token(
+    blob: Any,
+    credentials: object,
+    *,
+    signing_sa: str,
+    expiration: object,
+) -> str:
+    """IAM signBlob using the runtime service account (Cloud Run / GCE)."""
+    from google.auth.transport.requests import Request
+
+    token = getattr(credentials, "token", None)
+    sa_email = signing_sa or str(
+        getattr(credentials, "service_account_email", "") or ""
+    )
+    if (
+        not token
+        or not getattr(credentials, "valid", False)
+        or sa_email in {"", "default"}
+    ):
+        refresh = getattr(credentials, "refresh", None)
+        if callable(refresh):
+            refresh(Request())
+        token = getattr(credentials, "token", None)
+        if sa_email in {"", "default"}:
+            sa_email = signing_sa or str(
+                getattr(credentials, "service_account_email", "") or ""
+            )
+    if not sa_email or sa_email == "default" or not token:
+        raise RuntimeError("cannot determine service account email for URL signing")
+    return blob.generate_signed_url(
+        version="v4",
+        expiration=expiration,
+        method="GET",
+        service_account_email=sa_email,
+        access_token=token,
+    )
 
 
 def datetime_now():

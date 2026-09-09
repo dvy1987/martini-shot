@@ -1,5 +1,5 @@
-/** Four finishing-run answers from Grafana MCP (English, not a Grafana clone). */
-import { cost } from "@/lib/formatters";
+/** This-run briefing: health, spend, time left, automatic actions — in the product. */
+import { buildRunBriefing } from "@/lib/runBriefing";
 import { stationName } from "@/lib/stations";
 import { statusMetaOrUnknown } from "@/lib/status";
 import type { RunPulse } from "@/types/api";
@@ -11,24 +11,10 @@ interface RunPulseProps {
   onJumpToJob?: (jobId: string) => void;
 }
 
-function verdictClass(verdict: string): string {
-  if (verdict === "healthy") return "text-signal";
-  if (verdict === "degraded") return "text-tungsten";
+function toneClass(tone: "ok" | "warn" | "muted"): string {
+  if (tone === "ok") return "text-signal";
+  if (tone === "warn") return "text-tungsten";
   return "text-ink-muted";
-}
-
-function EvidenceLink({ href }: { href?: string }) {
-  if (!href) return null;
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-    >
-      Grafana
-    </a>
-  );
 }
 
 export default function RunPulseStrip({
@@ -41,7 +27,7 @@ export default function RunPulseStrip({
     return (
       <section
         aria-busy="true"
-        aria-label="Loading run pulse"
+        aria-label="Loading this run"
         className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3"
       >
         <div className="h-3 w-24 rounded-sm bg-surface-2" />
@@ -56,9 +42,7 @@ export default function RunPulseStrip({
   if (errorMessage && !pulse) {
     return (
       <section className="mb-5 rounded-md border border-line bg-surface-1 px-4 py-3">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">
-          Grafana watch
-        </h2>
+        <h2 className="font-mono text-xs uppercase tracking-widest text-ink-muted">This run</h2>
         <p className="mt-2 text-sm text-ink-muted">{errorMessage}</p>
       </section>
     );
@@ -68,48 +52,63 @@ export default function RunPulseStrip({
     return null;
   }
 
-  const dashboards = pulse.dashboards ?? [];
-  const wheelPreview = pulse.wheel.items.slice(0, 4);
-  const extra = pulse.wheel.items.length - wheelPreview.length;
+  const briefing = buildRunBriefing(pulse);
 
   return (
-    <section
-      aria-labelledby="run-pulse-heading"
-      className="mb-5 rounded-md border border-line bg-surface-1"
-    >
-      <header className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-4 py-3">
-        <div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-agent">
-            Grafana
-          </p>
-          <h2
-            id="run-pulse-heading"
-            className="mt-1 font-mono text-xs uppercase tracking-widest text-ink"
-          >
-            Grafana watch
-          </h2>
-        </div>
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
-          {pulse.grafana === "ok" ? "Live from Grafana Cloud" : "Grafana unreachable"}
-        </p>
+    <section aria-labelledby="run-pulse-heading" className="mb-5 rounded-md border border-line bg-surface-1">
+      <header className="border-b border-line px-4 py-3">
+        <h2 id="run-pulse-heading" className="sr-only">
+          {briefing.title}
+        </h2>
+        <p className="text-sm text-ink-muted">{briefing.sourceLine}</p>
       </header>
-      {dashboards.length > 0 ? (
-        <p className="flex flex-wrap gap-x-4 gap-y-1 border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-wider">
-          {dashboards.map((dashboard) => (
-            <a
-              key={dashboard.url}
-              href={dashboard.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-agent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-            >
-              {dashboard.title}
-            </a>
-          ))}
-        </p>
+      <dl className="grid gap-0 sm:grid-cols-2">
+        {briefing.sections.map((section) => (
+          <div
+            key={section.id}
+            className="border-b border-line px-4 py-3 sm:odd:border-r"
+          >
+            <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">{section.title}</dt>
+            <dd className={`mt-1 text-sm ${toneClass(section.tone)}`}>{section.meaning}</dd>
+            <p className="mt-1 text-sm text-ink">{section.detail}</p>
+            {section.id === "spend" && pulse.burn.top[0] && onJumpToJob ? (
+              <button
+                type="button"
+                onClick={() => onJumpToJob(pulse.burn.top[0]?.job_id ?? "")}
+                className="mt-2 font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+              >
+                Open the expensive job
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </dl>
+      {briefing.actions.length > 0 ? (
+        <div className="border-t border-line px-4 py-3">
+          <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Automatic actions</h3>
+          <ul className="mt-2 space-y-2">
+            {briefing.actions.map((item, index) => (
+              <li key={`${item.kind}-${item.jobId ?? index}`} className="text-sm text-ink">
+                <p>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-agent">{item.label}</span>{" "}
+                  {item.text}
+                </p>
+                {item.jobId && onJumpToJob ? (
+                  <button
+                    type="button"
+                    onClick={() => onJumpToJob(item.jobId ?? "")}
+                    className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
+                  >
+                    Open on Timeline
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
-      <div className="border-b border-line px-4 py-3">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Jobs this run</p>
+      <div className="border-t border-line px-4 py-3">
+        <h3 className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">Jobs this run</h3>
         {(pulse.jobs ?? []).length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">No jobs on this project yet.</p>
         ) : (
@@ -155,79 +154,6 @@ export default function RunPulseStrip({
           </ul>
         )}
       </div>
-      <dl className="grid gap-0 sm:grid-cols-2">
-        <div className="border-b border-line px-4 py-3 sm:border-r">
-          <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            System and media health
-          </dt>
-          <dd className={`mt-1 text-sm ${verdictClass(pulse.factory.verdict)}`}>
-            {pulse.factory.headline}
-          </dd>
-          <EvidenceLink href={pulse.factory.evidence_url} />
-        </div>
-        <div className="border-b border-line px-4 py-3">
-          <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Cost to run
-          </dt>
-          <dd className="mt-1 text-sm text-ink">{pulse.burn.headline}</dd>
-          {pulse.burn.top[0] ? (
-            (() => {
-              const topJob = pulse.burn.top[0];
-              if (!topJob) return null;
-              return (
-            <p className="mt-1 font-mono text-xs tabular-nums text-tungsten">
-              {cost(topJob.cost_micros)}
-              {onJumpToJob && topJob.job_id ? (
-                <button
-                  type="button"
-                  onClick={() => onJumpToJob(topJob.job_id)}
-                  className="ml-3 uppercase tracking-wider text-ink-muted underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-tungsten"
-                >
-                  {topJob.job_id}
-                </button>
-              ) : null}
-            </p>
-              );
-            })()
-          ) : null}
-          <EvidenceLink href={pulse.burn.evidence_url} />
-        </div>
-        <div className="px-4 py-3 sm:border-r sm:border-b-0 border-b border-line">
-          <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Expected finish
-          </dt>
-          <dd className="mt-1 text-sm text-ink">{pulse.eta.headline}</dd>
-          <EvidenceLink href={pulse.eta.evidence_url} />
-        </div>
-        <div className="px-4 py-3">
-          <dt className="font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-            Automatic actions
-          </dt>
-          <dd className="mt-1">
-            {wheelPreview.length === 0 ? (
-              <p className="text-sm text-ink-muted">
-                No automatic actions recorded for this run.
-              </p>
-            ) : (
-              <ul className="space-y-1">
-                {wheelPreview.map((item, index) => (
-                  <li key={`${item.kind}-${item.at}-${index}`} className="line-clamp-2 text-sm text-ink">
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-agent">
-                      {item.kind}
-                    </span>{" "}
-                    {item.text}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {extra > 0 ? (
-              <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-muted">
-                +{extra} more
-              </p>
-            ) : null}
-          </dd>
-        </div>
-      </dl>
     </section>
   );
 }

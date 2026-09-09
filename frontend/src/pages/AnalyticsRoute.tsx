@@ -56,7 +56,7 @@ export default function AnalyticsRoute({
   if (backend === "checking") {
     return (
       <p className="px-6 py-10 font-mono text-xs uppercase tracking-widest text-ink-muted" aria-live="polite">
-        Checking Grafana watch…
+        Checking this run…
       </p>
     );
   }
@@ -68,7 +68,7 @@ export default function AnalyticsRoute({
         <EmptyState
           glyph="▣"
           title="Analytics are unavailable"
-          body="The service is unavailable, so Grafana watch cannot be loaded."
+          body="The service is unavailable, so this run cannot be loaded."
         />
       </section>
     );
@@ -89,7 +89,7 @@ export default function AnalyticsRoute({
         <EmptyState
           glyph="▣"
           title="No project selected"
-          body="Start a project on the timeline. Grafana watch uses the same show as Timeline."
+          body="Start a project on the timeline. Analytics uses the same show as Timeline."
         />
       </section>
     );
@@ -100,14 +100,13 @@ export default function AnalyticsRoute({
       <header>
         <p className="font-mono text-xs uppercase tracking-widest text-ink-muted">Analytics</p>
         <h1 id="analytics-heading" className="mt-1 text-2xl text-ink">
-          Grafana watch
+          This run
         </h1>
         {openProject ? (
           <p className="mt-1 font-mono text-xs uppercase tracking-widest text-agent">{openProject.title}</p>
         ) : null}
         <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-          Same project as Timeline. Factory health, cost, finish time, and automatic actions for this
-          run — sourced from Grafana.
+          Health, spend, time left, and what already ran on its own — explained here for this show.
         </p>
       </header>
       <RunPulseStrip
@@ -115,7 +114,7 @@ export default function AnalyticsRoute({
         isLoading={pulseQuery.isPending}
         errorMessage={
           pulseQuery.isError
-            ? "Grafana watch could not be loaded. Check the connection and try again."
+            ? "This run could not be loaded. Check the connection and try again."
             : null
         }
         onJumpToJob={onJumpToJob}

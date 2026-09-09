@@ -35,14 +35,14 @@ describe("AnalyticsRoute", () => {
     expect(screen.getByText(/analytics are unavailable/i)).toBeInTheDocument();
   });
 
-  it("asks for a timeline project before showing Grafana watch", async () => {
+  it("asks for a timeline project before showing this run", async () => {
     vi.mocked(listProjects).mockResolvedValue([]);
     renderAnalytics("up", null);
     expect(await screen.findByText(/no project selected/i)).toBeInTheDocument();
     expect(getRunPulse).not.toHaveBeenCalled();
   });
 
-  it("waits for the timeline project instead of showing a blank Grafana tab", async () => {
+  it("waits for the timeline project instead of showing a blank analytics tab", async () => {
     vi.mocked(listProjects).mockResolvedValue([
       {
         project_id: "p1",
@@ -94,7 +94,7 @@ describe("AnalyticsRoute", () => {
     expect(getRunPulse).not.toHaveBeenCalledWith("other-show");
   });
 
-  it("renders Grafana watch from the run-pulse endpoint", async () => {
+  it("renders this run from the run-pulse endpoint", async () => {
     vi.mocked(getWorklist).mockRejectedValue(new Error("no worklist"));
     vi.mocked(getRunPulse).mockResolvedValue({
       project_id: "p1",
@@ -108,12 +108,9 @@ describe("AnalyticsRoute", () => {
       ],
     });
     renderAnalytics("up", "p1");
-    expect(await screen.findByText(/factory looks healthy/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^grafana watch$/i, level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /station health/i })).toHaveAttribute(
-      "href",
-      "https://chipperm.grafana.net/d/pc-station-health",
-    );
+    expect(await screen.findByText(/the house is running normally/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^this run$/i, level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /station health/i })).not.toBeInTheDocument();
     expect(getRunPulse).toHaveBeenCalledWith("p1");
   });
 });

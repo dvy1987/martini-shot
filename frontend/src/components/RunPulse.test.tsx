@@ -46,21 +46,22 @@ const pulse: RunPulse = {
 };
 
 describe("RunPulseStrip", () => {
-  it("renders the four finishing-run questions in English", () => {
+  it("explains this run in English and does not send the operator to Grafana", () => {
     render(<RunPulseStrip pulse={pulse} />);
-    expect(screen.getByText(/factory is sick/i)).toBeInTheDocument();
-    expect(screen.getByText(/omni refused/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^this run$/i, level: 2 })).toBeInTheDocument();
+    expect(screen.getByText(/failures are showing up across shows/i)).toBeInTheDocument();
+    expect(screen.getByText(/burning the budget/i)).toBeInTheDocument();
     expect(screen.getByText(/about 1 min left/i)).toBeInTheDocument();
-    expect(screen.getByText(/spend throttle/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /station health/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /grafana watch/i })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /station health/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^grafana$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /grafana watch/i })).not.toBeInTheDocument();
   });
 
   it("jumps to the expensive job when asked", () => {
     const onJumpToJob = vi.fn();
     render(<RunPulseStrip pulse={pulse} onJumpToJob={onJumpToJob} />);
-    fireEvent.click(screen.getByRole("button", { name: "job-ext-9" }));
-    expect(onJumpToJob).toHaveBeenCalledWith("job-ext-9");
+    fireEvent.click(screen.getByRole("button", { name: /open on timeline/i }));
+    expect(onJumpToJob).toHaveBeenCalledWith("job-runaway");
   });
 
   it("lists this run's jobs even when they cost nothing", () => {
@@ -86,14 +87,14 @@ describe("RunPulseStrip", () => {
     expect(screen.getByRole("button", { name: /ingest · test-clip01\.mp4/i })).toBeInTheDocument();
   });
 
-  it("says Grafana is unreachable without inventing answers", () => {
+  it("says the run could not load without inventing answers", () => {
     render(
       <RunPulseStrip
         pulse={null}
-        errorMessage="Run pulse could not reach Grafana."
+        errorMessage="This run could not be loaded. Check the connection and try again."
       />,
     );
-    expect(screen.getByText(/could not reach grafana/i)).toBeInTheDocument();
-    expect(screen.queryByText(/factory is sick/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
+    expect(screen.queryByText(/across shows/i)).not.toBeInTheDocument();
   });
 });

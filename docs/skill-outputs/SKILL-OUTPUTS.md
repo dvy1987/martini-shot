@@ -105,8 +105,11 @@
 | 2026-09-09 07:42 | debug-and-fix | frontend/src/lib/clipDisplay.ts frontend/src/lib/journey.ts backend/supervisor/finishing_loop.py | Ingest stayed in progress after mix: watch notes lived on loudness jobs, not ingest file-check jobs |
 | 2026-09-09 08:57 | test-driven-development | frontend/src/lib/suggestionPlan.test.ts frontend/src/pages/SuggestionsRoute.test.tsx tests/test_finishing_dispatch.py | TDD: Suggestions tab, stack rank, live budget cutoff |
 | 2026-09-09 09:10 | test-driven-development | frontend/src/pages/AnalyticsRoute.test.tsx frontend/src/lib/projectSelection.test.ts | TDD: Grafana tab watches the same open project as Timeline |
+| 2026-09-09 09:55 | debug-and-fix | tests/test_job_clip.py tests/test_gcs_keys.py frontend/src/components/ClipThumb.test.tsx | Prove-it: table clips 502 "could not be signed" on Cloud Run; fall back to lab media path |
 | 2026-09-09 09:50 | test-driven-development | frontend/src/lib/journey.test.ts frontend/src/pages/TimelineRoute.test.tsx tests/test_finishing_dispatch.py | TDD: Plan work → Execute → Delivery last; delivery always pinned after leftover |
 | 2026-09-09 09:25 | debug-and-fix | backend/jobs/clip.py backend/api/spine.py frontend/src/components/ClipThumb.tsx | Before/After clips: Cloud Run proxy ignored Range and downloaded every full file; signed GCS URLs + no thumb preload |
 | 2026-09-09 09:37 | memory-handoff | agent-handoffs.md#2026-09-09-09:37 + current-state.md | Suggestions tab, playable clips, house-order finishing; owner commit+push all uncommitted work |
+| 2026-09-09 09:37 | git-workflow-and-versioning | main | feat: suggestions tab, playable clips, and house-order finishing UI |
+| 2026-09-09 10:00 | test-driven-development | frontend/src/lib/runBriefing.test.ts frontend/src/components/RunPulse.test.tsx | Analytics explains this run in-product; Grafana links removed from the operator UI |
 
 

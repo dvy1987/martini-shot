@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { mediaUrl } from "@/api/client";
+import { ApiError, mediaUrl } from "@/api/client";
 import { getJobClip } from "@/api/endpoints";
 import type { JobClip } from "@/types/api";
+
+function labMediaClip(jobId: string, side: "before" | "after", label: string): JobClip {
+  return {
+    job_id: jobId,
+    side,
+    clip_name: label,
+    url: `/api/v1/jobs/${encodeURIComponent(jobId)}/clip/${side}/media`,
+    expires_in_minutes: 60,
+    metadata: {},
+  };
+}
 
 interface ClipThumbProps {
   jobId: string;
@@ -23,9 +34,12 @@ export default function ClipThumb({ jobId, side, label, onOpen, reviewSide }: Cl
         if (!cancelled) setClip(next);
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "The clip could not be opened.");
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 502) {
+          setClip(labMediaClip(jobId, side, label));
+          return;
         }
+        setError(err instanceof Error ? err.message : "The clip could not be opened.");
       });
     return () => {
       cancelled = true;

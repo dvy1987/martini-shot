@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any, Literal
 
 from backend.core.gcs import object_key
 from backend.jobs.models import Job
+
+log = logging.getLogger("pc.clip")
 
 Side = Literal["before", "after"]
 
@@ -126,10 +129,16 @@ def clip_body(
     metadata = clip_metadata(job)
     if extra:
         apply_watch_notes(metadata, extra)
+    url = clip_playback_path(job.id, side)
     if gcs is not None:
-        url = gcs.signed_download_url(object_key(ref), expires_minutes=60)
-    else:
-        url = clip_playback_path(job.id, side)
+        try:
+            url = gcs.signed_download_url(object_key(ref), expires_minutes=60)
+        except Exception:
+            log.warning(
+                "clip signed url failed; using lab media path job_id=%s side=%s",
+                job.id,
+                side,
+            )
     return {
         "job_id": job.id,
         "side": side,
