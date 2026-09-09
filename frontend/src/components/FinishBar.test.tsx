@@ -150,6 +150,47 @@ describe("FinishBar", () => {
     expect(screen.getByText(/call wrap after every chosen clip has been checked/i)).toBeInTheDocument();
   });
 
+  it("does not add a second row when an in-flight clip's ingest job arrives mid-upload", async () => {
+    const file = new File(["x"], "take-01.mp4", { type: "video/mp4" });
+    let resolveUpload: (value: Job) => void = () => undefined;
+    vi.mocked(ingestClip).mockImplementation(
+      () =>
+        new Promise<Job>((resolve) => {
+          resolveUpload = resolve;
+        }),
+    );
+    vi.mocked(getJob).mockResolvedValue(passed("job-1", "projects/p1/ingest/job-1/take-01.mp4"));
+    vi.mocked(startFinish).mockResolvedValue({
+      project_id: "p1",
+      budget_micros: 50_000_000,
+      spent_micros: 0,
+      status: "inspecting",
+      attendance: [],
+      items: [],
+      final_refs: [],
+      original_refs: [],
+    });
+    const { rerender } = render(<FinishBar projectId="p1" />);
+    fireEvent.change(screen.getByLabelText(/upload media/i), {
+      target: { files: [file] },
+    });
+    await waitFor(() => expect(screen.getByText("uploading")).toBeInTheDocument());
+    // SSE delivers the created ingest job while the upload response is still
+    // pending — the clip row must not be duplicated.
+    rerender(
+      <FinishBar
+        projectId="p1"
+        existingJobs={[job("job-1", "projects/p1/ingest/job-1/take-01.mp4")]}
+      />,
+    );
+    expect(screen.getAllByText("take-01.mp4")).toHaveLength(1);
+    resolveUpload(passed("job-1", "projects/p1/ingest/job-1/take-01.mp4"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /call wrap/i })).toBeEnabled());
+    expect(screen.getAllByText("take-01.mp4")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: /call wrap/i }));
+    await waitFor(() => expect(startFinish).toHaveBeenCalledWith("p1", 50_000_000, ["job-1"]));
+  });
+
   it("shows clips already on the project so the list matches progress after a refresh", () => {
     render(
       <FinishBar

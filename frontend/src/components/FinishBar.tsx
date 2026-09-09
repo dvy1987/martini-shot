@@ -86,7 +86,18 @@ export default function FinishBar({
         changed = true;
         return { ...row, job: next };
       });
-      const additions = incoming.filter((job) => !known.has(job.job_id));
+      // A clip still being uploaded has no job attached yet, but the upload
+      // has already created its ingest job server-side and SSE may deliver it
+      // mid-batch. Skip additions whose clip name belongs to an in-flight
+      // upload — the upload response will attach that job to the existing row.
+      const pendingUploadNames = new Set(
+        current
+          .filter((row) => row.file && !row.job && !row.skipped)
+          .map((row) => row.name),
+      );
+      const additions = incoming.filter(
+        (job) => !known.has(job.job_id) && !pendingUploadNames.has(clipName(job)),
+      );
       if (!changed && additions.length === 0) return current;
       return [...updated, ...rowsFromJobs(additions)];
     });
@@ -234,11 +245,10 @@ export default function FinishBar({
         return;
       }
       const micros = Math.round(dollars * 1_000_000);
-      await startFinish(
-        projectId,
-        micros,
-        orderedJobs.map((item) => item.job_id),
-      );
+      // The API requires unique ingest_job_ids (backend 409s otherwise).
+      await startFinish(projectId, micros, [
+        ...new Set(orderedJobs.map((item) => item.job_id)),
+      ]);
       setStarted(true);
       setNote("Wrap has been called");
       onFinished?.();
