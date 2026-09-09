@@ -1,5 +1,34 @@
 # Agent Handoffs
 
+## 2026-09-09 10:02 - Commit/push requested; tree already on origin
+
+### Done
+- Owner asked to commit and push **all** uncommitted work (not only this thread).
+- Working tree is clean. `main` matches `origin/main` at `4571ffa`.
+- Latest on origin: Analytics this-run briefing + clip play when GCS cannot sign. Prior: Suggestions tab + house-order finishing (`8fd25a7`).
+
+### Debated
+- None this turn.
+
+### Decisions
+- No empty commit. Nothing left to push until new edits land.
+
+### Deferred
+- Publish Cloud Run + Replit so the live site matches `4571ffa`. Ask before deploy.
+
+### Next Agent Should Know
+- Do not look for leftover uncommitted files from the Grafana-tab / clip-sign / Suggestions work — they are already on origin.
+- Live Replit/Cloud Run still lag this tree until the owner asks to deploy.
+
+### Revisit Triggers
+- New dirty files appear, or the owner still sees “clip could not be signed” on the **published** site (needs deploy, not another commit).
+
+### Working Tree
+- Clean; in sync with origin/main.
+
+### Graph
+- Incremental graph build skipped (known hang).
+
 ## 2026-09-09 09:37 - Suggestions tab, playable clips, house-order finishing
 
 ### Done

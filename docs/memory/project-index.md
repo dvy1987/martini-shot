@@ -1,5 +1,7 @@
 # Project Memory Index
 
+| 2026-09-09 10:02 | handoff | agent-handoffs.md#2026-09-09-10:02 | current | git, deploy | Commit/push requested; tree already clean on origin/main @ 4571ffa |
+| 2026-09-09 | state | current-state.md | current | analytics, clips, suggestions, deploy | origin/main 4571ffa; live site unpublished |
 | 2026-09-09 09:37 | handoff | agent-handoffs.md#2026-09-09-09:37 | current | suggestions, clips, journey, deploy | Suggestions tab + playable clips + Delivery last; unpublished Cloud Run/Replit |
 | 2026-09-09 | state | current-state.md | current | suggestions, clips, finishing, deploy | Local cockpit ahead of live site; ask before deploy |
 | 2026-09-09 06:20 | handoff | agent-handoffs.md#2026-09-09-06:20 | current | finishbar, ux | Call Wrap; drop duplicate Upload media heading |
