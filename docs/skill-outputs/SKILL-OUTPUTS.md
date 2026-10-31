@@ -2,6 +2,7 @@
 
 | Date | Skill | Output | Notes |
 |---|---|---|---|
+| 2026-10-02 | deep-thinking (assumption-mapping + fermi) + eval-driven sweep | 5 billed eval batches + new vision-judge suite (backend/evals/vision_judge.py, scripts/pickups_vision_judge_eval.py, datasets, thresholds +1) + prompt fixes (inspect loudness ladder, orchestrator audio-before-picture) + 429/re-look resilience | Created | edd, evals, credit-sweep | Owner goal: spend expiring Gemini credits improving stations. All gates green: inspect 3×19/19, rank 3×13/13, caption 3×12/12, vision-judge 3/3. Key finds: corrected 19-row inspect exam had never been run; vision judge catches ghosting/morphing in 4 of 6 D-5 fixtures that the flicker meter passes; 768px/fps=3 minimum judge sampling (512px/4-frame flips verdicts). Evidence: docs/evidence/{pickups-vision,finish-loop,caption-write}/ |
 | 2026-08-26 | project-constitution | docs/constitution.md | v1 — 8 categories, integrity-first rules derived from owner rulings |
 | 2026-08-26 | feature-spec (specify) | docs/specs/2026-08-26-post-command-feature-spec.md | Status: Approved (owner rulings 2026-08-26). Slug: post-command |
 | 2026-08-26 | implementation-plan | docs/plans/2026-08-26-post-command-plan.md | Phases -1→6, tasks TDD/EDD-tagged, gates G0–G5 mapped, parallelization map included |

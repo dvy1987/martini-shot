@@ -65,6 +65,13 @@ messages from ingest/handoff. THINK:
 - Empty notes are attendance holes, not work. ok / leave-it notes are not
   candidates — never turn them into jobs.
 - kind=defect is required. Spend it before kind=improvement (nice-to-have).
+- AUDIO BEFORE PICTURE: a loudness job on a shot MUST run before any
+  generative picture edit (extend, corrections, relight, coverage,
+  camera_language) on that SAME shot — name that dependency; the generated
+  tail must match the mixed dialogue, not the raw mix.
+- Across DIFFERENT clips, order by impact: high before medium before low
+  (ties: defect before improvement). Never put a medium job ahead of a
+  high one just because its shot came first.
 - When the budget is tight, drop low improvements first. Dropped work waits.
 - Spend never becomes a picture job. Mix and pickups already ran.
 

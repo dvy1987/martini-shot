@@ -81,6 +81,22 @@ def _job_record(job: Any, *, scene_id: str, source_uri: str, shot_id: str) -> di
     return record
 
 
+def _with_vision_judgment(record: dict, settings: Any, gcs: Any) -> dict:
+    """One billed vision-judge look per render (2026-10-02: the flicker
+    meter is blind to ghosting/morphing). Worst-case on judge failure:
+    missing metrics fail the vision gate without aborting the run."""
+    if record.get("artifact_ref") and not record.get("omni_fallback"):
+        from backend.evals.vision_judge import judge_render_artifact
+
+        try:
+            record.update(
+                judge_render_artifact(settings, gcs, str(record["artifact_ref"]))
+            )
+        except Exception as exc:
+            record["vision_error"] = f"{type(exc).__name__}: {exc}"[:200]
+    return record
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--yes", action="store_true")
@@ -154,11 +170,15 @@ def main() -> int:
             job = process_job_id(queue, gcs, settings, f"ext-{draft_id}")
             if job is None:
                 raise RuntimeError("could not claim draft extend job")
-            record = _job_record(
-                job,
-                scene_id=scene["id"],
-                source_uri=scene["source_uri"],
-                shot_id=shot_id,
+            record = _with_vision_judgment(
+                _job_record(
+                    job,
+                    scene_id=scene["id"],
+                    source_uri=scene["source_uri"],
+                    shot_id=shot_id,
+                ),
+                settings,
+                gcs,
             )
             record["approval_id"] = draft_id
             if job.result.get("alternate_id"):
@@ -208,11 +228,15 @@ def main() -> int:
             job = process_job_id(queue, gcs, settings, f"mst-ext-{master_id}")
             if job is None:
                 raise RuntimeError("could not claim master extend job")
-            master = _job_record(
-                job,
-                scene_id=scene["id"],
-                source_uri=scene["source_uri"],
-                shot_id=shot_id,
+            master = _with_vision_judgment(
+                _job_record(
+                    job,
+                    scene_id=scene["id"],
+                    source_uri=scene["source_uri"],
+                    shot_id=shot_id,
+                ),
+                settings,
+                gcs,
             )
             master["approval_id"] = master_id
             if job.result.get("alternate_id"):

@@ -50,13 +50,15 @@ def test_corrections_draft_qc_gate() -> None:
     )
 
     assert FLICKER_GATE == 0.02
-    assert draft_qc_decision(0.003) == "pass"
-    assert draft_qc_decision(0.02) == "needs_human"
+    # 2026-10-03: vision is part of the bars — pass requires BOTH cleared
+    assert draft_qc_decision(0.003, vision=4.2) == "pass"
+    assert draft_qc_decision(0.003) == "needs_human"  # vision unmeasured
+    assert draft_qc_decision(0.02, vision=4.2) == "needs_human"
     # 2026-09-09 demo: a real, localized single-frame corruption scored
     # ~0.005 mean (well under gate) — the whole-clip average dilutes one
     # bad frame across dozens of clean ones. The worst-frame spike must
     # still gate it even when the mean alone would pass.
-    assert draft_qc_decision(0.003, spike=0.003) == "pass"
+    assert draft_qc_decision(0.003, spike=0.003, vision=4.2) == "pass"
     assert draft_qc_decision(0.003, spike=FLICKER_SPIKE_GATE) == "needs_human"
 
 
@@ -310,6 +312,10 @@ def test_corrections_quality_rejects_veo_or_missing_omni() -> None:
                 "render_model": "gemini-omni-1.1-flash-preview",
                 "omni_fallback": False,
                 "flicker": 0.003,
+                # 2026-10-02 sweep: the corrections summarizer gates on the
+                # vision judge too — a record without it is worst-case.
+                "vision_judge": 4.6,
+                "artifact_rate": 0.0,
                 "qc_decision": "pass",
                 "alternate_status": "draft",
                 "alternate_op": "correction",

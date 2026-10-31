@@ -68,6 +68,18 @@ def _parts_for(station: str, payload: bytes, media) -> tuple:
     return (images or None), audio, err
 
 
+RELOOK_COOLDOWN_S = 90.0
+
+
+def _parts_for_retry(station: str, payload: bytes, media) -> tuple[object, object, str]:
+    """Second attempt after a cool-down: transient ffmpeg flakes (one
+    WinGet ffmpeg failure cost run 2 fi-07) get one fresh extraction."""
+    import time
+
+    time.sleep(RELOOK_COOLDOWN_S)
+    return _parts_for(station, payload, media)
+
+
 def run_suite(
     run_index: int, clips: dict, media, settings, rows: list[dict]
 ) -> tuple[list[dict], dict]:
@@ -80,37 +92,63 @@ def run_suite(
         score = 0.0
         status = ""
         reason = ""
-        try:
-            if row.get("hard_gate") == "no_agent":
-                note = empty_note(station)
-            else:
-                clip_name = str(row.get("clip") or "")
-                path = clips[clip_name]
-                payload = path.read_bytes()
-                images, audio, err = _parts_for(station, payload, media)
-                if station in VISUAL_STATIONS and not images:
-                    raise RuntimeError(f"no frames for {clip_name}: {err}")
-                if station == "loudness" and audio is None:
-                    raise RuntimeError(f"no wav for {clip_name}: {err}")
-                note = run_inspect(
-                    station,
-                    settings=settings,
-                    context={
-                        "clip_uri": str(path),
-                        "eval_id": row["id"],
-                        "shot_id": f"eval-{row['id']}",
-                        "budget_micros": 50_000_000,
-                        **dict(row.get("context") or {}),
-                    },
-                    images=images,
-                    audio=audio,
+        for attempt in range(2):
+            try:
+                if row.get("hard_gate") == "no_agent":
+                    note = empty_note(station)
+                else:
+                    clip_name = str(row.get("clip") or "")
+                    path = clips[clip_name]
+                    payload = path.read_bytes()
+                    if attempt == 0:
+                        images, audio, err = _parts_for(station, payload, media)
+                    else:
+                        images, audio, err = _parts_for_retry(station, payload, media)
+                    if station in VISUAL_STATIONS and not images:
+                        raise RuntimeError(f"no frames for {clip_name}: {err}")
+                    if station == "loudness" and audio is None:
+                        raise RuntimeError(f"no wav for {clip_name}: {err}")
+                    note = run_inspect(
+                        station,
+                        settings=settings,
+                        context={
+                            "clip_uri": str(path),
+                            "eval_id": row["id"],
+                            "shot_id": f"eval-{row['id']}",
+                            "budget_micros": 50_000_000,
+                            **dict(row.get("context") or {}),
+                        },
+                        images=images,
+                        audio=audio,
+                    )
+                    cost_micros += LOOK_ESTIMATE_MICROS
+                status = note.status
+                reason = note.summary or note.reason
+                score = 1.0 if _hit(row, note) else 0.0
+            except Exception as exec_err:
+                reason = f"ERROR {type(exec_err).__name__}: {exec_err}"[:240]
+            if score == 1.0 or note is not None and note.status != "empty":
+                break
+            if attempt == 0:
+                # An empty is an attendance hole, never a fake all-good —
+                # but a quota window is not the model's judgment either.
+                # One billed re-look after a cool-down keeps the measurement
+                # honest (2026-10-01: three consecutive 429-empties failed
+                # run 2 without this).
+                print(
+                    json.dumps(
+                        {
+                            "run": run_index,
+                            "id": row["id"],
+                            "relook": "empty after attempt 1; cooling down",
+                        }
+                    ),
+                    flush=True,
                 )
-                cost_micros += LOOK_ESTIMATE_MICROS
-            status = note.status
-            reason = note.summary or note.reason
-            score = 1.0 if _hit(row, note) else 0.0
-        except Exception as exec_err:
-            reason = f"ERROR {type(exec_err).__name__}: {exec_err}"[:240]
+                note = None
+                status = ""
+                reason = ""
+                continue
         hits += int(score)
         records.append(
             {

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.core.models import OMNI_MODEL
+from backend.evals.vision_judge import vision_summary
 from backend.stations.corrections.run import FLICKER_GATE
 
 FLICKER_THRESHOLD = FLICKER_GATE
@@ -103,6 +104,10 @@ def summarize_corrections_quality(records: list[dict[str, Any]]) -> dict[str, An
     if any(_bad_tape(str(row.get("source_uri") or "")) for row in records):
         fail_reasons.append("gradient_or_synthetic_tape")
     omni_rate = (omni_n / n) if n else 0.0
+    vision = vision_summary(records)
+    fail_reasons.extend(
+        reason for reason in vision["vision_fail_reason"].split(",") if reason
+    )
     return {
         "suite": "corrections_quality",
         "metric": "mean_output_flicker",
@@ -110,6 +115,8 @@ def summarize_corrections_quality(records: list[dict[str, Any]]) -> dict[str, An
         "mean_output_flicker": round(mean_flicker, 5),
         "omni_render_rate": omni_rate,
         "omni_model": OMNI_MODEL,
+        "mean_vision_judge": vision["mean_vision_judge"],
+        "n_judged": vision["n_judged"],
         "n": n,
         "renders_completed": omni_n,
         "pass": not fail_reasons,

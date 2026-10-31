@@ -2,27 +2,29 @@
   "summaries": [
     {
       "run": 1,
-      "mean_case_accuracy": 0.75,
-      "hits": 6,
-      "n": 8,
-      "cost_micros": 12080000,
-      "pass": false
+      "mean_case_accuracy": 1.0,
+      "hits": 19,
+      "n": 19,
+      "cost_micros": 3000000,
+      "pass": true
     },
     {
       "run": 2,
-      "mean_case_accuracy": 0.75,
-      "hits": 6,
-      "n": 8,
-      "cost_micros": 9000000,
-      "pass": false
+      "mean_case_accuracy": 1.0,
+      "hits": 19,
+      "n": 19,
+      "cost_micros": 2850000,
+      "pass": true
     },
     {
       "run": 3,
-      "mean_case_accuracy": 0.75,
-      "hits": 6,
-      "n": 8,
-      "cost_micros": 12000000,
-      "pass": false
+      "mean_case_accuracy": 1.0,
+      "hits": 19,
+      "n": 19,
+      "cost_micros": 2850000,
+      "pass": true
     }
-  ]
+  ],
+  "stations": "all",
+  "estimate_micros": 8550000
 }

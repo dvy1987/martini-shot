@@ -1,0 +1,16 @@
+{
+  "suite": "camera_language_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 0.0037,
+  "omni_render_rate": 1.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "mean_vision_judge": 4.33333,
+  "n_judged": 3,
+  "n": 3,
+  "renders_completed": 3,
+  "pass": false,
+  "fail_reason": "qc_not_pass",
+  "stopped": "",
+  "project_id": "proj-camera_language-omni-20261003t072607z"
+}

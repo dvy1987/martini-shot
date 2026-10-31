@@ -1,0 +1,16 @@
+{
+  "summaries": [
+    {
+      "run": 1,
+      "mean_case_accuracy": 1.0,
+      "hits": 2,
+      "n": 2,
+      "cost_micros": 300000,
+      "pass": true
+    }
+  ],
+  "stations": [
+    "loudness"
+  ],
+  "estimate_micros": 300000
+}

@@ -1,0 +1,1 @@
+{"run": 1, "kind": "practical_lamp", "scene_id": "table-lamp", "shot_id": "shot-421368360ccc", "source_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-table-cup.mp4", "station": "relight", "approval_id": "ap-bd6c4eaacfa8", "approval_status": "resolved", "job_id": "rlt-ap-bd6c4eaacfa8", "ok": false, "error": "RuntimeError: worker could not claim the job"}

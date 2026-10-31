@@ -6,6 +6,17 @@ from backend.supervisor.inspect import validate_inspect_note
 from backend.supervisor.rank import budget_cut, rank_notes
 
 
+def test_orchestrator_prompt_carries_audio_before_picture() -> None:
+    """fr-05/fr-10 lesson (2026-10-02): the billed ranker kept putting a
+    medium extend ahead of a high loudness/defect. The prompt must carry
+    the audio-before-picture dependency and the cross-clip impact order."""
+    from backend.supervisor.rank_impl import ORCHESTRATOR_PROMPT
+
+    lowered = ORCHESTRATOR_PROMPT.lower()
+    assert "audio before picture" in lowered
+    assert "high before medium" in lowered
+
+
 def _note(**kwargs: object):
     station = str(kwargs["station"])
     payload = {

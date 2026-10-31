@@ -29,15 +29,19 @@ MEASUREMENTS: dict[str, Any] = {
 
 
 def test_suggestion_maps_flicker_and_retries() -> None:
+    from backend.stations.pickups.retry import MAX_RETRIES
+
     assert suggestion_for_report(MEASUREMENTS) == "accept"
     # Over gate, retries left -> one strengthened-anchor re-render.
     assert (
         suggestion_for_report({**MEASUREMENTS, "flicker": 0.22})
         == "retry_with_stronger_anchors"
     )
-    # Over gate, retries exhausted -> escalate.
+    # Over gate, retries exhausted (needs_human only after MAX_RETRIES total).
     assert (
-        suggestion_for_report({**MEASUREMENTS, "flicker": 0.41, "retries_used": 2})
+        suggestion_for_report(
+            {**MEASUREMENTS, "flicker": 0.41, "retries_used": MAX_RETRIES}
+        )
         == "needs_human"
     )
     # Meter integrity: no frames analyzed -> not a pass you can trust.
@@ -48,11 +52,11 @@ def test_suggestion_maps_flicker_and_retries() -> None:
 
 
 def test_prompt_contains_metric_doc_and_override_clause() -> None:
-    prompt = build_prompt(MEASUREMENTS, num_images=2)
+    prompt = build_prompt({**MEASUREMENTS, "num_images": 2}, has_video=False)
     assert "0.18" in prompt  # the gate from the metric doc
     assert "median" in prompt  # the metric definition (flicker doc)
     assert "override" in prompt.lower()  # explicit override clause
-    assert "2" in prompt  # how many frame extracts are attached
+    assert "2 real frame extract(s)" in prompt  # how many extracts are attached
     assert "accept|retry_with_stronger_anchors|needs_human" in prompt
 
 

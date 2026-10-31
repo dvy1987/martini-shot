@@ -30,23 +30,25 @@ OWNER_CAP_MICROS = 20_000_000
 def _as_note(raw: dict):
     if raw.get("status") == "empty":
         return empty_note(str(raw["station"]))
-    return validate_inspect_note(
-        {
+    payload = {
+        "station": raw["station"],
+        "agent": raw["station"],
+        "status": raw.get("status") or "needs_work",
+        "impact": raw["impact"],
+        "kind": raw.get("kind") or "defect",
+        "summary": raw.get("summary") or raw["station"],
+        "cost_estimate_micros": int(raw.get("cost_estimate_micros") or 1),
+        "shot_id": raw.get("shot_id") or "shot-a",
+    }
+    if payload["status"] == "needs_work":
+        # ok notes cannot carry a proposal (inspect contract); empty ones
+        # are handled above.
+        payload["proposal"] = {
+            "kind": "station_job",
             "station": raw["station"],
-            "agent": raw["station"],
-            "status": raw.get("status") or "needs_work",
-            "impact": raw["impact"],
-            "kind": raw.get("kind") or "defect",
-            "summary": raw.get("summary") or raw["station"],
-            "cost_estimate_micros": int(raw.get("cost_estimate_micros") or 1),
-            "proposal": {
-                "kind": "station_job",
-                "station": raw["station"],
-                "args": {},
-            },
-            "shot_id": raw.get("shot_id") or "shot-a",
+            "args": {},
         }
-    )
+    return validate_inspect_note(payload)
 
 
 def score_plan(row: dict, plan) -> tuple[float, str]:

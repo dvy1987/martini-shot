@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import Any
 
 from backend.supervisor.inspect import (
@@ -42,10 +43,19 @@ _SPECIALTY = {
         "spoken_words / scene — do not invent a different line."
     ),
     "loudness": (
-        "Hearability AND presence. Classify quiet/normal/loud with or "
-        "without dialogue. Unhearable speech is high. If speech is buried "
-        "in the room, lift the voice — do not only turn the whole track "
-        "up. Do not pump a true quiet-no-dialogue scene up to talk level."
+        "Judge loudness ONLY from the audio track; the picture cannot tell "
+        "you levels. Pick exactly one bucket. MUST: dialogue you must "
+        "strain, lean in, or rewind to catch — speech buried near the room "
+        "tone or peaking tens of dB under conversation level (e.g. max "
+        "volume around -25 dB) — the audience cannot hear the story: "
+        "status=needs_work, kind=defect, impact=HIGH, propose a loudness "
+        "job that lifts the voice above the room (do not only turn the "
+        "whole track up). MIDDLE: words land on first listen but levels "
+        "distract or occasionally bury a word — status=needs_work, "
+        "kind=defect, impact=medium, propose the same job. OK: dialogue "
+        "clean, intelligible, well balanced — status=ok, impact=none, "
+        "kind=none, no proposal. Do not pump a true quiet-no-dialogue "
+        "scene up to talk level."
     ),
     "delivery": (
         "Captions and pack completeness. Missing required captions is high. "
@@ -334,6 +344,24 @@ def run_inspect(
             except InspectNoteError as exc:
                 last_exc = exc
                 log.warning("inspect JSON retry station=%s err=%s", station, exc)
+            except Exception as exc:
+                from backend.supervisor.otel_ai import gemini_transient
+
+                if not gemini_transient(exc):
+                    raise
+                # Quota/5xx outlasting the in-call retries: back off and
+                # re-LOOK — an attendance hole must be the truth (the agent
+                # truly could not attend), not a rate-limit artifact.
+                last_exc = exc
+                delay = min(20.0 * (2**_attempt), 60.0)
+                log.warning(
+                    "inspect transient retry station=%s attempt=%s delay=%.0fs err=%s",
+                    station,
+                    _attempt,
+                    delay,
+                    exc,
+                )
+                time.sleep(delay)
         if note is None:
             raise last_exc or InspectNoteError("inspect returned no JSON")
         extra = int(response.get("cost_micros") or 0)

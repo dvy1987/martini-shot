@@ -6,3 +6,7 @@
 {"id": "write-06", "script": "", "duration_s": 8.0, "expected": {"decision": "needs_human"}, "notes": "Known-bad: empty script and no audio in this row — cannot invent dialogue."}
 {"id": "write-07", "script": "First sentence is spoken. Second sentence follows after a breath.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "Two sentences; may split cues; must not drop either sentence."}
 {"id": "write-08", "script": "Willkommen bei Martini Shot.", "duration_s": 8.0, "expected": {"decision": "write"}, "notes": "German E-3 line; meaning preserved."}
+{"expected":{"decision":"write"},"script":"Obrigado por assistir a esta sessao de revisao.","id":"write-09","duration_s":8,"notes":"Portuguese line (third demo language family); keep every word."}
+{"expected":{"decision":"write"},"script":"Vamos a intentarlo de nuevo mañana por la tarde.","id":"write-10","duration_s":8,"notes":"Accented Spanish (mañana) must survive SRT encoding intact."}
+{"expected":{"decision":"needs_human"},"script":"   ","id":"write-11","duration_s":8,"notes":"Whitespace-only script: nothing to caption, cannot invent dialogue."}
+{"expected":{"decision":"write"},"script":"Escena 12: la cafeteria cierra a las 10. Primero apagamos las luces del comedor.","id":"write-12","duration_s":12,"notes":"Numbers and two sentences at 12s: multi-cue wrap, every word kept."}

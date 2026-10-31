@@ -1,0 +1,16 @@
+{
+  "suite": "relight_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 1.0,
+  "omni_render_rate": 0.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "mean_vision_judge": 0.0,
+  "n_judged": 0,
+  "n": 1,
+  "renders_completed": 0,
+  "pass": false,
+  "fail_reason": "omni_fallback_or_non_omni_model,missing_flicker,mean_flicker_gate,qc_not_pass,alternate_not_draft,alternate_not_op,missing_vision_judge,vision_judge_gate,omni_stop",
+  "stopped": "RuntimeError: worker could not claim the job",
+  "project_id": "proj-relight-omni-20261002t065051z"
+}

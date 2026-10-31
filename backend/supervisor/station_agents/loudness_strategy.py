@@ -70,7 +70,9 @@ def suggestion_for_report(report: dict[str, Any]) -> str:
         return "accept"
     if streaming in ("fail_hot", "fail_quiet", "fail_true_peak"):
         return "apply_limiter"
-    return "accept"
+    # Meter garbage: never a fake all-good. Best-effort mix toward target;
+    # the strategy routes carry the block (never ship unmeasured audio).
+    return "apply_limiter"
 
 
 def season_lines(season_state: list[dict[str, Any]]) -> str:
@@ -128,6 +130,12 @@ def build_prompt(report: dict[str, Any], season_state: list[dict[str, Any]]) -> 
         f"room band: {report.get('room_band_lufs')} LUFS\n\n"
         f"Season (sibling episodes, LUFS):\n{season_lines(season_state)}\n\n"
         "Decision rules:\n"
+        "0. STEM IMBALANCE OUTRANKS EVERYTHING: if stem_diagnosis is "
+        "dialogue_hot or music_hot (or speech is buried in the room), "
+        "choose fix_stem — it wins over an integrated pass (an integrated "
+        "pass is not an ear-pass) and over fail_quiet/fail_hot (a blanket "
+        "limiter pass would blast the already-hot band). Rebalance first, "
+        "re-measure after.\n"
         "1. If speech is covered by ambience (music_hot / buried line), "
         "choose fix_stem so the station LIFTS THE VOICE relative to the "
         "room, then re-measure. Do not only turn the whole track up.\n"
@@ -139,8 +147,11 @@ def build_prompt(report: dict[str, Any], season_state: list[dict[str, Any]]) -> 
         "across the cut. If dialogue drops noticeably below the previous shot's "
         "dialogue or is covered by ambience, choose fix_stem to lift the voice. "
         "Season coherence: the show stays in one loudness family.\n"
-        "4. If the meter produced nothing (meter_error), choose accept "
-        "and say so in reason. Never needs_human. Best effort always.\n"
+        "4. If the meter produced nothing (meter_error), choose "
+        "apply_limiter (best-effort mix toward target_lufs) AND set "
+        "streaming_route=block and broadcast_route=block — never ship "
+        "audio that could not be measured. Say so in reason. Never "
+        "needs_human. Best effort always.\n"
         "5. If the clip is the wrong LEVEL for its class, choose "
         "apply_limiter so the station mixes toward target_lufs.\n"
         "6. Speech classes must stay audible (never target below -23 "

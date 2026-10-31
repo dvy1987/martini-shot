@@ -1,0 +1,16 @@
+{
+  "suite": "relight_quality",
+  "metric": "mean_output_flicker",
+  "threshold": 0.02,
+  "mean_output_flicker": 0.00222,
+  "omni_render_rate": 1.0,
+  "omni_model": "gemini-omni-1.1-flash-preview",
+  "mean_vision_judge": 5.0,
+  "n_judged": 3,
+  "n": 3,
+  "renders_completed": 3,
+  "pass": true,
+  "fail_reason": "",
+  "stopped": "",
+  "project_id": "proj-relight-omni-20261002t111257z"
+}

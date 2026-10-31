@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.core.models import OMNI_MODEL
+from backend.evals.vision_judge import vision_summary
 from backend.stations.relight.run import FLICKER_GATE
 
 TABLE = "gs://martini-shot-media/original-probes/20260907T080221Z-table-cup.mp4"
@@ -151,6 +152,10 @@ def summarize_quality(
     if any(row.get("alternate_op") != op for row in records):
         fail_reasons.append("alternate_not_op")
     omni_rate = (omni_n / n) if n else 0.0
+    vision = vision_summary(records)
+    fail_reasons.extend(
+        reason for reason in vision["vision_fail_reason"].split(",") if reason
+    )
     return {
         "suite": f"{station}_quality",
         "metric": "mean_output_flicker",
@@ -158,6 +163,8 @@ def summarize_quality(
         "mean_output_flicker": round(mean_flicker, 5),
         "omni_render_rate": omni_rate,
         "omni_model": OMNI_MODEL,
+        "mean_vision_judge": vision["mean_vision_judge"],
+        "n_judged": vision["n_judged"],
         "n": n,
         "renders_completed": omni_n,
         "pass": not fail_reasons,

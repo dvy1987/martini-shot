@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-07T16:54:09Z",
+  "date": "2026-10-02T12:42:12Z",
   "mode": "oss",
   "tools_available": [
     "add_activity_to_incident",
@@ -67,15 +67,6 @@
     "search_folders",
     "search_plugin_information",
     "suggest_loki_alloy_label_config",
-    "tempo_docs-config",
-    "tempo_docs-traceql",
-    "tempo_get-attribute-names",
-    "tempo_get-attribute-values",
-    "tempo_get-trace",
-    "tempo_trace-diff",
-    "tempo_traceql-metrics-instant",
-    "tempo_traceql-metrics-range",
-    "tempo_traceql-search",
     "update_alert_group",
     "update_annotation",
     "update_dashboard",
@@ -86,7 +77,7 @@
   ],
   "pulse": {
     "project_id": "proj-pulse-live",
-    "grafana": "ok",
+    "grafana": "unavailable",
     "factory": {
       "verdict": "unknown",
       "headline": "Factory health is unknown until Grafana answers."
@@ -102,6 +93,8 @@
     },
     "wheel": {
       "items": []
-    }
+    },
+    "dashboards": [],
+    "jobs": []
   }
 }

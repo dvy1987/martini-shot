@@ -91,12 +91,61 @@ def test_visual_qc_maps_promote_to_master_eligible() -> None:
     assert map_visual_qc_decision("abstain", revision_count=0) == "escalate"
 
 
-def test_flicker_only_metrics_can_promote() -> None:
+def test_flicker_only_metrics_cannot_promote() -> None:
+    """2026-10-03: the product judges every render (stations/vision_qc.py),
+    so flicker-only metrics mean the vision look is missing — abstain,
+    never promote blind (unmeasured is not a pass, C-3.5)."""
     from backend.supervisor.station_agents.visual_qc import suggestion_for_metrics
 
-    assert suggestion_for_metrics({"flicker": 0.003}) == "promote"
+    assert suggestion_for_metrics({"flicker": 0.003}) == "abstain"
     assert suggestion_for_metrics({"flicker": 0.4}) == "bounded_revision"
     assert suggestion_for_metrics(None) == "abstain"
+
+
+def test_vision_unmeasured_never_clears_master_bars() -> None:
+    """2026-10-03 gap fix: the product never produced vision_judge, so
+    `vision is None` passed the bar forever. Unmeasured is not cleared."""
+    from backend.stations.draft_first import draft_cleared_bars
+
+    assert (
+        draft_cleared_bars(
+            {"op": "relight", "status": "draft", "eval_scores": {"flicker": 0.003}}
+        )
+        is False
+    )
+    assert (
+        draft_cleared_bars(
+            {
+                "op": "relight",
+                "status": "draft",
+                "eval_scores": {"flicker": 0.003, "vision_judge": 4.2},
+            }
+        )
+        is True
+    )
+    assert (
+        draft_cleared_bars(
+            {
+                "op": "relight",
+                "status": "draft",
+                "eval_scores": {"flicker": 0.003, "vision_judge": 3.9},
+            }
+        )
+        is False
+    )
+
+
+def test_visual_qc_sub_bar_vision_blocks_promote() -> None:
+    """Visual QC fallback: a present-but-sub-bar vision judgment must not
+    promote; a missing one must abstain rather than promote blind."""
+    from backend.supervisor.station_agents.visual_qc import suggestion_for_metrics
+
+    assert (
+        suggestion_for_metrics({"flicker": 0.003, "vision_judge": 3.1})
+        == "bounded_revision"
+    )
+    assert suggestion_for_metrics({"flicker": 0.003, "vision_judge": 4.6}) == "promote"
+    assert suggestion_for_metrics({"flicker": 0.003}) == "abstain"
 
 
 def test_apply_draft_qc_stamps_master_eligible_without_live_gemini() -> None:
@@ -111,6 +160,7 @@ def test_apply_draft_qc_stamps_master_eligible_without_live_gemini() -> None:
             "shot_id": "shot-a",
             "worklist_item": "relight::shot-a",
             "flicker": 0.001,
+            "vision_judge": 4.6,
             "preset": "noir",
             "alternate_id": "alt-1",
             "tier": "draft",

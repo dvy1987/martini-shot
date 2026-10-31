@@ -66,7 +66,10 @@ def draft_cleared_bars(alternate: dict[str, Any]) -> bool:
     if flicker is None:
         return False
     flicker_ok = flicker < FLICKER_BAR
-    vision_ok = vision is None or vision >= VISION_BAR
+    # 2026-10-03 gap fix: the product never produced vision_judge, so
+    # `vision is None` passed this bar forever. Unmeasured is not cleared
+    # (C-3.5 worst-case); stations now judge every render (vision_qc.py).
+    vision_ok = vision is not None and vision >= VISION_BAR
     return flicker_ok and vision_ok
 
 
@@ -144,9 +147,8 @@ def map_visual_qc_decision(decision: str, *, revision_count: int) -> str:
 
 
 def metrics_from_job_result(result: dict[str, Any]) -> dict[str, Any] | None:
-    scores = (
-        result.get("eval_scores") if isinstance(result.get("eval_scores"), dict) else {}
-    )
+    raw_scores = result.get("eval_scores")
+    scores: dict[str, Any] = raw_scores if isinstance(raw_scores, dict) else {}
     flicker = _as_float(result.get("flicker"))
     if flicker is None:
         flicker = _as_float(scores.get("flicker"))
@@ -158,6 +160,11 @@ def metrics_from_job_result(result: dict[str, Any]) -> dict[str, Any] | None:
     metrics: dict[str, Any] = {"flicker": flicker}
     if artifact is not None:
         metrics["artifact_rate"] = artifact
+    vision = _as_float(result.get("vision_judge"))
+    if vision is None:
+        vision = _as_float(scores.get("vision_judge"))
+    if vision is not None:
+        metrics["vision_judge"] = vision
     return metrics
 
 

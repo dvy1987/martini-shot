@@ -14,33 +14,33 @@
   "per_run": [
     {
       "run": 1,
-      "mean_duration_delta_mae_ms": 4.8,
+      "mean_duration_delta_mae_ms": 6.4,
       "timing_pass": true,
       "truncation_recall": 1.0,
       "truncation_hits": 4,
       "truncation_total": 4,
       "recall_pass": true,
-      "cost_micros": 73170
+      "cost_micros": 85802
     },
     {
       "run": 2,
-      "mean_duration_delta_mae_ms": 8.0,
+      "mean_duration_delta_mae_ms": 4.4,
       "timing_pass": true,
       "truncation_recall": 1.0,
       "truncation_hits": 4,
       "truncation_total": 4,
       "recall_pass": true,
-      "cost_micros": 73951
+      "cost_micros": 86461
     },
     {
       "run": 3,
-      "mean_duration_delta_mae_ms": 9.9,
+      "mean_duration_delta_mae_ms": 7.5,
       "timing_pass": true,
       "truncation_recall": 1.0,
       "truncation_hits": 4,
       "truncation_total": 4,
       "recall_pass": true,
-      "cost_micros": 73408
+      "cost_micros": 87748
     }
   ],
   "timing_pass": true,

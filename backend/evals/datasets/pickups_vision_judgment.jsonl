@@ -1,0 +1,6 @@
+{"id": "pv-05", "clip": "p05.mp4", "op": "background_swap", "expected": "defective", "notes": "G0 meadow bg-swap 1s window: severe ghosting/double-exposure flagged 3/3 runs, frames 2-3. Invisible to the flicker meter (spatial, not temporal)."}
+{"id": "pv-06", "clip": "p06.mp4", "op": "background_swap", "expected": "clear", "notes": "Same meadow render, 4s window: clean 3/3 runs — the judge discriminates within one source."}
+{"id": "pv-07", "clip": "p07.mp4", "op": "outpaint_reframe", "expected": "defective", "notes": "Grove outpaint: borderline at 4-frame/512px sampling (split 5.0/3.0/2.0), then 1.0 with ALL 6 frames flagged at 768px/fps=3 — severe temporal inconsistency, faces and prop colors jump between takes. Low-res undersampling masked the morphing."}
+{"id": "pv-08", "clip": "p08.mp4", "op": "outpaint_reframe", "expected": "clear", "notes": "Grove outpaint: clean 3/3 runs."}
+{"id": "pv-09", "clip": "p09.mp4", "op": "relight", "expected": "defective", "notes": "G0 clearing relight 1s window: severe ghosting flagged 3/3 runs, frames 0-1. Invisible to the flicker meter."}
+{"id": "pv-10", "clip": "p10.mp4", "op": "relight", "expected": "defective", "notes": "Highest flicker-meter spike of the set (0.017) — and indeed 2.0 with temporal jitter flagged 3/3 runs at 768px/fps=3 sampling. The 4-frame/512px sample masked it: undersampling fools the judge."}

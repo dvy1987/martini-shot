@@ -1,0 +1,1 @@
+{"run": 1, "kind": "reverse_angle", "scene_id": "table-reverse", "shot_id": "shot-ca26a2179b2e", "source_uri": "gs://martini-shot-media/original-probes/20260907T080221Z-table-cup.mp4", "station": "coverage", "approval_id": "ap-22eaaa8ee9ba", "approval_status": "resolved", "job_id": "cov-ap-22eaaa8ee9ba", "ok": false, "error": "RuntimeError: worker could not claim the job"}

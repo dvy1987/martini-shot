@@ -43,6 +43,9 @@ SCHEMA: dict[str, Any] = {
 # QC bars (mirror thresholds.yaml pickups_flicker / pickups_artifact_rate).
 FLICKER_BAR = 0.02
 ARTIFACT_BAR = 0.08
+# Mirrors thresholds.yaml pickups_vision_judge (2026-10-03: the product
+# now produces this score on every render — stations/vision_qc.py).
+VISION_BAR = 4.0
 
 
 def _as_float(value: Any) -> float | None:
@@ -55,16 +58,23 @@ def _as_float(value: Any) -> float | None:
 def suggestion_for_metrics(metrics_doc: dict[str, Any] | None) -> str:
     """Deterministic default: no real metrics -> abstain; all bars clear
     -> promote; ANY breach -> bounded_revision. Self-reports are not
-    evidence and are deliberately not read here."""
+    evidence and are deliberately not read here. The vision judgment is
+    part of the bars (2026-10-03): sub-bar = breach, and a render with no
+    vision judgment is unmeasured — abstain, never promote blind."""
     if not metrics_doc:
         return "abstain"
     flicker = _as_float(metrics_doc.get("flicker"))
     artifact_rate = _as_float(metrics_doc.get("artifact_rate"))
+    vision = _as_float(metrics_doc.get("vision_judge"))
     if flicker is None:
         return "abstain"  # a malformed meter reading is not evidence either
     if flicker >= FLICKER_BAR:
         return "bounded_revision"
     if artifact_rate is not None and artifact_rate >= ARTIFACT_BAR:
+        return "bounded_revision"
+    if vision is None:
+        return "abstain"  # unmeasured vision is not a pass (C-3.5)
+    if vision < VISION_BAR:
         return "bounded_revision"
     return "promote"
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from backend.core.models import OMNI_MODEL
+from backend.evals.vision_judge import vision_summary
 from backend.stations.extend.run import FLICKER_GATE
 
 FLICKER_THRESHOLD = FLICKER_GATE
@@ -57,6 +58,10 @@ def summarize_extend_quality(
     if len(masters) < min_masters:
         fail_reasons.append("too_few_masters")
     omni_rate = (omni_n / n) if n else 0.0
+    vision = vision_summary(records)
+    fail_reasons.extend(
+        reason for reason in vision["vision_fail_reason"].split(",") if reason
+    )
     return {
         "suite": "extend_quality",
         "metric": "mean_output_flicker",
@@ -64,6 +69,8 @@ def summarize_extend_quality(
         "mean_output_flicker": round(mean_flicker, 5),
         "omni_render_rate": omni_rate,
         "omni_model": OMNI_MODEL,
+        "mean_vision_judge": vision["mean_vision_judge"],
+        "n_judged": vision["n_judged"],
         "n": n,
         "drafts": len(drafts),
         "masters": len(masters),

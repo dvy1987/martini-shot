@@ -8,30 +8,30 @@
   "per_run": [
     {
       "run": 1,
-      "mean_case_accuracy": 0.875,
-      "hits": 7,
-      "n": 8,
-      "cost_micros": 39526,
+      "mean_case_accuracy": 1.0,
+      "hits": 12,
+      "n": 12,
+      "cost_micros": 52742,
       "pass": true
     },
     {
       "run": 2,
-      "mean_case_accuracy": 0.875,
-      "hits": 7,
-      "n": 8,
-      "cost_micros": 33646,
+      "mean_case_accuracy": 1.0,
+      "hits": 12,
+      "n": 12,
+      "cost_micros": 59923,
       "pass": true
     },
     {
       "run": 3,
-      "mean_case_accuracy": 0.875,
-      "hits": 7,
-      "n": 8,
-      "cost_micros": 32403,
+      "mean_case_accuracy": 1.0,
+      "hits": 12,
+      "n": 12,
+      "cost_micros": 58599,
       "pass": true
     }
   ],
-  "cost_micros": 105575,
-  "cost_usd": 0.1056,
+  "cost_micros": 171264,
+  "cost_usd": 0.1713,
   "pass": true
 }

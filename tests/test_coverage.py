@@ -55,10 +55,14 @@ def test_draft_qc_decision_catches_a_single_frame_spike_the_mean_misses() -> Non
         draft_qc_decision,
     )
 
-    assert draft_qc_decision(0.001) == "pass"
-    assert draft_qc_decision(0.001, spike=0.001) == "pass"
-    assert draft_qc_decision(0.001, spike=FLICKER_SPIKE_GATE) == "needs_human"
-    assert draft_qc_decision(FLICKER_GATE) == "needs_human"
+    # 2026-10-03: vision is part of the bars — pass requires BOTH cleared
+    assert draft_qc_decision(0.001, vision=4.2) == "pass"
+    assert draft_qc_decision(0.001, spike=0.001, vision=4.2) == "pass"
+    assert draft_qc_decision(0.001) == "needs_human"  # vision unmeasured
+    assert (
+        draft_qc_decision(0.001, spike=FLICKER_SPIKE_GATE, vision=4.2) == "needs_human"
+    )
+    assert draft_qc_decision(FLICKER_GATE, vision=4.2) == "needs_human"
 
 
 def test_coverage_agent_abstains_without_references() -> None:

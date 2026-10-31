@@ -34,10 +34,15 @@ def test_draft_qc_decision_catches_a_single_frame_spike_the_mean_misses() -> Non
         draft_qc_decision,
     )
 
-    assert draft_qc_decision(0.001) == "pass"
-    assert draft_qc_decision(0.001, spike=0.001) == "pass"
-    assert draft_qc_decision(0.001, spike=FLICKER_SPIKE_GATE) == "needs_human"
-    assert draft_qc_decision(FLICKER_GATE) == "needs_human"
+    assert draft_qc_decision(0.001, vision=4.2) == "pass"
+    assert draft_qc_decision(0.001, spike=0.001, vision=4.2) == "pass"
+    # 2026-10-03: vision is part of the bars — unmeasured/sub-bar is a breach
+    assert draft_qc_decision(0.001) == "needs_human"
+    assert draft_qc_decision(0.001, vision=3.9) == "needs_human"
+    assert (
+        draft_qc_decision(0.001, spike=FLICKER_SPIKE_GATE, vision=4.2) == "needs_human"
+    )
+    assert draft_qc_decision(FLICKER_GATE, vision=4.2) == "needs_human"
 
 
 def test_relight_station_is_dispatched() -> None:

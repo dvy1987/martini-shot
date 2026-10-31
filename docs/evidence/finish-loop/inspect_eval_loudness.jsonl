@@ -1,0 +1,2 @@
+{"run": 1, "id": "fi-01", "station": "loudness", "expected": {"status": "needs_work", "impact": "high", "kind": "defect"}, "status": "needs_work", "impact": "high", "kind": "defect", "reason": "Dialogue level is buried far below standard listening volume and requires normalization.", "score": 1.0}
+{"run": 1, "id": "fi-05", "station": "loudness", "expected": {"status": "ok", "impact": "none", "kind": "none"}, "status": "ok", "impact": "none", "kind": "none", "reason": "Dialogue is clear and well balanced without requiring loudness adjustments.", "score": 1.0}

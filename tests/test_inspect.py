@@ -152,6 +152,16 @@ def test_relight_inspect_prompt_asks_about_dark_faces() -> None:
     assert "dark" in lowered or "shadow" in lowered
 
 
+def test_loudness_inspect_prompt_calibrates_strain_as_high() -> None:
+    """fi-01 lesson: audible-but-far-too-quiet dialogue is impact=high, not medium."""
+    from backend.supervisor.inspect_impl import station_inspect_prompt
+
+    text = station_inspect_prompt("loudness", {"clip_uri": "gs://bucket/clip.mp4"})
+    lowered = text.lower()
+    assert "strain" in lowered
+    assert "impact=high" in lowered
+
+
 def test_parse_dark_faces_as_defect() -> None:
     from backend.supervisor.inspect_impl import parse_inspect_text
 
@@ -268,3 +278,47 @@ def test_visual_inspect_without_frames_is_empty_not_a_guess() -> None:
     )
     assert note.status == "empty"
     assert note.summary == ""
+
+
+def test_transient_rate_limit_retries_the_look_before_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """429 outlasting the in-call retries must retry the LOOK with backoff,
+    not collapse to an empty attendance hole (2026-10-01 eval quota lesson)."""
+    from backend.supervisor import otel_ai
+
+    attempts: list[int] = []
+
+    def _flaky(*args: object, **kwargs: object) -> dict[str, object]:
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise RuntimeError("429 RESOURCE_EXHAUSTED Resource exhausted")
+        return {
+            "text": json.dumps(
+                {
+                    "station": "loudness",
+                    "agent": "loudness_strategy",
+                    "status": "ok",
+                    "impact": "none",
+                    "kind": "none",
+                    "summary": "clean",
+                    "cost_estimate_micros": 80_000,
+                }
+            ),
+            "cost_micros": 1_000,
+        }
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(otel_ai, "run_agent_call", _flaky)
+    monkeypatch.setattr(
+        "backend.supervisor.inspect_impl.time.sleep",
+        lambda seconds: sleeps.append(seconds),
+    )
+    note = run_inspect(
+        "loudness",
+        settings=object(),
+        context={"clip_uri": "gs://bucket/clip.mp4"},
+    )
+    assert len(attempts) == 2
+    assert note.status == "ok"
+    assert sleeps, "transient retry must back off before re-looking"

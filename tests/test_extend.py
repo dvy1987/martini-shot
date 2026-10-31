@@ -77,16 +77,20 @@ def test_extend_draft_qc_gate() -> None:
     )
 
     assert FLICKER_GATE == 0.02
-    assert draft_qc_decision(0.0031) == "pass"
-    assert draft_qc_decision(0.0199) == "pass"
-    assert draft_qc_decision(0.02) == "needs_human"
-    assert draft_qc_decision(0.5) == "needs_human"
+    # 2026-10-03: vision is part of the bars — unmeasured/sub-bar is a breach
+    assert draft_qc_decision(0.0031, vision=4.2) == "pass"
+    assert draft_qc_decision(0.0199, vision=4.2) == "pass"
+    assert draft_qc_decision(0.0031) == "needs_human"
+    assert draft_qc_decision(0.02, vision=4.2) == "needs_human"
+    assert draft_qc_decision(0.5, vision=4.2) == "needs_human"
     # 2026-09-09 demo: a real, localized single-frame corruption scored
     # ~0.005 mean (well under gate) — the whole-clip average dilutes one
     # bad frame across dozens of clean ones. The worst-frame spike must
     # still gate it even when the mean alone would pass.
-    assert draft_qc_decision(0.003, spike=0.003) == "pass"
-    assert draft_qc_decision(0.003, spike=FLICKER_SPIKE_GATE) == "needs_human"
+    assert draft_qc_decision(0.003, spike=0.003, vision=4.2) == "pass"
+    assert (
+        draft_qc_decision(0.003, spike=FLICKER_SPIKE_GATE, vision=4.2) == "needs_human"
+    )
     assert resolution_for_tier("draft") == "360p"
     assert resolution_for_tier("master") == "720p"
     assert resolution_for_tier("") == "360p"
@@ -206,7 +210,10 @@ def test_extend_proposal_approve_enqueues_real_job(env, run_id, monkeypatch) -> 
             project_id=project_id,
             op="extend",
             artifact_ref=f"gs://{settings.gcs_bucket}/probes/shot-01-meadow.mp4",
-            eval_scores={"flicker": 0.003},
+            # 2026-10-03: the station judges every render (vision_qc.py), so
+            # a QC-passing draft carries a vision judgment — a master may
+            # only be requested after BOTH bars clear (draft-first, A5).
+            eval_scores={"flicker": 0.003, "vision_judge": 4.4},
             tier="draft",
         )
         master = client.post(
@@ -236,6 +243,10 @@ def _omni_record(**overrides: object) -> dict:
         "render_model": "gemini-omni-1.1-flash-preview",
         "omni_fallback": False,
         "flicker": 0.003,
+        # 2026-10-02 sweep: the extend summarizer gates on the vision judge
+        # too — a record without the judgment is worst-case missing.
+        "vision_judge": 4.6,
+        "artifact_rate": 0.0,
         "qc_decision": "pass",
         "alternate_status": "draft",
         "start_maker": "omni",

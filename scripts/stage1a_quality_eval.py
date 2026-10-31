@@ -143,6 +143,21 @@ def main() -> int:
                     )
                     record["alternate_status"] = (alternate or {}).get("status")
                     record["alternate_op"] = (alternate or {}).get("op")
+                if record.get("artifact_ref") and not record.get("omni_fallback"):
+                    from backend.evals.vision_judge import judge_render_artifact
+
+                    try:
+                        record.update(
+                            judge_render_artifact(
+                                settings, gcs, str(record["artifact_ref"])
+                            )
+                        )
+                    except Exception as judge_exc:
+                        # Worst-case: a missing judgment fails the vision
+                        # gate without aborting the remaining renders.
+                        record["vision_error"] = (
+                            f"{type(judge_exc).__name__}: {judge_exc}"[:200]
+                        )
                 model = str(record.get("render_model") or "")
                 if record.get("omni_fallback") or "omni" not in model.lower():
                     stopped = (

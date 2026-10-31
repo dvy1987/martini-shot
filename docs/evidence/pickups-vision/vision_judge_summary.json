@@ -1,0 +1,34 @@
+{
+  "suite": "pickups_vision_judge+pickups_artifact_rate",
+  "runs": 3,
+  "per_run": [
+    {
+      "mean_vision_judge": 5.0,
+      "artifact_rate": 0.0,
+      "mean_case_accuracy": 1.0,
+      "n": 6,
+      "pass": true,
+      "fail_reason": "",
+      "run": 1
+    },
+    {
+      "mean_vision_judge": 5.0,
+      "artifact_rate": 0.0,
+      "mean_case_accuracy": 1.0,
+      "n": 6,
+      "pass": true,
+      "fail_reason": "",
+      "run": 2
+    },
+    {
+      "mean_vision_judge": 5.0,
+      "artifact_rate": 0.0,
+      "mean_case_accuracy": 1.0,
+      "n": 6,
+      "pass": true,
+      "fail_reason": "",
+      "run": 3
+    }
+  ],
+  "pass": true
+}
